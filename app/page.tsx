@@ -254,9 +254,7 @@ export default function HomePage() {
               <div className="space-y-4">
                 <h3 className="text-2xl font-bold text-white">Community Events</h3>
                 <p className="text-gray-300">
-                  Beyond cleanliness, we organize various community events that bring people together, celebrate local
-                  culture, and create lasting bonds. From cultural festivals to awareness campaigns, we're building
-                  stronger communities.
+                  Beyond cleanliness, we organize various community events that bring people together, celebrate local culture, and create lasting bonds. From cultural festivals to awareness campaigns, we&apos;re building stronger communities.
                 </p>
                 <div className="grid grid-cols-2 gap-4 pt-4">
                   <div className="text-center p-4 bg-gray-800 rounded-lg border border-yellow-500/20">

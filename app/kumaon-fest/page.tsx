@@ -60,8 +60,7 @@ export default function KumaonFestPage() {
                     <span className="text-yellow-400">2024</span>
                   </h1>
                   <p className="max-w-[600px] text-gray-300 md:text-xl leading-relaxed">
-                    Experience the vibrant culture of Kumaon through music, art, literature, and traditional
-                    performances. Join us in celebrating the rich heritage of Uttarakhand's hill region.
+                    Experience the vibrant culture of Kumaon through music, art, literature, and traditional performances. Join us in celebrating the rich heritage of Uttarakhand&apos;s hill region.
                   </p>
                 </div>
                 <div className="flex flex-col gap-4 min-[400px]:flex-row">
