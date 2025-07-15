@@ -49,34 +49,34 @@ export default function KumaonFestPage() {
         {/* Hero Section */}
         <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
           <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_500px] lg:gap-12">
+            <div className="grid gap-8 md:gap-12 lg:grid-cols-[1fr_500px] items-center">
               <div className="flex flex-col justify-center space-y-6">
                 <div className="space-y-4">
                   <Badge className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/20 border-yellow-500/30 w-fit">
                     Annual Cultural Celebration
                   </Badge>
-                  <h1 className="text-4xl font-bold tracking-tighter sm:text-6xl xl:text-7xl/none">
+                  <h1 className="text-3xl font-bold tracking-tighter sm:text-6xl xl:text-7xl/none">
                     <span className="text-yellow-400">Kumaon</span> <span className="text-white">Fest</span>{" "}
                     <span className="text-yellow-400">2024</span>
                   </h1>
-                  <p className="max-w-[600px] text-gray-300 md:text-xl leading-relaxed">
+                  <p className="max-w-[600px] text-gray-300 md:text-xl leading-relaxed break-words overflow-x-auto">
                     Experience the vibrant culture of Kumaon through music, art, literature, and traditional performances. Join us in celebrating the rich heritage of Uttarakhand&apos;s hill region.
                   </p>
                 </div>
-                <div className="flex flex-col gap-4 min-[400px]:flex-row">
-                  <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold">
+                <div className="flex flex-col gap-2 sm:flex-row w-full">
+                  <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold w-full sm:w-auto">
                     <Ticket className="mr-2 h-4 w-4" />
                     Book Your Tickets
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
-                    className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10 bg-transparent"
+                    className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10 bg-transparent w-full sm:w-auto"
                   >
                     View Schedule
                   </Button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 pt-4">
                   <div className="flex items-center space-x-2 text-sm text-gray-300">
                     <CalendarDays className="h-4 w-4 text-yellow-400" />
                     <span className="font-medium">Sept 15-17, 2024</span>
@@ -91,14 +91,14 @@ export default function KumaonFestPage() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-center">
-                <div className="relative">
+              <div className="flex items-center justify-center mt-8 md:mt-0">
+                <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
                   <Image
                     src="/placeholder.svg?height=500&width=500"
                     width={500}
                     height={500}
                     alt="Kumaon Fest celebration"
-                    className="aspect-square overflow-hidden rounded-2xl object-cover shadow-2xl border-2 border-yellow-500/20"
+                    className="aspect-square overflow-hidden rounded-2xl object-cover shadow-2xl border-2 border-yellow-500/20 w-full"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl" />
                 </div>

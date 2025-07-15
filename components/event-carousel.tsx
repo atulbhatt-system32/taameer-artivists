@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight } from "lucide-react"
@@ -51,13 +51,31 @@ const events = [
 
 export function EventCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [itemsPerView, setItemsPerView] = useState(1)
+
+  useEffect(() => {
+    const updateItemsPerView = () => {
+      if (window.innerWidth < 640) {
+        setItemsPerView(1)
+      } else if (window.innerWidth < 1024) {
+        setItemsPerView(2)
+      } else {
+        setItemsPerView(3)
+      }
+    }
+    updateItemsPerView()
+    window.addEventListener("resize", updateItemsPerView)
+    return () => window.removeEventListener("resize", updateItemsPerView)
+  }, [])
+
+  const maxIndex = Math.max(0, events.length - itemsPerView)
 
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % events.length)
+    setCurrentIndex((prevIndex) => Math.min(prevIndex + 1, maxIndex))
   }
 
   const prevSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + events.length) % events.length)
+    setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0))
   }
 
   const goToSlide = (index: number) => {
@@ -81,10 +99,13 @@ export function EventCarousel() {
       <div className="overflow-hidden rounded-lg">
         <div
           className="flex transition-transform duration-300 ease-in-out"
-          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+          style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)` }}
         >
           {events.map((event) => (
-            <div key={event.id} className="w-full flex-shrink-0">
+            <div
+              key={event.id}
+              className="flex-shrink-0 px-2 w-full sm:w-1/2 lg:w-1/3"
+            >
               <Card className="mx-2">
                 <div className="md:flex">
                   <div className="md:w-1/2">
@@ -117,12 +138,12 @@ export function EventCarousel() {
 
       {/* Dots indicator */}
       <div className="flex justify-center space-x-2 mt-6">
-        {events.map((_, index) => (
+        {Array.from({ length: Math.ceil(events.length / itemsPerView) }).map((_, index) => (
           <button
             key={index}
-            onClick={() => goToSlide(index)}
+            onClick={() => goToSlide(index * itemsPerView)}
             className={`w-2 h-2 rounded-full transition-colors ${
-              index === currentIndex ? "bg-yellow-500" : "bg-gray-300"
+              Math.floor(currentIndex / itemsPerView) === index ? "bg-yellow-500" : "bg-gray-300"
             }`}
           />
         ))}

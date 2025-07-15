@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
@@ -46,7 +46,22 @@ const galleryImages = [
 
 export function GalleryCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const itemsPerView = 3
+  const [itemsPerView, setItemsPerView] = useState(3)
+
+  useEffect(() => {
+    const updateItemsPerView = () => {
+      if (window.innerWidth < 640) {
+        setItemsPerView(1)
+      } else if (window.innerWidth < 1024) {
+        setItemsPerView(2)
+      } else {
+        setItemsPerView(3)
+      }
+    }
+    updateItemsPerView()
+    window.addEventListener("resize", updateItemsPerView)
+    return () => window.removeEventListener("resize", updateItemsPerView)
+  }, [])
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex + itemsPerView >= galleryImages.length ? 0 : prevIndex + itemsPerView))
@@ -75,10 +90,13 @@ export function GalleryCarousel() {
       <div className="overflow-hidden rounded-lg">
         <div
           className="flex transition-transform duration-300 ease-in-out"
-          style={{ transform: `translateX(-${(currentIndex / itemsPerView) * 100}%)` }}
+          style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)` }}
         >
           {galleryImages.map((image) => (
-            <div key={image.id} className="w-1/3 flex-shrink-0 px-2">
+            <div
+              key={image.id}
+              className="flex-shrink-0 px-2 w-full sm:w-1/2 lg:w-1/3"
+            >
               <div className="relative group cursor-pointer">
                 <Image
                   src={image.src || "/placeholder.svg"}

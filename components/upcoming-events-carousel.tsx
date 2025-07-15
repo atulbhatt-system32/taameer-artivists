@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -62,7 +62,22 @@ const upcomingEvents = [
 
 export function UpcomingEventsCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const itemsPerView = 4
+  const [itemsPerView, setItemsPerView] = useState(4)
+
+  useEffect(() => {
+    const updateItemsPerView = () => {
+      if (window.innerWidth < 640) {
+        setItemsPerView(1)
+      } else if (window.innerWidth < 1024) {
+        setItemsPerView(2)
+      } else {
+        setItemsPerView(4)
+      }
+    }
+    updateItemsPerView()
+    window.addEventListener("resize", updateItemsPerView)
+    return () => window.removeEventListener("resize", updateItemsPerView)
+  }, [])
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex + itemsPerView >= upcomingEvents.length ? 0 : prevIndex + 1))
@@ -94,7 +109,10 @@ export function UpcomingEventsCarousel() {
           style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)` }}
         >
           {upcomingEvents.map((event) => (
-            <div key={event.id} className="w-1/4 flex-shrink-0 px-2">
+            <div
+              key={event.id}
+              className="flex-shrink-0 px-2 w-full sm:w-1/2 lg:w-1/4"
+            >
               <Card className="h-full border-yellow-200 hover:border-yellow-400 transition-all duration-300 hover:shadow-md">
                 <div className="relative">
                   <Image
