@@ -122,10 +122,7 @@ export default function KumaonFestPage() {
                     heritage.
                   </p>
                   <p className="text-gray-600 leading-relaxed">
-                    Set against the backdrop of the beautiful Himalayan foothills in Haldwani, the festival creates a
-                    unique space where traditional Kumaoni culture meets contemporary artistic expression. It's more
-                    than just an event—it's a movement to preserve, promote, and pass on our cultural identity to future
-                    generations.
+                    Set against the backdrop of the beautiful Himalayan foothills in Haldwani, the festival creates a unique space where traditional Kumaoni culture meets contemporary artistic expression. It&apos;s more than just an event—it&apos;s a movement to preserve, promote, and pass on our cultural identity to future generations.
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -447,7 +444,7 @@ export default function KumaonFestPage() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-6 text-center text-white">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                Don't Miss <span className="text-yellow-400">Kumaon Fest 2024</span>
+                Don&apos;t Miss <span className="text-yellow-400">Kumaon Fest 2024</span>
               </h2>
               <p className="max-w-[600px] md:text-xl text-gray-300">
                 Secure your spot at the most anticipated cultural celebration of the year. Early bird tickets are now

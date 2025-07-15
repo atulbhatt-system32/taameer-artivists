@@ -10,7 +10,7 @@ import organizationData from "@/data/organization.json"
 import eventsData from "@/data/events.json"
 
 export default function HomePage() {
-  const { name, shortName, tagline, description, mission, locations, volunteers, impact, focusAreas } = organizationData
+  const { name, tagline, description, mission, locations, volunteers, impact, focusAreas } = organizationData
   const { featuredEvent } = eventsData
 
   const formatDate = (startDate: string, endDate: string) => {
@@ -150,7 +150,7 @@ export default function HomePage() {
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-gray-900">Featured Event</h2>
               <p className="max-w-[600px] text-gray-600 md:text-xl">
-                Don't miss our signature annual celebration of Kumaoni culture and traditions
+                Don&apos;t miss our signature annual celebration of Kumaoni culture and traditions
               </p>
             </div>
             <div className="mx-auto max-w-4xl">
@@ -229,7 +229,7 @@ export default function HomePage() {
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-white">Our Impact</h2>
               <p className="max-w-[600px] text-gray-300 md:text-xl">
-                See how we're making a difference in communities across {locations.join(" and ")}
+                See how we&apos;re making a difference in communities across {locations.join(" and ")}
               </p>
             </div>
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
@@ -279,8 +279,7 @@ export default function HomePage() {
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-gray-900">Get Involved</h2>
               <p className="max-w-[600px] text-gray-600 md:text-xl">
-                Join our mission to build better communities. Whether you want to volunteer, partner with us, or attend
-                our events, we'd love to hear from you.
+                Join our mission to build better communities. Whether you want to volunteer, partner with us, or attend our events, we&apos;d love to hear from you.
               </p>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold">
