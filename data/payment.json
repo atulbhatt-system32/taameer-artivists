@@ -1,0 +1,37 @@
+{
+  "paymentMethods": {
+    "upi": {
+      "enabled": true,
+      "upiId": "taameerartivists@paytm",
+      "qrCodeImage": "/placeholder.svg?height=300&width=300",
+      "displayName": "Taameer Artivists Foundation",
+      "instructions": [
+        "Scan the QR code using any UPI app",
+        "Or copy the UPI ID and make payment",
+        "Enter the event name and your details in payment description",
+        "Take a screenshot of payment confirmation",
+        "Send confirmation to our WhatsApp: +91-9876543210"
+      ]
+    },
+    "bankTransfer": {
+      "enabled": true,
+      "accountName": "Taameer Artivists Foundation",
+      "accountNumber": "1234567890123456",
+      "ifscCode": "SBIN0001234",
+      "bankName": "State Bank of India",
+      "branch": "Haldwani Main Branch",
+      "instructions": [
+        "Transfer the amount to the above bank account",
+        "Use event name as reference in transaction",
+        "Send payment proof to taameerartivists@gmail.com",
+        "Include your name, phone number, and event details"
+      ]
+    },
+    "contact": {
+      "whatsapp": "+91-9876543210",
+      "email": "taameerartivists@gmail.com",
+      "phone": "+91-9876543210"
+    }
+  },
+  "paymentNote": "All payments are processed manually. You will receive a confirmation within 24 hours of payment. For any payment related queries, please contact us on WhatsApp or email."
+}

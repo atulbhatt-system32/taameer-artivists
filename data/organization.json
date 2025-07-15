@@ -1,0 +1,58 @@
+{
+  "name": "Taameer Artivists Foundation",
+  "shortName": "Taameer Artivists",
+  "tagline": "Building Communities Together",
+  "description": "Empowering communities through cleanliness drives, cultural events, and social initiatives across Haldwani, Nainital, and the beautiful Kumaon region.",
+  "mission": "We believe in the power of community action to create lasting change. Through our initiatives, we bring people together to build cleaner, more vibrant communities while celebrating our rich cultural heritage.",
+  "locations": ["Haldwani", "Nainital"],
+  "region": "Kumaon, Uttarakhand",
+  "founded": "2019",
+  "volunteers": "500+",
+  "contact": {
+    "email": "taameerartivists@gmail.com",
+    "phone": "+91-9876543210",
+    "whatsapp": "+91-9876543210",
+    "address": "Community Center, Haldwani, Uttarakhand - 263139"
+  },
+  "social": {
+    "facebook": "https://facebook.com/taameerartivists",
+    "instagram": "https://instagram.com/taameerartivists",
+    "twitter": "https://twitter.com/taameerartivists",
+    "youtube": "https://youtube.com/@taameerartivists"
+  },
+  "impact": {
+    "cleanlinessdrives": {
+      "count": "50+",
+      "label": "Drives Organized"
+    },
+    "volunteers": {
+      "count": "2000+",
+      "label": "Volunteers Engaged"
+    },
+    "events": {
+      "count": "25+",
+      "label": "Events Hosted"
+    },
+    "peopleReached": {
+      "count": "5000+",
+      "label": "People Reached"
+    }
+  },
+  "focusAreas": [
+    {
+      "title": "Environmental Action",
+      "description": "Regular cleanliness drives and environmental awareness campaigns to keep our cities clean and green.",
+      "icon": "Leaf"
+    },
+    {
+      "title": "Cultural Celebration",
+      "description": "Organizing cultural events like Kumaon Fest to preserve and promote our local traditions and arts.",
+      "icon": "Camera"
+    },
+    {
+      "title": "Community Building",
+      "description": "Bringing people together through various social initiatives and volunteer programs across the region.",
+      "icon": "Users"
+    }
+  ]
+}
