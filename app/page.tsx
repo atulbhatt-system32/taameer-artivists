@@ -66,7 +66,7 @@ export default function HomePage() {
         {/* Hero Section */}
         <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
           <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
+            <div className="grid gap-8 md:gap-12 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_600px] items-center">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
                   <Badge className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/20 border-yellow-500/30">
@@ -75,23 +75,23 @@ export default function HomePage() {
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
                     <span className="text-yellow-400">Taameer</span> <span className="text-white">Artivists</span>
                   </h1>
-                  <p className="max-w-[600px] text-gray-300 md:text-xl">{description}</p>
+                  <p className="max-w-[600px] text-gray-300 md:text-xl break-words overflow-x-auto">{description}</p>
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold">
+                <div className="flex flex-col gap-2 sm:flex-row w-full">
+                  <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold w-full sm:w-auto">
                     Join Our Mission
                   </Button>
-                  <Link href="/kumaon-fest">
+                  <Link href="/kumaon-fest" className="w-full sm:w-auto">
                     <Button
                       variant="outline"
                       size="lg"
-                      className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10 bg-transparent"
+                      className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10 bg-transparent w-full sm:w-auto"
                     >
                       View Events
                     </Button>
                   </Link>
                 </div>
-                <div className="flex items-center space-x-4 text-sm text-gray-400">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-400">
                   <div className="flex items-center space-x-1">
                     <MapPin className="h-4 w-4 text-yellow-400" />
                     <span>{locations.join(" • ")}</span>
@@ -102,13 +102,13 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-center">
+              <div className="flex items-center justify-center mt-8 md:mt-0">
                 <Image
                   src="/placeholder.svg?height=400&width=400"
                   width={400}
                   height={400}
                   alt="Taameer Artivists community work"
-                  className="aspect-square overflow-hidden rounded-xl object-cover border-2 border-yellow-500/20"
+                  className="aspect-square overflow-hidden rounded-xl object-cover border-2 border-yellow-500/20 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg"
                 />
               </div>
             </div>
