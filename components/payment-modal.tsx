@@ -39,7 +39,7 @@ export function PaymentModal({ eventTitle, eventPrice, eventId, children }: Paym
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl w-full max-w-[95vw] p-4 sm:p-6 max-h-[90vh] overflow-y-auto rounded-lg">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-900">Complete Your Payment</DialogTitle>
           <div className="flex items-center justify-between pt-2">
@@ -54,7 +54,7 @@ export function PaymentModal({ eventTitle, eventPrice, eventId, children }: Paym
         </DialogHeader>
 
         <Tabs defaultValue="upi" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-2 text-xs sm:text-base mb-4">
             <TabsTrigger value="upi" className="flex items-center gap-2">
               <QrCode className="h-4 w-4" />
               UPI Payment
@@ -66,33 +66,33 @@ export function PaymentModal({ eventTitle, eventPrice, eventId, children }: Paym
           </TabsList>
 
           <TabsContent value="upi" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+            <Card className="w-full p-4 sm:p-6 rounded-lg">
+              <CardHeader className="p-0 mb-2">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <QrCode className="h-5 w-5 text-yellow-500" />
                   UPI Payment
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-0">
                 {/* QR Code */}
                 <div className="flex flex-col items-center space-y-4">
-                  <div className="p-4 bg-white border-2 border-yellow-200 rounded-lg">
+                  <div className="p-2 sm:p-4 bg-white border-2 border-yellow-200 rounded-lg">
                     <Image
                       src={paymentMethods.upi.qrCodeImage || "/placeholder.svg"}
                       width={200}
                       height={200}
                       alt="UPI QR Code"
-                      className="w-48 h-48"
+                      className="w-32 h-32 sm:w-48 sm:h-48"
                     />
                   </div>
-                  <p className="text-sm text-gray-600 text-center">Scan this QR code with any UPI app</p>
+                  <p className="text-xs sm:text-sm text-gray-600 text-center">Scan this QR code with any UPI app</p>
                 </div>
 
                 {/* UPI ID */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Or copy UPI ID:</label>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 p-3 bg-gray-50 border rounded-lg font-mono text-sm">
+                  <label className="text-xs sm:text-sm font-medium text-gray-700">Or copy UPI ID:</label>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div className="flex-1 p-2 sm:p-3 bg-gray-50 border rounded-lg font-mono text-xs sm:text-sm break-all">
                       {paymentMethods.upi.upiId}
                     </div>
                     <Button
@@ -124,15 +124,15 @@ export function PaymentModal({ eventTitle, eventPrice, eventId, children }: Paym
           </TabsContent>
 
           <TabsContent value="bank" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+            <Card className="w-full p-4 sm:p-6 rounded-lg">
+              <CardHeader className="p-0 mb-2">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <CreditCard className="h-5 w-5 text-yellow-500" />
                   Bank Transfer Details
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="space-y-4 p-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">Account Name</label>
                     <div className="p-3 bg-gray-50 border rounded-lg text-sm">
@@ -173,8 +173,8 @@ export function PaymentModal({ eventTitle, eventPrice, eventId, children }: Paym
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Branch</label>
-                  <div className="p-3 bg-gray-50 border rounded-lg text-sm">{paymentMethods.bankTransfer.branch}</div>
+                  <label className="text-xs sm:text-sm font-medium text-gray-700">Branch</label>
+                  <div className="p-2 sm:p-3 bg-gray-50 border rounded-lg text-xs sm:text-sm">{paymentMethods.bankTransfer.branch}</div>
                 </div>
 
                 {/* Instructions */}
@@ -195,12 +195,12 @@ export function PaymentModal({ eventTitle, eventPrice, eventId, children }: Paym
         </Tabs>
 
         {/* Contact Information */}
-        <Card className="bg-yellow-50 border-yellow-200">
-          <CardHeader>
-            <CardTitle className="text-lg text-gray-900">Need Help?</CardTitle>
+        <Card className="bg-yellow-50 border-yellow-200 w-full mt-4 p-4 sm:p-6 rounded-lg">
+          <CardHeader className="p-0 mb-2">
+            <CardTitle className="text-base sm:text-lg text-gray-900">Need Help?</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardContent className="p-0">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <a
                 href={`https://wa.me/${paymentMethods.contact.whatsapp.replace(/[^0-9]/g, "")}`}
                 target="_blank"
@@ -238,8 +238,8 @@ export function PaymentModal({ eventTitle, eventPrice, eventId, children }: Paym
         </Card>
 
         {/* Payment Note */}
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
+        <div className="p-4 sm:p-6 bg-blue-50 border border-blue-200 rounded-lg mt-4">
+          <p className="text-xs sm:text-sm text-blue-800">
             <strong>Note:</strong> {paymentNote}
           </p>
         </div>
