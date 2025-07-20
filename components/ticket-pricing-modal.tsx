@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CheckCircle, Calendar, Users, Crown, Star } from "lucide-react"
+import { CheckCircle, Calendar, Users, Crown } from "lucide-react"
 import { TicketSelectionModal } from "./ticket-selection-modal"
 
 interface TicketPricingModalProps {
@@ -142,7 +142,7 @@ export function TicketPricingModal({ children }: TicketPricingModalProps) {
                   
                   <CardContent>
                     <div className="space-y-3">
-                      <h4 className="font-semibold text-gray-900 mb-3">What's Included:</h4>
+                      <h4 className="font-semibold text-gray-900 mb-3">What&apos;s Included:</h4>
                       {tier.features.map((feature, index) => (
                         <div key={index} className="flex items-start gap-3">
                           <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />

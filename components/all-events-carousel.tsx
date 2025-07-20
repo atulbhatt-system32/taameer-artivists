@@ -28,6 +28,8 @@ export function AllEventsCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [itemsPerView, setItemsPerView] = useState(3)
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<typeof allEvents[0] | null>(null)
 
   useEffect(() => {
     const updateItemsPerView = () => {
@@ -194,11 +196,16 @@ export function AllEventsCarousel() {
                         Join Event
                       </Button>
                     ) : (
-                      <PaymentModal eventTitle={event.title} eventPrice={event.pricing.display} eventId={event.id}>
-                        <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold text-xs sm:text-sm">
-                          Book Now
-                        </Button>
-                      </PaymentModal>
+                      <Button 
+                        size="sm" 
+                        className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold text-xs sm:text-sm"
+                        onClick={() => {
+                          setSelectedEvent(event)
+                          setIsPaymentOpen(true)
+                        }}
+                      >
+                        Book Now
+                      </Button>
                     )}
                   </div>
                 </CardContent>
@@ -227,6 +234,17 @@ export function AllEventsCarousel() {
           View All Events
         </Button>
       </div>
+      
+      {/* Payment Modal */}
+      {selectedEvent && (
+        <PaymentModal
+          eventTitle={selectedEvent.title}
+          eventPrice={selectedEvent.pricing.display}
+          eventId={selectedEvent.id}
+          isOpen={isPaymentOpen}
+          onOpenChange={setIsPaymentOpen}
+        />
+      )}
     </div>
   )
 }

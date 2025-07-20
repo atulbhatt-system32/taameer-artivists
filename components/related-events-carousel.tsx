@@ -83,7 +83,7 @@ export function RelatedEventsCarousel() {
     window.addEventListener("resize", updateItemsPerView)
     return () => window.removeEventListener("resize", updateItemsPerView)
   }, [])
-  const maxIndex = Math.max(0, relatedEvents.length - itemsPerView)
+
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex + itemsPerView >= relatedEvents.length ? 0 : prevIndex + 1))

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CalendarDays, MapPin, Users, Music, Palette, BookOpen, Camera, Clock } from "lucide-react"
+import { CalendarDays, MapPin, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import kumaonFestGalleries from "@/data/kumaon-fest-galleries.json"

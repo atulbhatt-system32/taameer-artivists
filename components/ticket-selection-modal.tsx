@@ -1,13 +1,13 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CheckCircle, Star, Users, Calendar, MapPin, Clock, Gift, Crown, Zap, Music, Palette, BookOpen } from "lucide-react"
+import { CheckCircle, Users, Calendar, Gift, Crown, Music, Palette, BookOpen } from "lucide-react"
 import { PaymentModal } from "./payment-modal"
 
 interface TicketPass {
@@ -30,7 +30,7 @@ export function TicketSelectionModal({ children }: TicketSelectionModalProps) {
   const [selectedPass, setSelectedPass] = useState<TicketPass | null>(null)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
 
-  const ticketPasses: TicketPass[] = [
+  const ticketPasses: TicketPass[] = useMemo(() => [
     {
       id: "single-day",
       name: "Single Day Pass",
@@ -86,14 +86,14 @@ export function TicketSelectionModal({ children }: TicketSelectionModalProps) {
       badge: "Premium",
       icon: <Crown className="h-4 w-4" />
     }
-  ]
+  ], [])
 
   // Set Single Day Pass as default selected pass
   useEffect(() => {
     if (!selectedPass) {
       setSelectedPass(ticketPasses[0]) // Single Day Pass
     }
-  }, [selectedPass])
+  }, [selectedPass, ticketPasses])
 
   const handlePassSelection = (pass: TicketPass) => {
     setSelectedPass(pass)
@@ -106,10 +106,7 @@ export function TicketSelectionModal({ children }: TicketSelectionModalProps) {
     }
   }
 
-  const handleClosePayment = () => {
-    setIsPaymentOpen(false)
-    setSelectedPass(null)
-  }
+
 
   return (
     <>
@@ -195,7 +192,7 @@ export function TicketSelectionModal({ children }: TicketSelectionModalProps) {
                     
                     <CardContent>
                       <div className="space-y-3">
-                        <h4 className="font-semibold text-gray-900 mb-3">What's Included:</h4>
+                        <h4 className="font-semibold text-gray-900 mb-3">What&apos;s Included:</h4>
                         {pass.features.map((feature, index) => (
                           <div key={index} className="flex items-start gap-3">
                             <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
@@ -212,7 +209,7 @@ export function TicketSelectionModal({ children }: TicketSelectionModalProps) {
             {/* Festival Highlights */}
             <Card className="bg-gray-50">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">What's Included in Your Festival Experience</CardTitle>
+                <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">What&apos;s Included in Your Festival Experience</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">

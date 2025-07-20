@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -6,12 +8,14 @@ import Image from "next/image"
 import Link from "next/link"
 import { AllEventsCarousel } from "@/components/all-events-carousel"
 import { PaymentModal } from "@/components/payment-modal"
+import { useState } from "react"
 import organizationData from "@/data/organization.json"
 import eventsData from "@/data/events.json"
 
 export default function HomePage() {
   const { name, tagline, description, mission, locations, volunteers, impact, focusAreas } = organizationData
   const { featuredEvent } = eventsData
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false)
 
   const formatDate = (startDate: string, endDate: string) => {
     const start = new Date(startDate)
@@ -186,15 +190,19 @@ export default function HomePage() {
                       </div>
                     </div>
                     <div className="flex space-x-2">
+                      <Button 
+                        className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold"
+                        onClick={() => setIsPaymentOpen(true)}
+                      >
+                        Book Tickets
+                      </Button>
                       <PaymentModal
                         eventTitle={featuredEvent.title}
                         eventPrice={`₹${featuredEvent.pricing.singleDay.price} - ₹${featuredEvent.pricing.vipExperience.price}`}
                         eventId={featuredEvent.id}
-                      >
-                        <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold">
-                          Book Tickets
-                        </Button>
-                      </PaymentModal>
+                        isOpen={isPaymentOpen}
+                        onOpenChange={setIsPaymentOpen}
+                      />
                       <Link href="/kumaon-fest">
                         <Button
                           variant="outline"

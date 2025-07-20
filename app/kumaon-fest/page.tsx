@@ -6,7 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { EventCarousel } from "@/components/event-carousel"
 import { GalleryCarousel } from "@/components/gallery-carousel"
-import { RelatedEventsCarousel } from "@/components/related-events-carousel"
+
 import { TicketSelectionModal } from "@/components/ticket-selection-modal"
 import { TicketPricingModal } from "@/components/ticket-pricing-modal"
 import kumaonFestData from "@/data/kumaon-fest.json"
