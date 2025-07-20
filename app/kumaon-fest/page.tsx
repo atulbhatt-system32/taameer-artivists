@@ -7,6 +7,8 @@ import Link from "next/link"
 import { EventCarousel } from "@/components/event-carousel"
 import { GalleryCarousel } from "@/components/gallery-carousel"
 import { RelatedEventsCarousel } from "@/components/related-events-carousel"
+import { TicketSelectionModal } from "@/components/ticket-selection-modal"
+import { TicketPricingModal } from "@/components/ticket-pricing-modal"
 import kumaonFestData from "@/data/kumaon-fest.json"
 
 export default function KumaonFestPage() {
@@ -43,7 +45,9 @@ export default function KumaonFestPage() {
             <Link href="#gallery" className="text-sm font-medium text-gray-300 hover:text-yellow-400 transition-colors">
               Gallery
             </Link>
-            <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold">Book Tickets</Button>
+            <TicketSelectionModal>
+              <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold">Book Tickets</Button>
+            </TicketSelectionModal>
           </nav>
         </div>
       </header>
@@ -67,10 +71,13 @@ export default function KumaonFestPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row w-full">
-                  <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold w-full sm:w-auto">
-                    <Ticket className="mr-2 h-4 w-4" />
-                    {hero.buttons.primary.text}
-                  </Button>
+                  <TicketSelectionModal>
+                    <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold w-full sm:w-auto">
+                      <Ticket className="mr-2 h-4 w-4" />
+                      {hero.buttons.primary.text}
+                    </Button>
+                  </TicketSelectionModal>
+                                  <TicketPricingModal>
                   <Button
                     variant="outline"
                     size="lg"
@@ -78,6 +85,7 @@ export default function KumaonFestPage() {
                   >
                     {hero.buttons.secondary.text}
                   </Button>
+                </TicketPricingModal>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 pt-4">
                   {hero.details.map((detail, index) => (
@@ -190,16 +198,7 @@ export default function KumaonFestPage() {
             {/* Event Carousel */}
             <EventCarousel />
 
-            {/* Related Events Carousel */}
-            <div className="mt-16">
-              <div className="flex flex-col items-center justify-center space-y-4 text-center mb-8">
-                <h3 className="text-2xl font-bold text-gray-900">Other Events You Might Like</h3>
-                <p className="max-w-[600px] text-gray-600">
-                  Discover more cultural and community events organized by Taameer Artivists
-                </p>
-              </div>
-              <RelatedEventsCarousel />
-            </div>
+           
           </div>
         </section>
 
@@ -362,20 +361,24 @@ export default function KumaonFestPage() {
                 {tickets.subtitle}
               </p>
               <div className="flex flex-col gap-4 min-[400px]:flex-row">
-                {tickets.buttons.map((button, index) => (
+                <TicketSelectionModal>
                   <Button
-                    key={index}
                     size="lg"
-                    variant={button.variant as "default" | "outline"}
-                    className={button.variant === "default"
-                      ? "bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold"
-                      : "border-yellow-500 text-yellow-400 hover:bg-yellow-500/10 bg-transparent"
-                    }
+                    className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold"
                   >
-                    {button.icon === "Ticket" && <Ticket className="mr-2 h-4 w-4" />}
-                    {button.text}
+                    <Ticket className="mr-2 h-4 w-4" />
+                    Book Tickets Now
                   </Button>
-                ))}
+                </TicketSelectionModal>
+                <TicketPricingModal>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10 bg-transparent"
+                  >
+                    View Pricing
+                  </Button>
+                </TicketPricingModal>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 text-center">
                 {tickets.pricing.map((tier, index) => (

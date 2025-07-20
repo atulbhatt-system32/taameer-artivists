@@ -95,7 +95,7 @@ export function GalleryCarousel() {
           {galleryImages.map((image) => (
             <div
               key={image.id}
-              className="flex-shrink-0 px-2 w-full sm:w-1/2 lg:w-1/3"
+              className="flex-shrink-0 w-full sm:w-1/2 lg:w-1/3 px-2 sm:px-3"
             >
               <div className="relative group cursor-pointer">
                 <Image
@@ -103,10 +103,10 @@ export function GalleryCarousel() {
                   width={600}
                   height={400}
                   alt={image.alt}
-                  className="w-full h-64 object-cover rounded-lg transition-transform group-hover:scale-105"
+                  className="w-full h-48 sm:h-56 lg:h-64 object-cover rounded-lg transition-transform group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-end">
-                  <p className="text-white p-4 text-sm">{image.caption}</p>
+                  <p className="text-white p-3 sm:p-4 text-xs sm:text-sm">{image.caption}</p>
                 </div>
               </div>
             </div>

@@ -147,55 +147,55 @@ export function AllEventsCarousel() {
           {filteredEvents.map((event) => (
             <div
               key={event.id}
-              className="flex-shrink-0 px-3 w-full sm:w-1/2 lg:w-1/3"
+              className="flex-shrink-0 w-full sm:w-1/2 lg:w-1/3 px-2 sm:px-3"
             >
-              <Card className="h-full border-yellow-200 hover:border-yellow-400 transition-all duration-300 hover:shadow-lg">
+              <Card className="h-full border-yellow-200 hover:border-yellow-400 transition-all duration-300 hover:shadow-lg py-0">
                 <div className="relative">
                   <Image
                     src={event.image || "/placeholder.svg"}
                     width={400}
                     height={200}
                     alt={event.title}
-                    className="w-full h-48 object-cover rounded-t-lg"
+                    className="w-full h-40 sm:h-48 object-cover rounded-t-lg"
                   />
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    <Badge className={categoryColors[event.category as keyof typeof categoryColors]}>
+                  <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex gap-1 sm:gap-2">
+                    <Badge className={`text-xs ${categoryColors[event.category as keyof typeof categoryColors]}`}>
                       {event.category}
                     </Badge>
-                    <Badge className={statusColors[event.status as keyof typeof statusColors]}>{event.status}</Badge>
+                    <Badge className={`text-xs ${statusColors[event.status as keyof typeof statusColors]}`}>{event.status}</Badge>
                   </div>
                 </div>
 
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-gray-900 line-clamp-2">{event.title}</CardTitle>
-                  <p className="text-sm text-gray-600 line-clamp-3">{event.description}</p>
+                <CardHeader className="pb-2 sm:pb-3">
+                  <CardTitle className="text-base sm:text-lg text-gray-900 line-clamp-2">{event.title}</CardTitle>
+                  <p className="text-xs sm:text-sm text-gray-600 line-clamp-3">{event.description}</p>
                 </CardHeader>
 
                 <CardContent className="pt-0">
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <CalendarDays className="h-4 w-4 text-yellow-500" />
-                      <span>{formatDate(event.startDate, event.endDate)}</span>
+                  <div className="space-y-1 sm:space-y-2 mb-3 sm:mb-4">
+                    <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+                      <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
+                      <span className="line-clamp-1">{formatDate(event.startDate, event.endDate)}</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <MapPin className="h-4 w-4 text-yellow-500" />
+                    <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+                      <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
                       <span className="line-clamp-1">{event.location}</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Users className="h-4 w-4 text-yellow-500" />
+                    <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+                      <Users className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
                       <span>{event.expectedAttendees} expected</span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="text-lg font-bold text-yellow-600">{event.pricing.display}</div>
+                    <div className="text-sm sm:text-lg font-bold text-yellow-600">{event.pricing.display}</div>
                     {event.pricing.min === 0 ? (
-                      <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold">
+                      <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold text-xs sm:text-sm">
                         Join Event
                       </Button>
                     ) : (
                       <PaymentModal eventTitle={event.title} eventPrice={event.pricing.display} eventId={event.id}>
-                        <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold">
+                        <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold text-xs sm:text-sm">
                           Book Now
                         </Button>
                       </PaymentModal>
