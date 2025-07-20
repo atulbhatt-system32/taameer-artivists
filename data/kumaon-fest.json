@@ -1,0 +1,365 @@
+{
+  "hero": {
+    "badge": "Annual Cultural Celebration",
+    "title": "Kumaon Fest 2025",
+    "description": "Experience the vibrant culture of Kumaon through music, art, literature, and traditional performances. Join us in celebrating the rich heritage of Uttarakhand's hill region.",
+    "buttons": {
+      "primary": {
+        "text": "Book Your Tickets",
+        "icon": "Ticket"
+      },
+      "secondary": {
+        "text": "View Schedule",
+        "icon": null
+      }
+    },
+    "details": [
+      {
+        "icon": "CalendarDays",
+        "text": "Sept 15-17, 2024"
+      },
+      {
+        "icon": "MapPin",
+        "text": "Haldwani, Uttarakhand"
+      },
+      {
+        "icon": "Users",
+        "text": "3 Days of Culture"
+      }
+    ],
+    "image": "/placeholder.svg?height=500&width=500"
+  },
+  "about": {
+    "title": "About Kumaon Fest",
+    "description": "Kumaon Fest is an annual celebration that brings together the diverse cultural tapestry of the Kumaon region. Organized by Taameer Artivists Foundation, this festival serves as a vibrant platform for artists, musicians, writers, and cultural enthusiasts to showcase and celebrate our rich heritage.",
+    "subDescription": "Set against the backdrop of the beautiful Himalayan foothills in Haldwani, the festival creates a unique space where traditional Kumaoni culture meets contemporary artistic expression. It's more than just an event—it's a movement to preserve, promote, and pass on our cultural identity to future generations.",
+    "stats": [
+      {
+        "number": "5+",
+        "label": "Years Running"
+      },
+      {
+        "number": "100+",
+        "label": "Artists Featured"
+      }
+    ],
+    "images": [
+      {
+        "src": "/placeholder.svg?height=300&width=500",
+        "alt": "Kumaoni cultural performance"
+      },
+      {
+        "src": "/placeholder.svg?height=150&width=240",
+        "alt": "Traditional Kumaoni art"
+      },
+      {
+        "src": "/placeholder.svg?height=150&width=240",
+        "alt": "Folk music performance"
+      }
+    ]
+  },
+  "events": {
+    "title": "Festival Highlights",
+    "subtitle": "Immerse yourself in the diverse cultural experiences that make Kumaon Fest unique",
+    "highlights": [
+      {
+        "icon": "Music",
+        "title": "Music Concerts",
+        "description": "Traditional Kumaoni folk music, contemporary fusion, and classical performances by renowned artists."
+      },
+      {
+        "icon": "Palette",
+        "title": "Art Exhibitions",
+        "description": "Showcase of traditional Kumaoni art, contemporary paintings, sculptures, and handicrafts."
+      },
+      {
+        "icon": "BookOpen",
+        "title": "Literature Sessions",
+        "description": "Poetry readings, book launches, and discussions with prominent Kumaoni and Hindi authors."
+      },
+      {
+        "icon": "Camera",
+        "title": "Cultural Performances",
+        "description": "Traditional dance forms, theater performances, and storytelling sessions celebrating our heritage."
+      }
+    ]
+  },
+  "schedule": {
+    "title": "Festival Schedule",
+    "subtitle": "Three days packed with cultural experiences and artistic celebrations",
+    "days": [
+      {
+        "day": "Day 1",
+        "date": "September 15, 2024",
+        "theme": "Opening Ceremony & Music",
+        "events": [
+          {
+            "time": "10:00 AM - Opening Ceremony",
+            "description": "Welcome address and cultural inauguration"
+          },
+          {
+            "time": "2:00 PM - Folk Music Concert",
+            "description": "Traditional Kumaoni musicians"
+          },
+          {
+            "time": "7:00 PM - Evening Performances",
+            "description": "Dance and cultural shows"
+          }
+        ]
+      },
+      {
+        "day": "Day 2",
+        "date": "September 16, 2024",
+        "theme": "Art & Literature",
+        "events": [
+          {
+            "time": "10:00 AM - Art Exhibition Opening",
+            "description": "Contemporary and traditional art"
+          },
+          {
+            "time": "2:00 PM - Literature Panel",
+            "description": "Authors and poets discussion"
+          },
+          {
+            "time": "6:00 PM - Poetry Evening",
+            "description": "Kumaoni and Hindi poetry"
+          }
+        ]
+      },
+      {
+        "day": "Day 3",
+        "date": "September 17, 2024",
+        "theme": "Grand Finale",
+        "events": [
+          {
+            "time": "11:00 AM - Cultural Workshops",
+            "description": "Hands-on traditional crafts"
+          },
+          {
+            "time": "4:00 PM - Community Celebration",
+            "description": "Local food and performances"
+          },
+          {
+            "time": "8:00 PM - Grand Finale Concert",
+            "description": "Closing ceremony and performances"
+          }
+        ]
+      }
+    ]
+  },
+  "gallery": {
+    "title": "Past Editions",
+    "subtitle": "Relive the magical moments from previous Kumaon Fest celebrations",
+    "images": [
+      {
+        "id": 1,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Kumaon Fest 2023 Opening Ceremony",
+        "caption": "Grand opening ceremony with traditional welcome"
+      },
+      {
+        "id": 2,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Folk musicians performing",
+        "caption": "Local artists performing traditional Kumaoni songs"
+      },
+      {
+        "id": 3,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Art exhibition",
+        "caption": "Contemporary art exhibition showcasing local talent"
+      },
+      {
+        "id": 4,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Cultural dance performance",
+        "caption": "Traditional dance performance by local groups"
+      },
+      {
+        "id": 5,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Poetry session",
+        "caption": "Intimate poetry reading session with renowned authors"
+      },
+      {
+        "id": 6,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Community participation",
+        "caption": "Families enjoying the festival together"
+      }
+    ]
+  },
+  "community": {
+    "title": "Join Our Community",
+    "description": "Kumaon Fest thrives on community participation. We believe that culture is best celebrated when everyone comes together to share, learn, and create memories.",
+    "opportunities": [
+      {
+        "icon": "Users",
+        "title": "Volunteer Opportunities",
+        "description": "Help us organize and run the festival"
+      },
+      {
+        "icon": "Palette",
+        "title": "Artist Participation",
+        "description": "Showcase your talent on our platform"
+      },
+      {
+        "icon": "BookOpen",
+        "title": "Cultural Workshops",
+        "description": "Learn traditional arts and crafts"
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Become a Volunteer",
+        "variant": "default"
+      },
+      {
+        "text": "Submit Your Art",
+        "variant": "outline"
+      }
+    ],
+    "images": [
+      {
+        "src": "/placeholder.svg?height=300&width=500",
+        "alt": "Community participation at Kumaon Fest"
+      },
+      {
+        "src": "/placeholder.svg?height=150&width=240",
+        "alt": "Volunteers at work"
+      },
+      {
+        "src": "/placeholder.svg?height=150&width=240",
+        "alt": "Community workshop"
+      }
+    ]
+  },
+  "tickets": {
+    "title": "Don't Miss Kumaon Fest 2025",
+    "subtitle": "Secure your spot at the most anticipated cultural celebration of the year. Early bird tickets are now available!",
+    "buttons": [
+      {
+        "text": "Book Tickets Now",
+        "icon": "Ticket",
+        "variant": "default"
+      },
+      {
+        "text": "View Pricing",
+        "variant": "outline"
+      }
+    ],
+    "pricing": [
+      {
+        "price": "₹299",
+        "label": "Single Day Pass"
+      },
+      {
+        "price": "₹799",
+        "label": "3-Day Festival Pass"
+      },
+      {
+        "price": "₹1299",
+        "label": "VIP Experience"
+      }
+    ]
+  },
+  "relatedEvents": [
+    {
+      "id": 1,
+      "title": "Haldwani Heritage Walk",
+      "description": "Explore the historical landmarks and cultural heritage of Haldwani city.",
+      "date": "October 8, 2024",
+      "location": "Old Haldwani",
+      "image": "/placeholder.svg?height=200&width=350",
+      "price": "Free",
+      "attendees": "50+",
+      "category": "Heritage"
+    },
+    {
+      "id": 2,
+      "title": "Mountain Photography Workshop",
+      "description": "Learn landscape photography techniques in the beautiful Kumaon hills.",
+      "date": "October 22, 2024",
+      "location": "Nainital Hills",
+      "image": "/placeholder.svg?height=200&width=350",
+      "price": "₹499",
+      "attendees": "25+",
+      "category": "Workshop"
+    },
+    {
+      "id": 3,
+      "title": "Folk Dance Competition",
+      "description": "Showcase traditional Kumaoni dance forms in this exciting competition.",
+      "date": "November 5, 2024",
+      "location": "Cultural Center",
+      "image": "/placeholder.svg?height=200&width=350",
+      "price": "₹100",
+      "attendees": "200+",
+      "category": "Competition"
+    },
+    {
+      "id": 4,
+      "title": "Local Cuisine Festival",
+      "description": "Taste authentic Kumaoni dishes prepared by local chefs and home cooks.",
+      "date": "November 18, 2024",
+      "location": "Food Court, Haldwani",
+      "image": "/placeholder.svg?height=200&width=350",
+      "price": "₹150",
+      "attendees": "300+",
+      "category": "Food"
+    },
+    {
+      "id": 5,
+      "title": "Winter Storytelling Night",
+      "description": "Listen to traditional Kumaoni folk tales around a cozy bonfire.",
+      "date": "December 15, 2024",
+      "location": "Community Garden",
+      "image": "/placeholder.svg?height=200&width=350",
+      "price": "₹75",
+      "attendees": "80+",
+      "category": "Cultural"
+    }
+  ],
+  "featuredEvents": [
+    {
+      "id": 1,
+      "title": "Traditional Folk Music Concert",
+      "description": "Experience the soulful melodies of Kumaoni folk songs performed by renowned local artists.",
+      "image": "/placeholder.svg?height=300&width=400",
+      "time": "7:00 PM - 9:00 PM",
+      "venue": "Main Stage"
+    },
+    {
+      "id": 2,
+      "title": "Contemporary Art Exhibition",
+      "description": "Discover modern interpretations of traditional Kumaoni themes by emerging artists.",
+      "image": "/placeholder.svg?height=300&width=400",
+      "time": "10:00 AM - 6:00 PM",
+      "venue": "Art Gallery"
+    },
+    {
+      "id": 3,
+      "title": "Poetry & Literature Session",
+      "description": "Join celebrated poets and authors for readings and discussions about Kumaoni literature.",
+      "image": "/placeholder.svg?height=300&width=400",
+      "time": "2:00 PM - 4:00 PM",
+      "venue": "Literary Corner"
+    },
+    {
+      "id": 4,
+      "title": "Traditional Dance Performance",
+      "description": "Watch mesmerizing performances of classical Kumaoni dance forms.",
+      "image": "/placeholder.svg?height=300&width=400",
+      "time": "6:00 PM - 7:30 PM",
+      "venue": "Cultural Stage"
+    },
+    {
+      "id": 5,
+      "title": "Handicraft Workshop",
+      "description": "Learn traditional Kumaoni crafts from master artisans in hands-on sessions.",
+      "image": "/placeholder.svg?height=300&width=400",
+      "time": "11:00 AM - 1:00 PM",
+      "venue": "Workshop Area"
+    }
+  ]
+} 

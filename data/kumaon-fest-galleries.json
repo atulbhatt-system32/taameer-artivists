@@ -1,0 +1,272 @@
+{
+  "kumaonFest2022": {
+    "title": "Kumaon Fest 2022",
+    "subtitle": "The inaugural celebration of Kumaoni culture and heritage",
+    "description": "The first edition of Kumaon Fest marked the beginning of a cultural renaissance in the Kumaon region. This historic event brought together artists, musicians, and cultural enthusiasts to celebrate the rich heritage of Uttarakhand's hill region.",
+    "date": "September 15-17, 2022",
+    "location": "Haldwani, Uttarakhand",
+    "highlights": [
+      "Inaugural cultural celebration",
+      "Traditional Kumaoni folk music performances",
+      "First-ever art exhibition showcasing local talent",
+      "Community participation and engagement"
+    ],
+    "stats": {
+      "attendees": "500+",
+      "artists": "25+",
+      "events": "15+"
+    },
+    "gallery": [
+      {
+        "id": 1,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Kumaon Fest 2022 Opening Ceremony",
+        "caption": "The grand opening ceremony with traditional welcome rituals",
+        "category": "ceremony"
+      },
+      {
+        "id": 2,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Folk musicians performing traditional songs",
+        "caption": "Local folk musicians performing traditional Kumaoni songs",
+        "category": "music"
+      },
+      {
+        "id": 3,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Art exhibition opening",
+        "caption": "The first art exhibition showcasing local Kumaoni artists",
+        "category": "art"
+      },
+      {
+        "id": 4,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Traditional dance performance",
+        "caption": "Traditional Kumaoni dance forms performed by local groups",
+        "category": "dance"
+      },
+      {
+        "id": 5,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Community workshop",
+        "caption": "Hands-on workshops teaching traditional crafts",
+        "category": "workshop"
+      },
+      {
+        "id": 6,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Poetry reading session",
+        "caption": "Intimate poetry reading sessions with local poets",
+        "category": "literature"
+      },
+      {
+        "id": 7,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Food stalls and local cuisine",
+        "caption": "Local food stalls serving authentic Kumaoni dishes",
+        "category": "food"
+      },
+      {
+        "id": 8,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Closing ceremony",
+        "caption": "The emotional closing ceremony marking the end of the first festival",
+        "category": "ceremony"
+      }
+    ]
+  },
+  "kumaonFest2023": {
+    "title": "Kumaon Fest 2023",
+    "subtitle": "Expanding horizons and celebrating growth",
+    "description": "Building on the success of the inaugural year, Kumaon Fest 2023 expanded its reach and impact. This edition featured more artists, diverse cultural performances, and deeper community engagement, solidifying the festival's position as a premier cultural event.",
+    "date": "September 20-22, 2023",
+    "location": "Haldwani, Uttarakhand",
+    "highlights": [
+      "Expanded program with more events",
+      "International artist collaborations",
+      "Enhanced art exhibitions",
+      "Increased community participation"
+    ],
+    "stats": {
+      "attendees": "800+",
+      "artists": "40+",
+      "events": "25+"
+    },
+    "gallery": [
+      {
+        "id": 1,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Kumaon Fest 2023 Grand Opening",
+        "caption": "The spectacular opening ceremony with enhanced cultural performances",
+        "category": "ceremony"
+      },
+      {
+        "id": 2,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Fusion music performance",
+        "caption": "Contemporary fusion music blending traditional and modern elements",
+        "category": "music"
+      },
+      {
+        "id": 3,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Contemporary art exhibition",
+        "caption": "Expanded art exhibition featuring contemporary interpretations",
+        "category": "art"
+      },
+      {
+        "id": 4,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Classical dance performance",
+        "caption": "Classical dance performances showcasing diverse cultural forms",
+        "category": "dance"
+      },
+      {
+        "id": 5,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Literature panel discussion",
+        "caption": "Panel discussions with prominent authors and literary figures",
+        "category": "literature"
+      },
+      {
+        "id": 6,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Traditional craft workshop",
+        "caption": "Advanced workshops teaching intricate traditional crafts",
+        "category": "workshop"
+      },
+      {
+        "id": 7,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Cultural food festival",
+        "caption": "Expanded food festival featuring regional specialties",
+        "category": "food"
+      },
+      {
+        "id": 8,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Community celebration",
+        "caption": "Large-scale community celebration with diverse participation",
+        "category": "community"
+      },
+      {
+        "id": 9,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Youth cultural program",
+        "caption": "Special programs engaging young artists and performers",
+        "category": "youth"
+      },
+      {
+        "id": 10,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Award ceremony",
+        "caption": "Recognition ceremony honoring outstanding cultural contributions",
+        "category": "ceremony"
+      }
+    ]
+  },
+  "kumaonFest2024": {
+    "title": "Kumaon Fest 2024",
+    "subtitle": "A decade of cultural excellence and innovation",
+    "description": "Kumaon Fest 2024 represented a milestone in the festival's journey, featuring cutting-edge cultural programming, international collaborations, and unprecedented community engagement. This edition set new standards for cultural festivals in the region.",
+    "date": "September 18-20, 2024",
+    "location": "Haldwani, Uttarakhand",
+    "highlights": [
+      "International cultural collaborations",
+      "Digital art and technology integration",
+      "Comprehensive youth engagement programs",
+      "Sustainable festival practices"
+    ],
+    "stats": {
+      "attendees": "1200+",
+      "artists": "60+",
+      "events": "35+"
+    },
+    "gallery": [
+      {
+        "id": 1,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Kumaon Fest 2024 Spectacular Opening",
+        "caption": "The most spectacular opening ceremony with multimedia presentations",
+        "category": "ceremony"
+      },
+      {
+        "id": 2,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "International music collaboration",
+        "caption": "International artists collaborating with local musicians",
+        "category": "music"
+      },
+      {
+        "id": 3,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Digital art installation",
+        "caption": "Innovative digital art installations blending technology and tradition",
+        "category": "art"
+      },
+      {
+        "id": 4,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Contemporary dance fusion",
+        "caption": "Contemporary dance performances with traditional elements",
+        "category": "dance"
+      },
+      {
+        "id": 5,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Literary festival",
+        "caption": "Comprehensive literary festival with international authors",
+        "category": "literature"
+      },
+      {
+        "id": 6,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Innovation workshop",
+        "caption": "Innovation workshops combining traditional crafts with modern techniques",
+        "category": "workshop"
+      },
+      {
+        "id": 7,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Gourmet food festival",
+        "caption": "Gourmet food festival featuring celebrity chefs and local cuisine",
+        "category": "food"
+      },
+      {
+        "id": 8,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Youth cultural summit",
+        "caption": "Youth cultural summit engaging young artists and performers",
+        "category": "youth"
+      },
+      {
+        "id": 9,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Environmental art installation",
+        "caption": "Environmental art installations promoting sustainability",
+        "category": "art"
+      },
+      {
+        "id": 10,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Community art project",
+        "caption": "Large-scale community art project involving all participants",
+        "category": "community"
+      },
+      {
+        "id": 11,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Cultural awards ceremony",
+        "caption": "Prestigious cultural awards ceremony recognizing excellence",
+        "category": "ceremony"
+      },
+      {
+        "id": 12,
+        "src": "/placeholder.svg?height=400&width=600",
+        "alt": "Grand finale concert",
+        "caption": "Spectacular grand finale concert with fireworks and celebrations",
+        "category": "ceremony"
+      }
+    ]
+  }
+} 
