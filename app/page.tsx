@@ -73,8 +73,9 @@ export default function HomePage() {
                     {tagline}
                   </Badge>
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    <span className="text-yellow-400">Taameer</span> <span className="text-white">Artivists</span>
+                    <span className="text-yellow-400">Taameer</span> <span className="text-white">Artivists Foundation</span>
                   </h1>
+                  
                   <p className="max-w-[600px] text-gray-300 md:text-xl break-words overflow-x-auto">{description}</p>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row w-full">
@@ -104,7 +105,7 @@ export default function HomePage() {
               </div>
               <div className="flex items-center justify-center mt-8 md:mt-0">
                 <Image
-                  src="/placeholder.svg?height=400&width=400"
+                  src="/home.jpg"
                   width={400}
                   height={400}
                   alt="Taameer Artivists community work"

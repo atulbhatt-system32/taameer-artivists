@@ -1,10 +1,10 @@
 {
   "featuredEvent": {
     "id": "kumaon-fest-2024",
-    "title": "Kumaon Fest 2024",
-    "description": "A grand celebration of Kumaoni culture featuring traditional music, dance, local cuisine, and artisan crafts. Join us for three days of cultural immersion in the heart of the Himalayas.",
+    "title": "Kumaon Fest 2025",
+    "description": "Art, Culture, Literature, Concerts, Exhibition, Folk Art, Music, Food, Games",
     "longDescription": "Kumaon Fest is an annual celebration that brings together the diverse cultural tapestry of the Kumaon region. Organized by Taameer Artivists Foundation, this festival serves as a vibrant platform for artists, musicians, writers, and cultural enthusiasts to showcase and celebrate our rich heritage.",
-    "image": "/placeholder.svg?height=300&width=400",
+    "image": "/kumaon fest.png",
     "startDate": "2024-09-15",
     "endDate": "2024-09-17",
     "location": "Haldwani, Uttarakhand",
@@ -111,7 +111,7 @@
       "id": "kumaon-fest-2024",
       "title": "Kumaon Fest 2024",
       "description": "Annual celebration of Kumaoni culture with music, art, literature, and traditional performances.",
-      "image": "/placeholder.svg?height=300&width=400",
+      "image": "/kumaon fest.png",
       "startDate": "2024-09-15",
       "endDate": "2024-09-17",
       "location": "Haldwani, Uttarakhand",
@@ -126,8 +126,8 @@
       "featured": true
     },
     {
-      "id": "haldwani-cleanliness-drive",
-      "title": "Haldwani Cleanliness Drive",
+      "id": "Safaachat Cleanliness Awareness Campaign ",
+      "title": "Safaachat Cleanliness Awareness Campaign ",
       "description": "Monthly community cleanup initiative to keep our city beautiful and environmentally sustainable.",
       "image": "/placeholder.svg?height=300&width=400",
       "startDate": "recurring",
@@ -144,8 +144,8 @@
       "featured": false
     },
     {
-      "id": "nainital-lake-conservation",
-      "title": "Nainital Lake Conservation Workshop",
+      "id": "Adopt A Plant",
+      "title": "Adopt A Plant",
       "description": "Educational workshop on lake conservation and environmental protection in the hill regions.",
       "image": "/placeholder.svg?height=300&width=400",
       "startDate": "2024-10-05",
@@ -162,8 +162,8 @@
       "featured": false
     },
     {
-      "id": "traditional-craft-exhibition",
-      "title": "Traditional Craft Exhibition",
+      "id": "Clean Your Closet",
+      "title": "Clean Your Closet",
       "description": "Showcase of local artisans and traditional Kumaoni handicrafts with live demonstrations.",
       "image": "/placeholder.svg?height=300&width=400",
       "startDate": "2024-11-12",
@@ -198,8 +198,8 @@
       "featured": false
     },
     {
-      "id": "winter-warmth-campaign",
-      "title": "Winter Warmth Campaign",
+      "id": "Blood Donation Camp",
+      "title": "Blood Donation Camp",
       "description": "Annual winter clothing and blanket distribution drive for underprivileged communities.",
       "image": "/placeholder.svg?height=300&width=400",
       "startDate": "2024-12-20",

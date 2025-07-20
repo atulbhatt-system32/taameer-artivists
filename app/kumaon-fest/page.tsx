@@ -443,7 +443,7 @@ export default function KumaonFestPage() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-6 text-center text-white">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                Don&apos;t Miss <span className="text-yellow-400">Kumaon Fest 2024</span>
+                Don&apos;t Miss <span className="text-yellow-400">Kumaon Fest 2025</span>
               </h2>
               <p className="max-w-[600px] md:text-xl text-gray-300">
                 Secure your spot at the most anticipated cultural celebration of the year. Early bird tickets are now
