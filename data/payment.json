@@ -2,9 +2,9 @@
   "paymentMethods": {
     "upi": {
       "enabled": true,
-      "upiId": "taameerartivists@paytm",
+      "upiId": "souravak99@okhdfcbank",
       "qrCodeImage": "/placeholder.svg?height=300&width=300",
-      "displayName": "Taameer Artivists Foundation",
+      "displayName": "Kumaon Fest 2025",
       "instructions": [
         "Scan the QR code using any UPI app",
         "Or copy the UPI ID and make payment",
@@ -15,11 +15,11 @@
     },
     "bankTransfer": {
       "enabled": true,
-      "accountName": "Taameer Artivists Foundation",
-      "accountNumber": "1234567890123456",
-      "ifscCode": "SBIN0001234",
-      "bankName": "State Bank of India",
-      "branch": "Haldwani Main Branch",
+      "accountName": "Sourav Kumar",
+      "accountNumber": "917010023062706",
+      "ifscCode": "UTIB0000584",
+      "bankName": "Axis Bank",
+      "branch": "Haldwani",
       "instructions": [
         "Transfer the amount to the above bank account",
         "Use event name as reference in transaction",
@@ -28,9 +28,9 @@
       ]
     },
     "contact": {
-      "whatsapp": "+91-9876543210",
+      "whatsapp": "+91-9837476299",
       "email": "taameerartivists@gmail.com",
-      "phone": "+91-9876543210"
+      "phone": "+91-9837476299"
     }
   },
   "paymentNote": "All payments are processed manually. You will receive a confirmation within 24 hours of payment. For any payment related queries, please contact us on WhatsApp or email."

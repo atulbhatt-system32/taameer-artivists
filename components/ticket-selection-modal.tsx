@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -88,6 +88,13 @@ export function TicketSelectionModal({ children }: TicketSelectionModalProps) {
     }
   ]
 
+  // Set Single Day Pass as default selected pass
+  useEffect(() => {
+    if (!selectedPass) {
+      setSelectedPass(ticketPasses[0]) // Single Day Pass
+    }
+  }, [selectedPass])
+
   const handlePassSelection = (pass: TicketPass) => {
     setSelectedPass(pass)
   }
@@ -108,7 +115,7 @@ export function TicketSelectionModal({ children }: TicketSelectionModalProps) {
     <>
       <Dialog>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="max-w-4xl w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[70vw] xl:w-[60vw] p-3 sm:p-4 md:p-6 max-h-[90vh] flex flex-col rounded-lg">
+        <DialogContent className="!max-w-6xl w-[95vw] sm:w-[90vw] md:w-[85vw] lg:w-[80vw] xl:w-[75vw] p-3 sm:p-4 md:p-6 max-h-[90vh] flex flex-col rounded-lg">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-900">Choose Your Kumaon Fest Pass</DialogTitle>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 gap-2">
@@ -208,33 +215,33 @@ export function TicketSelectionModal({ children }: TicketSelectionModalProps) {
                 <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">What's Included in Your Festival Experience</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200">
-                    <Music className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-xs sm:text-sm">Live Music</p>
-                      <p className="text-xs text-gray-600">Traditional & fusion</p>
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
+                    <Music className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm sm:text-base text-gray-900">Live Music</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Traditional & fusion performances</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200">
-                    <Palette className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-xs sm:text-sm">Art Exhibitions</p>
-                      <p className="text-xs text-gray-600">Local & contemporary</p>
+                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
+                    <Palette className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm sm:text-base text-gray-900">Art Exhibitions</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Local & contemporary art</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200">
-                    <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-xs sm:text-sm">Literature</p>
-                      <p className="text-xs text-gray-600">Poetry & discussions</p>
+                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
+                    <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm sm:text-base text-gray-900">Literature</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Poetry & discussions</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200">
-                    <Gift className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-xs sm:text-sm">Workshops</p>
-                      <p className="text-xs text-gray-600">Hands-on learning</p>
+                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
+                    <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm sm:text-base text-gray-900">Workshops</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Hands-on learning</p>
                     </div>
                   </div>
                 </div>
@@ -287,41 +294,13 @@ export function TicketSelectionModal({ children }: TicketSelectionModalProps) {
 
       {/* Payment Modal - Direct rendering when state is true */}
       {isPaymentOpen && selectedPass && (
-        <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
-          <DialogContent className="max-w-2xl w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[70vw] xl:w-[60vw] p-3 sm:p-4 md:p-6 max-h-[90vh] flex flex-col rounded-lg z-50">
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-900">Complete Your Payment</DialogTitle>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 gap-2">
-                <div>
-                  <p className="text-base sm:text-lg font-semibold text-gray-700">{`Kumaon Fest 2025 - ${selectedPass.name}`}</p>
-                  <p className="text-xs sm:text-sm text-gray-500">Event ID: {`KF2025-${selectedPass.id.toUpperCase()}`}</p>
-                </div>
-                <Badge className="bg-yellow-500 text-gray-900 text-sm sm:text-lg px-2 sm:px-3 py-1 w-fit">
-                  ₹{selectedPass.price}
-                </Badge>
-              </div>
-            </DialogHeader>
-
-            <div className="flex-1 overflow-y-auto space-y-4">
-              <div className="text-center p-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Methods Available</h3>
-                <div className="space-y-4">
-                  <div className="p-4 border border-yellow-200 rounded-lg bg-yellow-50">
-                    <h4 className="font-semibold text-gray-900 mb-2">UPI Payment</h4>
-                    <p className="text-sm text-gray-600">Scan QR code or use UPI ID</p>
-                  </div>
-                  <div className="p-4 border border-yellow-200 rounded-lg bg-yellow-50">
-                    <h4 className="font-semibold text-gray-900 mb-2">Bank Transfer</h4>
-                    <p className="text-sm text-gray-600">Direct bank transfer details</p>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-4">
-                  Payment details will be provided after confirmation
-                </p>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <PaymentModal
+          eventTitle={`Kumaon Fest 2025 - ${selectedPass.name}`}
+          eventPrice={selectedPass.price}
+          eventId={`KF2025-${selectedPass.id.toUpperCase()}`}
+          isOpen={isPaymentOpen}
+          onOpenChange={setIsPaymentOpen}
+        />
       )}
     </>
   )
