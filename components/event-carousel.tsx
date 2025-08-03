@@ -11,8 +11,8 @@ const events = [
     id: 1,
     title: "Traditional Folk Music Concert",
     description: "Experience the soulful melodies of Kumaoni folk songs performed by renowned local artists.",
-    image: "/placeholder.svg?height=300&width=400",
-    time: "7:00 PM - 9:00 PM",
+    image: "/folk.png",
+    time: "7:00 PM - 9:10 PM",
     venue: "Main Stage",
   },
   {

@@ -19,14 +19,14 @@
     "gallery": [
       {
         "id": 1,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/2022a.png",
         "alt": "Kumaon Fest 2022 Opening Ceremony",
         "caption": "The grand opening ceremony with traditional welcome rituals",
         "category": "ceremony"
       },
       {
         "id": 2,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/2022b.png",
         "alt": "Folk musicians performing traditional songs",
         "caption": "Local folk musicians performing traditional Kumaoni songs",
         "category": "music"

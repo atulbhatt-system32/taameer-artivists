@@ -27,11 +27,11 @@
         "text": "3 Days of Culture"
       }
     ],
-    "image": "/placeholder.svg?height=500&width=500"
+    "image": "/fest2025.png"
   },
   "about": {
     "title": "About Kumaon Fest",
-    "description": "Kumaon Fest is an annual celebration that brings together the diverse cultural tapestry of the Kumaon region. Organized by Taameer Artivists Foundation, this festival serves as a vibrant platform for artists, musicians, writers, and cultural enthusiasts to showcase and celebrate our rich heritage.",
+    "description": "Kumaon Fest is an event which comprises literature fest , dj and live event for supporting a cause of sahara to provide aid to the strays around and initiatives of Taameer artivist foundation to bring positivity and equality.Kumaon fest believes in showcasing local talents.",
     "subDescription": "Set against the backdrop of the beautiful Himalayan foothills in Haldwani, the festival creates a unique space where traditional Kumaoni culture meets contemporary artistic expression. It's more than just an event—it's a movement to preserve, promote, and pass on our cultural identity to future generations.",
     "stats": [
       {
@@ -45,15 +45,15 @@
     ],
     "images": [
       {
-        "src": "/placeholder.svg?height=300&width=500",
+        "src": "/about.png",
         "alt": "Kumaoni cultural performance"
       },
       {
-        "src": "/placeholder.svg?height=150&width=240",
+        "src": "/folk.png",
         "alt": "Traditional Kumaoni art"
       },
       {
-        "src": "/placeholder.svg?height=150&width=240",
+        "src": "/music.png",
         "alt": "Folk music performance"
       }
     ]
