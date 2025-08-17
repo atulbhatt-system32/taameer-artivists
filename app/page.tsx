@@ -3,35 +3,35 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import {  MapPin, Users, Leaf, Camera } from "lucide-react"
+import {  MapPin, Users, Leaf, Camera, CalendarDays } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { AllEventsCarousel } from "@/components/all-events-carousel"
-// import { PaymentModal } from "@/components/payment-modal"
-// import { useState } from "react"
+import { TicketSelectionModal } from "@/components/ticket-selection-modal"
+import { useState } from "react"
 import organizationData from "@/data/organization.json"
-// import eventsData from "@/data/events.json"
+import eventsData from "@/data/events.json"
 
 export default function HomePage() {
   const { name, tagline, description, mission, locations, volunteers, impact, focusAreas } = organizationData
-  // const { featuredEvent } = eventsData
-  // const [isPaymentOpen, setIsPaymentOpen] = useState(false)
+  const { featuredEvent } = eventsData
+  const [isTicketSelectionOpen, setIsTicketSelectionOpen] = useState(false)
 
-  // const formatDate = (startDate: string, endDate: string) => {
-  //   const start = new Date(startDate)
-  //   const end = new Date(endDate)
-  //   const startFormatted = start.toLocaleDateString("en-US", {
-  //     month: "long",
-  //     day: "numeric",
-  //   })
-  //   const endFormatted = end.toLocaleDateString("en-US", {
-  //     month: "long",
-  //     day: "numeric",
-  //     year: "numeric",
-  //   })
+  const formatDate = (startDate: string, endDate: string) => {
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    const startFormatted = start.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+    })
+    const endFormatted = end.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    })
 
-  //   return `${startFormatted} - ${endFormatted}`
-  // }
+    return `${startFormatted} - ${endFormatted}`
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -150,7 +150,7 @@ export default function HomePage() {
         </section>
 
         {/* Featured Event */}
-        {/* <section id="events" className="w-full py-12 md:py-24 lg:py-32 bg-gray-50">
+        <section id="events" className="w-full py-12 md:py-24 lg:py-32 bg-gray-50">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-gray-900">Featured Event</h2>
@@ -192,17 +192,10 @@ export default function HomePage() {
                     <div className="flex space-x-2">
                       <Button 
                         className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold"
-                        onClick={() => setIsPaymentOpen(true)}
+                        onClick={() => setIsTicketSelectionOpen(true)}
                       >
                         Book Tickets
                       </Button>
-                      <PaymentModal
-                        eventTitle={featuredEvent.title}
-                        eventPrice={`₹${featuredEvent.pricing.singleDay.price} - ₹${featuredEvent.pricing.vipExperience.price}`}
-                        eventId={featuredEvent.id}
-                        isOpen={isPaymentOpen}
-                        onOpenChange={setIsPaymentOpen}
-                      />
                       <Link href="/kumaon-fest">
                         <Button
                           variant="outline"
@@ -217,7 +210,7 @@ export default function HomePage() {
               </Card>
             </div>
           </div>
-        </section> */}
+        </section>
 
         {/* All Events Carousel */}
         <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
@@ -304,6 +297,12 @@ export default function HomePage() {
           </div>
         </section>
       </main>
+
+      {/* Ticket Selection Modal */}
+      <TicketSelectionModal
+        isOpen={isTicketSelectionOpen}
+        onOpenChange={setIsTicketSelectionOpen}
+      />
 
       {/* Footer */}
       <footer className="bg-gray-900 border-t border-gray-800">
