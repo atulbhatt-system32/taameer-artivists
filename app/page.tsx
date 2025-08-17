@@ -3,35 +3,35 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CalendarDays, MapPin, Users, Leaf, Camera } from "lucide-react"
+import {  MapPin, Users, Leaf, Camera } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { AllEventsCarousel } from "@/components/all-events-carousel"
-import { PaymentModal } from "@/components/payment-modal"
-import { useState } from "react"
+// import { PaymentModal } from "@/components/payment-modal"
+// import { useState } from "react"
 import organizationData from "@/data/organization.json"
-import eventsData from "@/data/events.json"
+// import eventsData from "@/data/events.json"
 
 export default function HomePage() {
   const { name, tagline, description, mission, locations, volunteers, impact, focusAreas } = organizationData
-  const { featuredEvent } = eventsData
-  const [isPaymentOpen, setIsPaymentOpen] = useState(false)
+  // const { featuredEvent } = eventsData
+  // const [isPaymentOpen, setIsPaymentOpen] = useState(false)
 
-  const formatDate = (startDate: string, endDate: string) => {
-    const start = new Date(startDate)
-    const end = new Date(endDate)
-    const startFormatted = start.toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-    })
-    const endFormatted = end.toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    })
+  // const formatDate = (startDate: string, endDate: string) => {
+  //   const start = new Date(startDate)
+  //   const end = new Date(endDate)
+  //   const startFormatted = start.toLocaleDateString("en-US", {
+  //     month: "long",
+  //     day: "numeric",
+  //   })
+  //   const endFormatted = end.toLocaleDateString("en-US", {
+  //     month: "long",
+  //     day: "numeric",
+  //     year: "numeric",
+  //   })
 
-    return `${startFormatted} - ${endFormatted}`
-  }
+  //   return `${startFormatted} - ${endFormatted}`
+  // }
 
   return (
     <div className="flex flex-col min-h-screen">
