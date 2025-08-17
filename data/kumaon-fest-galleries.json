@@ -33,42 +33,36 @@
       },
       {
         "id": 3,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/exhibition.jpg",
         "alt": "Art exhibition opening",
         "caption": "The first art exhibition showcasing local Kumaoni artists",
         "category": "art"
       },
       {
         "id": 4,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/dance1.jpg",
         "alt": "Traditional dance performance",
         "caption": "Traditional Kumaoni dance forms performed by local groups",
         "category": "dance"
       },
-      {
-        "id": 5,
-        "src": "/placeholder.svg?height=400&width=600",
-        "alt": "Community workshop",
-        "caption": "Hands-on workshops teaching traditional crafts",
-        "category": "workshop"
-      },
+  
       {
         "id": 6,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/poetry.jpg",
         "alt": "Poetry reading session",
         "caption": "Intimate poetry reading sessions with local poets",
         "category": "literature"
       },
       {
         "id": 7,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/food.jpeg",
         "alt": "Food stalls and local cuisine",
         "caption": "Local food stalls serving authentic Kumaoni dishes",
         "category": "food"
       },
       {
         "id": 8,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/closing.jpg",
         "alt": "Closing ceremony",
         "caption": "The emotional closing ceremony marking the end of the first festival",
         "category": "ceremony"
@@ -95,74 +89,56 @@
     "gallery": [
       {
         "id": 1,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/opening.jpg",
         "alt": "Kumaon Fest 2023 Grand Opening",
         "caption": "The spectacular opening ceremony with enhanced cultural performances",
         "category": "ceremony"
       },
       {
         "id": 2,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/perform.png",
         "alt": "Fusion music performance",
         "caption": "Contemporary fusion music blending traditional and modern elements",
         "category": "music"
       },
       {
         "id": 3,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/art.jpg",
         "alt": "Contemporary art exhibition",
         "caption": "Expanded art exhibition featuring contemporary interpretations",
         "category": "art"
       },
       {
         "id": 4,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/classi.png",
         "alt": "Classical dance performance",
         "caption": "Classical dance performances showcasing diverse cultural forms",
         "category": "dance"
       },
       {
         "id": 5,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/literature.png",
         "alt": "Literature panel discussion",
         "caption": "Panel discussions with prominent authors and literary figures",
         "category": "literature"
       },
-      {
-        "id": 6,
-        "src": "/placeholder.svg?height=400&width=600",
-        "alt": "Traditional craft workshop",
-        "caption": "Advanced workshops teaching intricate traditional crafts",
-        "category": "workshop"
-      },
-      {
-        "id": 7,
-        "src": "/placeholder.svg?height=400&width=600",
-        "alt": "Cultural food festival",
-        "caption": "Expanded food festival featuring regional specialties",
-        "category": "food"
-      },
+     
+     
       {
         "id": 8,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/21.png",
         "alt": "Community celebration",
         "caption": "Large-scale community celebration with diverse participation",
         "category": "community"
       },
       {
         "id": 9,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/2023a.jpg",
         "alt": "Youth cultural program",
         "caption": "Special programs engaging young artists and performers",
         "category": "youth"
-      },
-      {
-        "id": 10,
-        "src": "/placeholder.svg?height=400&width=600",
-        "alt": "Award ceremony",
-        "caption": "Recognition ceremony honoring outstanding cultural contributions",
-        "category": "ceremony"
       }
+    
     ]
   },
   "kumaonFest2024": {
@@ -185,84 +161,59 @@
     "gallery": [
       {
         "id": 1,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/2024 main.jpg",
         "alt": "Kumaon Fest 2024 Spectacular Opening",
         "caption": "The most spectacular opening ceremony with multimedia presentations",
         "category": "ceremony"
       },
       {
         "id": 2,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/2024b.png",
         "alt": "International music collaboration",
         "caption": "International artists collaborating with local musicians",
         "category": "music"
       },
-      {
-        "id": 3,
-        "src": "/placeholder.svg?height=400&width=600",
-        "alt": "Digital art installation",
-        "caption": "Innovative digital art installations blending technology and tradition",
-        "category": "art"
-      },
+     
       {
         "id": 4,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/2024c.jpg",
         "alt": "Contemporary dance fusion",
         "caption": "Contemporary dance performances with traditional elements",
         "category": "dance"
       },
       {
         "id": 5,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/literary.png",
         "alt": "Literary festival",
         "caption": "Comprehensive literary festival with international authors",
         "category": "literature"
       },
       {
         "id": 6,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/work.jpg",
         "alt": "Innovation workshop",
         "caption": "Innovation workshops combining traditional crafts with modern techniques",
         "category": "workshop"
       },
-      {
-        "id": 7,
-        "src": "/placeholder.svg?height=400&width=600",
-        "alt": "Gourmet food festival",
-        "caption": "Gourmet food festival featuring celebrity chefs and local cuisine",
-        "category": "food"
-      },
+      
       {
         "id": 8,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/2025.jpg",
         "alt": "Youth cultural summit",
         "caption": "Youth cultural summit engaging young artists and performers",
         "category": "youth"
       },
-      {
-        "id": 9,
-        "src": "/placeholder.svg?height=400&width=600",
-        "alt": "Environmental art installation",
-        "caption": "Environmental art installations promoting sustainability",
-        "category": "art"
-      },
-      {
-        "id": 10,
-        "src": "/placeholder.svg?height=400&width=600",
-        "alt": "Community art project",
-        "caption": "Large-scale community art project involving all participants",
-        "category": "community"
-      },
+     
       {
         "id": 11,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/2025b.jpg",
         "alt": "Cultural awards ceremony",
         "caption": "Prestigious cultural awards ceremony recognizing excellence",
         "category": "ceremony"
       },
       {
         "id": 12,
-        "src": "/placeholder.svg?height=400&width=600",
+        "src": "/grand.jpg",
         "alt": "Grand finale concert",
         "caption": "Spectacular grand finale concert with fireworks and celebrations",
         "category": "ceremony"

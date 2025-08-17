@@ -111,7 +111,7 @@
       "id": "kumaon-fest-2024",
       "title": "Kumaon Fest 2024",
       "description": "Annual celebration of Kumaoni culture with music, art, literature, and traditional performances.",
-      "image": "/",
+      "image": "/2024 main.jpg",
       "startDate": "2024-09-15",
       "endDate": "2024-09-17",
       "location": "Haldwani, Uttarakhand",
@@ -147,7 +147,7 @@
       "id": "Adopt A Plant",
       "title": "Adopt A Plant",
       "description": "Educational workshop on lake conservation and environmental protection in the hill regions.",
-      "image": "/placeholder.svg?height=300&width=400",
+      "image": "/adoptaplant.jpg",
       "startDate": "2024-10-05",
       "endDate": "2024-10-05",
       "location": "Nainital Lake, Uttarakhand",
@@ -165,7 +165,7 @@
       "id": "Clean Your Closet",
       "title": "Clean Your Closet",
       "description": "Showcase of local artisans and traditional Kumaoni handicrafts with live demonstrations.",
-      "image": "/placeholder.svg?height=300&width=400",
+      "image": "/closet.jpg",
       "startDate": "2024-11-12",
       "endDate": "2024-11-14",
       "location": "Haldwani Cultural Center",
@@ -179,24 +179,7 @@
       "expectedAttendees": "500+",
       "featured": false
     },
-    {
-      "id": "youth-leadership-summit",
-      "title": "Youth Leadership Summit",
-      "description": "Empowering young leaders in the Kumaon region through workshops and networking sessions.",
-      "image": "/placeholder.svg?height=300&width=400",
-      "startDate": "2024-12-08",
-      "endDate": "2024-12-09",
-      "location": "Haldwani Convention Center",
-      "pricing": {
-        "min": 199,
-        "max": 199,
-        "display": "₹199"
-      },
-      "category": "Leadership",
-      "status": "upcoming",
-      "expectedAttendees": "300+",
-      "featured": false
-    },
+
     {
       "id": "Blood Donation Camp",
       "title": "Blood Donation Camp",

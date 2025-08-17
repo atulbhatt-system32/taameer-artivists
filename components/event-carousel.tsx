@@ -19,7 +19,7 @@ const events = [
     id: 2,
     title: "Contemporary Art Exhibition",
     description: "Discover modern interpretations of traditional Kumaoni themes by emerging artists.",
-    image: "/placeholder.svg?height=300&width=400",
+    image: "/exhibition.jpg",
     time: "10:00 AM - 6:00 PM",
     venue: "Art Gallery",
   },
@@ -27,7 +27,7 @@ const events = [
     id: 3,
     title: "Poetry & Literature Session",
     description: "Join celebrated poets and authors for readings and discussions about Kumaoni literature.",
-    image: "/placeholder.svg?height=300&width=400",
+    image: "/poetry.jpg",
     time: "2:00 PM - 4:00 PM",
     venue: "Literary Corner",
   },
@@ -35,18 +35,11 @@ const events = [
     id: 4,
     title: "Traditional Dance Performance",
     description: "Watch mesmerizing performances of classical Kumaoni dance forms.",
-    image: "/placeholder.svg?height=300&width=400",
+    image: "/dance.jpg",
     time: "6:00 PM - 7:30 PM",
     venue: "Cultural Stage",
   },
-  {
-    id: 5,
-    title: "Handicraft Workshop",
-    description: "Learn traditional Kumaoni crafts from master artisans in hands-on sessions.",
-    image: "/placeholder.svg?height=300&width=400",
-    time: "11:00 AM - 1:00 PM",
-    venue: "Workshop Area",
-  },
+
 ]
 
 export function EventCarousel() {
