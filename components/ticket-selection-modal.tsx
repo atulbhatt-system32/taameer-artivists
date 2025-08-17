@@ -51,7 +51,7 @@ export function TicketSelectionModal({ isOpen, onOpenChange }: TicketSelectionMo
     },
     {
       id: "festival-pass",
-      name: "3-Day Festival Pass",
+      name: "2-Day Festival Pass",
       price: 799,
       originalPrice: 999,
       description: "Complete festival experience across all three days",
@@ -117,7 +117,7 @@ export function TicketSelectionModal({ isOpen, onOpenChange }: TicketSelectionMo
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 gap-2">
               <div>
                 <p className="text-base sm:text-lg font-semibold text-gray-700">Kumaon Fest 2025</p>
-                <p className="text-xs sm:text-sm text-gray-500">September 15-17, 2025 • Haldwani, Uttarakhand</p>
+                <p className="text-xs sm:text-sm text-gray-500">September 27-28, 2025 • Haldwani, Uttarakhand</p>
               </div>
               <Badge className="bg-yellow-500 text-gray-900 text-xs sm:text-sm px-2 sm:px-3 py-1 w-fit">
                 Early Bird Pricing

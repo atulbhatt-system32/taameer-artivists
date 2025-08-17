@@ -16,7 +16,7 @@
     "details": [
       {
         "icon": "CalendarDays",
-        "text": "Sept 15-17, 2024"
+        "text": "Sept 27-28, 2025"
       },
       {
         "icon": "MapPin",
@@ -24,7 +24,7 @@
       },
       {
         "icon": "Users",
-        "text": "3 Days of Culture"
+        "text": "2 Days of Culture"
       }
     ],
     "image": "/Fest2025.png"
@@ -90,7 +90,7 @@
     "days": [
       {
         "day": "Day 1",
-        "date": "September 15, 2024",
+        "date": "September 27, 2025",
         "theme": "Opening Ceremony & Music",
         "events": [
           {
@@ -108,8 +108,8 @@
         ]
       },
       {
-        "day": "Day 2",
-        "date": "September 16, 2024",
+        "day": "Day 1",
+        "date": "September 27, 2025",
         "theme": "Art & Literature",
         "events": [
           {
@@ -127,8 +127,8 @@
         ]
       },
       {
-        "day": "Day 3",
-        "date": "September 17, 2024",
+        "day": "Day 2",
+        "date": "September 28, 2024",
         "theme": "Grand Finale",
         "events": [
           {
