@@ -8,7 +8,7 @@ import Image from "next/image"
 const galleryImages = [
   {
     id: 1,
-    src: "/2024 main.jpg",
+    src: "/2024main.jpg",
     alt: "Kumaon Fest 2024 Opening Ceremony",
     caption: "Grand opening ceremony with traditional welcome",
   },
