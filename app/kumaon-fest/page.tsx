@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -7,12 +9,14 @@ import Link from "next/link"
 import { EventCarousel } from "@/components/event-carousel"
 import { GalleryCarousel } from "@/components/gallery-carousel"
 
+import { useState } from "react"
 import { TicketSelectionModal } from "@/components/ticket-selection-modal"
 import { TicketPricingModal } from "@/components/ticket-pricing-modal"
 import kumaonFestData from "@/data/kumaon-fest.json"
 
 export default function KumaonFestPage() {
   const { hero, about, events, schedule, gallery, community, tickets } = kumaonFestData
+  const [isTicketSelectionOpen, setIsTicketSelectionOpen] = useState(false)
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -45,9 +49,12 @@ export default function KumaonFestPage() {
             <Link href="#gallery" className="text-sm font-medium text-gray-300 hover:text-yellow-400 transition-colors">
               Gallery
             </Link>
-            <TicketSelectionModal>
-              <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold">Book Tickets</Button>
-            </TicketSelectionModal>
+            <Button 
+              className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold"
+              onClick={() => setIsTicketSelectionOpen(true)}
+            >
+              Book Tickets
+            </Button>
           </nav>
         </div>
       </header>
@@ -71,21 +78,23 @@ export default function KumaonFestPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row w-full">
-                  <TicketSelectionModal>
-                    <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold w-full sm:w-auto">
-                      <Ticket className="mr-2 h-4 w-4" />
-                      {hero.buttons.primary.text}
-                    </Button>
-                  </TicketSelectionModal>
-                                  <TicketPricingModal>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10 bg-transparent w-full sm:w-auto"
+                  <Button 
+                    size="lg" 
+                    className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold w-full sm:w-auto"
+                    onClick={() => setIsTicketSelectionOpen(true)}
                   >
-                    {hero.buttons.secondary.text}
+                    <Ticket className="mr-2 h-4 w-4" />
+                    {hero.buttons.primary.text}
                   </Button>
-                </TicketPricingModal>
+<TicketPricingModal onBookTickets={() => setIsTicketSelectionOpen(true)}>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10 bg-transparent w-full sm:w-auto"
+                    >
+                      {hero.buttons.secondary.text}
+                    </Button>
+                  </TicketPricingModal>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 pt-4">
                   {hero.details.map((detail, index) => (
@@ -361,16 +370,15 @@ export default function KumaonFestPage() {
                 {tickets.subtitle}
               </p>
               <div className="flex flex-col gap-4 min-[400px]:flex-row">
-                <TicketSelectionModal>
-                  <Button
-                    size="lg"
-                    className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold"
-                  >
-                    <Ticket className="mr-2 h-4 w-4" />
-                    Book Tickets Now
-                  </Button>
-                </TicketSelectionModal>
-                <TicketPricingModal>
+                <Button
+                  size="lg"
+                  className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold"
+                  onClick={() => setIsTicketSelectionOpen(true)}
+                >
+                  <Ticket className="mr-2 h-4 w-4" />
+                  Book Tickets Now
+                </Button>
+                <TicketPricingModal onBookTickets={() => setIsTicketSelectionOpen(true)}>
                   <Button
                     variant="outline"
                     size="lg"
@@ -392,6 +400,12 @@ export default function KumaonFestPage() {
           </div>
         </section>
       </main>
+
+      {/* Ticket Selection Modal */}
+      <TicketSelectionModal
+        isOpen={isTicketSelectionOpen}
+        onOpenChange={setIsTicketSelectionOpen}
+      />
 
       {/* Footer */}
       <footer className="bg-gray-900 border-t border-gray-800">

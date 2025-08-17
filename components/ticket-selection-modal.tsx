@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CheckCircle, Users, Calendar, Gift, Crown, Music, Palette, BookOpen } from "lucide-react"
 import { PaymentModal } from "./payment-modal"
@@ -23,10 +23,11 @@ interface TicketPass {
 }
 
 interface TicketSelectionModalProps {
-  children: React.ReactNode
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
 }
 
-export function TicketSelectionModal({ children }: TicketSelectionModalProps) {
+export function TicketSelectionModal({ isOpen, onOpenChange }: TicketSelectionModalProps) {
   const [selectedPass, setSelectedPass] = useState<TicketPass | null>(null)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
 
@@ -109,10 +110,8 @@ export function TicketSelectionModal({ children }: TicketSelectionModalProps) {
 
 
   return (
-    <>
-      <Dialog>
-        <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="!max-w-6xl w-[95vw] sm:w-[90vw] md:w-[85vw] lg:w-[80vw] xl:w-[75vw] p-3 sm:p-4 md:p-6 max-h-[90vh] flex flex-col rounded-lg">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="!max-w-6xl w-[95vw] sm:w-[90vw] md:w-[85vw] lg:w-[80vw] xl:w-[75vw] p-3 sm:p-4 md:p-6 max-h-[90vh] flex flex-col rounded-lg">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-900">Choose Your Kumaon Fest Pass</DialogTitle>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 gap-2">
@@ -287,18 +286,17 @@ export function TicketSelectionModal({ children }: TicketSelectionModalProps) {
             </div>
           )}
         </DialogContent>
-      </Dialog>
 
-      {/* Payment Modal - Direct rendering when state is true */}
-      {isPaymentOpen && selectedPass && (
-        <PaymentModal
-          eventTitle={`Kumaon Fest 2025 - ${selectedPass.name}`}
-          eventPrice={selectedPass.price}
-          eventId={`KF2025-${selectedPass.id.toUpperCase()}`}
-          isOpen={isPaymentOpen}
-          onOpenChange={setIsPaymentOpen}
-        />
-      )}
-    </>
-  )
-}
+        {/* Payment Modal - Direct rendering when state is true */}
+        {isPaymentOpen && selectedPass && (
+          <PaymentModal
+            eventTitle={`Kumaon Fest 2025 - ${selectedPass.name}`}
+            eventPrice={selectedPass.price}
+            eventId={`KF2025-${selectedPass.id.toUpperCase()}`}
+            isOpen={isPaymentOpen}
+            onOpenChange={setIsPaymentOpen}
+          />
+        )}
+      </Dialog>
+    )
+  }

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, ChevronRight, CalendarDays, MapPin, Users } from "lucide-react"
 import Image from "next/image"
 import { PaymentModal } from "@/components/payment-modal"
+import { TicketSelectionModal } from "@/components/ticket-selection-modal"
 import eventsData from "@/data/events.json"
 
 const categoryColors = {
@@ -30,6 +31,8 @@ export function AllEventsCarousel() {
   const [itemsPerView, setItemsPerView] = useState(3)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<typeof allEvents[0] | null>(null)
+  const [isTicketSelectionOpen, setIsTicketSelectionOpen] = useState(false)
+  const [selectedKumaonEvent, setSelectedKumaonEvent] = useState<typeof allEvents[0] | null>(null)
 
   useEffect(() => {
     const updateItemsPerView = () => {
@@ -200,8 +203,13 @@ export function AllEventsCarousel() {
                         size="sm" 
                         className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold text-xs sm:text-sm"
                         onClick={() => {
-                          setSelectedEvent(event)
-                          setIsPaymentOpen(true)
+                          if (event.title.toLowerCase().includes('kumaon fest')) {
+                            setSelectedKumaonEvent(event)
+                            setIsTicketSelectionOpen(true)
+                          } else {
+                            setSelectedEvent(event)
+                            setIsPaymentOpen(true)
+                          }
                         }}
                       >
                         Book Now
@@ -243,6 +251,14 @@ export function AllEventsCarousel() {
           eventId={selectedEvent.id}
           isOpen={isPaymentOpen}
           onOpenChange={setIsPaymentOpen}
+        />
+      )}
+
+      {/* Ticket Selection Modal for Kumaon Fest */}
+      {selectedKumaonEvent && (
+        <TicketSelectionModal
+          isOpen={isTicketSelectionOpen}
+          onOpenChange={setIsTicketSelectionOpen}
         />
       )}
     </div>

@@ -7,13 +7,14 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CheckCircle, Calendar, Users, Crown } from "lucide-react"
-import { TicketSelectionModal } from "./ticket-selection-modal"
+
 
 interface TicketPricingModalProps {
   children: React.ReactNode
+  onBookTickets?: () => void
 }
 
-export function TicketPricingModal({ children }: TicketPricingModalProps) {
+export function TicketPricingModal({ children, onBookTickets }: TicketPricingModalProps) {
   const ticketTiers = [
     {
       id: "single-day",
@@ -163,11 +164,12 @@ export function TicketPricingModal({ children }: TicketPricingModalProps) {
               <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                 Choose your preferred pass and complete your booking to secure your spot at Kumaon Fest 2025!
               </p>
-              <TicketSelectionModal>
-                <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold text-sm sm:text-base">
-                  Book Tickets Now
-                </Button>
-              </TicketSelectionModal>
+              <Button 
+                className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold text-sm sm:text-sm"
+                onClick={onBookTickets}
+              >
+                Book Tickets Now
+              </Button>
             </div>
           </div>
 
