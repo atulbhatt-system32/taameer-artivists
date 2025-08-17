@@ -174,7 +174,7 @@ export default function HomePage() {
                     <div className="flex items-center space-x-2 mb-2">
                       <Badge className="bg-yellow-500/20 text-yellow-700 border-yellow-500/30">Annual Event</Badge>
                       <Badge variant="outline" className="border-gray-300">
-                        September 2024
+                        September 2025
                       </Badge>
                     </div>
                     <h3 className="text-2xl font-bold mb-2 text-gray-900">{featuredEvent.title}</h3>
