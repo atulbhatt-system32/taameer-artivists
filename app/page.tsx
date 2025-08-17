@@ -150,7 +150,7 @@ export default function HomePage() {
         </section>
 
         {/* Featured Event */}
-        <section id="events" className="w-full py-12 md:py-24 lg:py-32 bg-gray-50">
+        {/* <section id="events" className="w-full py-12 md:py-24 lg:py-32 bg-gray-50">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-gray-900">Featured Event</h2>
@@ -217,7 +217,7 @@ export default function HomePage() {
               </Card>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* All Events Carousel */}
         <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
