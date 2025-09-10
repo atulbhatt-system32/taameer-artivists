@@ -190,12 +190,18 @@ export default function HomePage() {
                       </div>
                     </div>
                     <div className="flex space-x-2">
-                      <Button 
+                      {/* <Button 
                         className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold"
                         onClick={() => setIsTicketSelectionOpen(true)}
                       >
                         Book Tickets
-                      </Button>
+                      </Button> */}
+
+<Link href="https://docs.google.com/forms/d/e/1FAIpQLSf3t-MQaPT_8Rik6GQbJSp13_LJwq6gCMxhdhaFg_BssaRjEQ/viewform" target="_blank" className="w-full sm:w-auto">
+  <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold">
+    Book Tickets
+  </Button>
+</Link>
                       <Link href="/kumaon-fest">
                         <Button
                           variant="outline"
