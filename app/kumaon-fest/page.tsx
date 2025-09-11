@@ -1,18 +1,17 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CalendarDays, MapPin, Users, Music, Palette, BookOpen, Camera, Clock, Ticket } from "lucide-react"
+import { CalendarDays, MapPin, Users,   Ticket } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { EventCarousel } from "@/components/event-carousel"
-import { GalleryCarousel } from "@/components/gallery-carousel"
+
+
 
 import kumaonFestData from "@/data/kumaon-fest.json"
 
 export default function KumaonFestPage() {
-  const { hero, about, events, schedule, gallery, community, tickets } = kumaonFestData
+  const { hero, about, tickets } = kumaonFestData
   const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLSf3t-MQaPT_8Rik6GQbJSp13_LJwq6gCMxhdhaFg_BssaRjEQ/viewform"
 
   return (
