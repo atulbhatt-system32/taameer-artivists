@@ -1,18 +1,17 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { CalendarDays, MapPin, Users,   Ticket } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { CalendarDays, MapPin, Ticket, Users } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
-
-
-import kumaonFestData from "@/data/kumaon-fest.json"
+import kumaonFestData from "@/data/kumaon-fest.json";
 
 export default function KumaonFestPage() {
-  const { hero, about, tickets } = kumaonFestData
-  const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLSf3t-MQaPT_8Rik6GQbJSp13_LJwq6gCMxhdhaFg_BssaRjEQ/viewform"
+  const { hero, about, tickets } = kumaonFestData;
+  const googleFormLink =
+    "https://docs.google.com/forms/d/e/1FAIpQLSf3t-MQaPT_8Rik6GQbJSp13_LJwq6gCMxhdhaFg_BssaRjEQ/viewform";
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -25,15 +24,22 @@ export default function KumaonFestPage() {
                 <span className="text-xs font-bold text-gray-900">KF</span>
               </div>
               <span className="text-xl font-bold">
-                <span className="text-yellow-400">Kumaon</span> <span className="text-white">Fest</span>
+                <span className="text-yellow-400">Kumaon</span>{" "}
+                <span className="text-white">Fest</span>
               </span>
             </div>
           </Link>
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="#about" className="text-sm font-medium text-gray-300 hover:text-yellow-400 transition-colors">
+            <Link
+              href="#about"
+              className="text-sm font-medium text-gray-300 hover:text-yellow-400 transition-colors"
+            >
               About
             </Link>
-            <Link href="#events" className="text-sm font-medium text-gray-300 hover:text-yellow-400 transition-colors">
+            <Link
+              href="#events"
+              className="text-sm font-medium text-gray-300 hover:text-yellow-400 transition-colors"
+            >
               Events
             </Link>
             <Link
@@ -42,10 +48,13 @@ export default function KumaonFestPage() {
             >
               Schedule
             </Link>
-            <Link href="#gallery" className="text-sm font-medium text-gray-300 hover:text-yellow-400 transition-colors">
+            <Link
+              href="#gallery"
+              className="text-sm font-medium text-gray-300 hover:text-yellow-400 transition-colors"
+            >
               Gallery
             </Link>
-            <Button 
+            <Button
               className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold"
               onClick={() => window.open(googleFormLink, "_blank")}
             >
@@ -66,7 +75,8 @@ export default function KumaonFestPage() {
                     {hero.badge}
                   </Badge>
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-6xl xl:text-7xl/none">
-                    <span className="text-yellow-400">Kumaon</span> <span className="text-white">Fest</span>{" "}
+                    <span className="text-yellow-400">Kumaon</span>{" "}
+                    <span className="text-white">Fest</span>{" "}
                     <span className="text-yellow-400">2025</span>
                   </h1>
                   <p className="max-w-[600px] text-gray-300 md:text-xl leading-relaxed break-words overflow-x-auto">
@@ -74,8 +84,8 @@ export default function KumaonFestPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row w-full">
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold w-full sm:w-auto"
                     onClick={() => window.open(googleFormLink, "_blank")}
                   >
@@ -94,10 +104,19 @@ export default function KumaonFestPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 pt-4">
                   {hero.details.map((detail, index) => (
-                    <div key={index} className="flex items-center space-x-2 text-sm text-gray-300">
-                      {detail.icon === "CalendarDays" && <CalendarDays className="h-4 w-4 text-yellow-400" />}
-                      {detail.icon === "MapPin" && <MapPin className="h-4 w-4 text-yellow-400" />}
-                      {detail.icon === "Users" && <Users className="h-4 w-4 text-yellow-400" />}
+                    <div
+                      key={index}
+                      className="flex items-center space-x-2 text-sm text-gray-300"
+                    >
+                      {detail.icon === "CalendarDays" && (
+                        <CalendarDays className="h-4 w-4 text-yellow-400" />
+                      )}
+                      {detail.icon === "MapPin" && (
+                        <MapPin className="h-4 w-4 text-yellow-400" />
+                      )}
+                      {detail.icon === "Users" && (
+                        <Users className="h-4 w-4 text-yellow-400" />
+                      )}
                       <span className="font-medium">{detail.text}</span>
                     </div>
                   ))}
@@ -125,7 +144,9 @@ export default function KumaonFestPage() {
             <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl text-gray-900">{about.title}</h2>
+                  <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl text-gray-900">
+                    {about.title}
+                  </h2>
                   <p className="text-gray-600 text-lg leading-relaxed">
                     {about.description}
                   </p>
@@ -135,8 +156,13 @@ export default function KumaonFestPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   {about.stats.map((stat, index) => (
-                    <div key={index} className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                      <div className="text-2xl font-bold text-yellow-600">{stat.number}</div>
+                    <div
+                      key={index}
+                      className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200"
+                    >
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {stat.number}
+                      </div>
                       <div className="text-sm text-gray-600">{stat.label}</div>
                     </div>
                   ))}
@@ -201,14 +227,14 @@ export default function KumaonFestPage() {
                   View Pricing
                 </Button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 text-center">
+              {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 text-center">
                 {tickets.pricing.map((tier, index) => (
                   <div key={index} className="p-4 bg-gray-800/50 rounded-lg border border-yellow-500/20">
                     <div className="text-2xl font-bold text-yellow-400">{tier.price}</div>
                     <div className="text-sm text-gray-300">{tier.label}</div>
                   </div>
                 ))}
-              </div>
+              </div> */}
             </div>
           </div>
         </section>
@@ -218,18 +244,25 @@ export default function KumaonFestPage() {
       <footer className="bg-gray-900 border-t border-gray-800">
         <div className="container flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6">
           <p className="text-xs text-gray-400">
-            © 2024 Kumaon Fest by Taameer Artivists Foundation. All rights reserved.
+            © 2024 Kumaon Fest by Taameer Artivists Foundation. All rights
+            reserved.
           </p>
           <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-            <Link href="/" className="text-xs hover:underline underline-offset-4 text-gray-400 hover:text-yellow-400">
+            <Link
+              href="/"
+              className="text-xs hover:underline underline-offset-4 text-gray-400 hover:text-yellow-400"
+            >
               Back to Main Site
             </Link>
-            <Link href="#" className="text-xs hover:underline underline-offset-4 text-gray-400 hover:text-yellow-400">
+            <Link
+              href="#"
+              className="text-xs hover:underline underline-offset-4 text-gray-400 hover:text-yellow-400"
+            >
               Contact
             </Link>
           </nav>
         </div>
       </footer>
     </div>
-  )
+  );
 }
