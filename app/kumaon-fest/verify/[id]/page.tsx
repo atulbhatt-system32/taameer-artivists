@@ -75,7 +75,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                 const url = new URL(decodedText);
                 const pathParts = url.pathname.split("/");
                 newId = pathParts[pathParts.length - 1];
-              } catch (e) {
+              } catch {
                 newId = decodedText;
               }
 

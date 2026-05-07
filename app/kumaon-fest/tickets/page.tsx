@@ -1,7 +1,6 @@
 "use client";
 
 import { BookingWizard } from "@/components/booking-wizard";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 

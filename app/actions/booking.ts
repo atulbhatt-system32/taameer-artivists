@@ -131,7 +131,6 @@ export async function confirmPayment(data: PaymentConfirmationData) {
   const smtpPass = process.env.GOOGLE_SMTP_PASS;
 
   let emailError: string | null = null;
-  let emailMessageId: string | null = null;
 
   if (smtpUser && smtpPass) {
     const transporter = nodemailer.createTransport({
@@ -185,7 +184,7 @@ export async function confirmPayment(data: PaymentConfirmationData) {
           </div>
         `,
       });
-      emailMessageId = info.messageId;
+      console.log("Email sent:", info.messageId);
     } catch (err) {
       emailError = String(err);
     }
@@ -304,8 +303,8 @@ export async function resendConfirmationEmail(id: string) {
 }
 
 // Keep legacy for backward compatibility if needed, but updated to use new flow
-export async function registerUser(data: any) {
-  const preResult = await preRegisterUser(data);
+export async function registerUser(data: RegistrationData & { paymentId: string; orderId: string; signature: string }) {
+  const preResult = await preRegisterUser(data as RegistrationData);
   return confirmPayment({
     registrationId: preResult.registrationId,
     paymentId: data.paymentId,

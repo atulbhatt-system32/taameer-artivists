@@ -98,8 +98,9 @@ export default function AdminPage() {
     try {
       await resendConfirmationEmail(id);
       setNotification({ type: "success", message: "Email resent successfully!" });
-    } catch (err: any) {
-      setNotification({ type: "error", message: err.message || "Failed to resend email." });
+    } catch (err: unknown) {
+      const error = err as Error;
+      setNotification({ type: "error", message: error.message || "Failed to resend email." });
     } finally {
       setResendingEmail(null);
     }
@@ -154,7 +155,7 @@ export default function AdminPage() {
             const url = new URL(decodedText);
             const pathParts = url.pathname.split("/");
             id = pathParts[pathParts.length - 1];
-          } catch (e) {
+          } catch {
             id = decodedText;
           }
           
@@ -164,7 +165,7 @@ export default function AdminPage() {
               setNotification({ type: "success", message: "Check-in successful!" });
               setShowScanner(false);
               fetchData();
-            } catch (err) {
+            } catch {
               setNotification({ type: "error", message: "Invalid ticket or already used." });
             }
           }

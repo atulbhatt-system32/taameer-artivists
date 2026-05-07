@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, MapPin, Ticket, Users, Music, Palette, BookOpen, Camera, ArrowRight, Sparkles, Star } from "lucide-react";
+import { CalendarDays, MapPin, Ticket, Users, Music, Palette, BookOpen, Camera, ArrowRight, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 import kumaonFestData from "@/data/kumaon-fest.json";
 
 export default function KumaonFestPage() {
-  const { hero, about, events, schedule, gallery, community, tickets } = kumaonFestData;
+  const { hero, about, events, schedule, gallery, tickets } = kumaonFestData;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-950 text-white selection:bg-yellow-500/30 selection:text-yellow-500">
@@ -110,7 +110,7 @@ export default function KumaonFestPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-60" />
                   <div className="absolute bottom-10 left-10 right-10 flex justify-between items-end">
                     <div className="p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl">
-                      <p className="text-white font-black italic tracking-tight text-xl italic">"The Soul of the Hills"</p>
+                      <p className="text-white font-black italic tracking-tight text-xl italic">&quot;The Soul of the Hills&quot;</p>
                     </div>
                   </div>
                 </div>
@@ -248,7 +248,7 @@ export default function KumaonFestPage() {
             <div className="absolute bottom-10 right-10"><Star className="w-32 h-32 fill-gray-950 text-gray-950 -rotate-12" /></div>
           </div>
           <div className="container px-4 max-w-7xl mx-auto text-center space-y-12 relative z-10 text-gray-950">
-            <h2 className="text-6xl md:text-9xl font-black tracking-tighter leading-none uppercase">DON'T MISS <br />KUMAON FEST 2025.</h2>
+            <h2 className="text-6xl md:text-9xl font-black tracking-tighter leading-none uppercase">DON&apos;T MISS <br />KUMAON FEST 2025.</h2>
             <p className="max-w-[700px] mx-auto text-2xl font-bold leading-relaxed">{tickets.subtitle}</p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Button asChild size="lg" className="h-20 px-16 bg-gray-950 hover:bg-gray-800 text-white font-black text-2xl rounded-[2rem] shadow-2xl transition-all hover:scale-105 active:scale-95 group">

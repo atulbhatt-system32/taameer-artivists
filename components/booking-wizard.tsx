@@ -27,7 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { preRegisterUser, createRazorpayOrder, confirmPayment } from "@/app/actions/booking";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Ticket, Users, Sparkles, ChevronLeft, CreditCard, ShoppingBag, ArrowRight } from "lucide-react";
+import { CheckCircle2, Ticket, Users, Sparkles, ChevronLeft, CreditCard, ShoppingBag } from "lucide-react";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
 
@@ -81,7 +81,7 @@ const tiers = [
 
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   }
 }
 
@@ -159,7 +159,7 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
         name: "Taameer Artivists",
         description: `${values.passType} x ${values.quantity}`,
         order_id: order.id,
-        handler: async function (response: any) {
+        handler: async function (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) {
           try {
             await confirmPayment({
               registrationId: regId,
@@ -168,8 +168,9 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
               signature: response.razorpay_signature,
             });
             setStep(2);
-          } catch (err: any) {
-            setNotification({ type: "error", message: `Verification failed: ${err.message}` });
+          } catch (err: unknown) {
+            const error = err as Error;
+            setNotification({ type: "error", message: `Verification failed: ${error.message}` });
           }
         },
         prefill: { name: values.fullName, email: values.email, contact: values.contactNo },
@@ -179,8 +180,9 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
 
       const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch (error: any) {
-      setNotification({ type: "error", message: error.message || "Payment failed." });
+    } catch (error: unknown) {
+      const err = error as Error;
+      setNotification({ type: "error", message: err.message || "Payment failed." });
       setIsSubmitting(false);
     }
   }
@@ -434,7 +436,7 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
               <CheckCircle2 className="w-16 h-16 text-gray-950" />
             </div>
             <div className="space-y-4">
-              <h2 className="text-5xl font-black text-white italic tracking-tighter">BOOM! YOU'RE IN.</h2>
+              <h2 className="text-5xl font-black text-white italic tracking-tighter">BOOM! YOU&apos;RE IN.</h2>
               <p className="text-gray-400 text-xl">Your ticket for Kumaon Fest 2026 has been sent to <span className="text-white font-bold">{form.getValues("email")}</span></p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

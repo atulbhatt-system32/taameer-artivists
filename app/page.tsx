@@ -1,12 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, Leaf, Camera, CalendarDays, Sparkles, ArrowRight, Heart } from "lucide-react";
+import { MapPin, Users, Leaf, Camera, CalendarDays, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { AllEventsCarousel } from "@/components/all-events-carousel";
 import organizationData from "@/data/organization.json";
 import eventsData from "@/data/events.json";
@@ -133,7 +132,7 @@ export default function HomePage() {
           <div className="container px-4 max-w-7xl mx-auto">
             <div className="flex flex-col items-center text-center space-y-4 mb-16">
               <h2 className="text-4xl md:text-6xl font-black text-gray-950 tracking-tighter uppercase">Featured Event</h2>
-              <p className="max-w-[600px] text-gray-500 text-lg">Don't miss our signature annual celebration of Kumaoni culture and traditions</p>
+              <p className="max-w-[600px] text-gray-500 text-lg">Don&apos;t miss our signature annual celebration of Kumaoni culture and traditions</p>
             </div>
             <Card className="overflow-hidden border-none shadow-2xl bg-white rounded-[3rem]">
               <div className="md:flex min-h-[500px]">
@@ -231,7 +230,7 @@ export default function HomePage() {
           <div className="container px-4 max-w-7xl mx-auto">
             <div className="flex flex-col items-center text-center space-y-8 text-gray-950">
               <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-none uppercase">Get Involved</h2>
-              <p className="max-w-[700px] text-xl font-bold leading-relaxed">Join our mission to build better communities. Whether you want to volunteer, partner with us, or attend our events, we'd love to hear from you.</p>
+              <p className="max-w-[700px] text-xl font-bold leading-relaxed">Join our mission to build better communities. Whether you want to volunteer, partner with us, or attend our events, we&apos;d love to hear from you.</p>
               <div className="flex flex-col sm:flex-row gap-6 pt-6">
                 <Button size="lg" className="h-16 px-12 bg-gray-950 hover:bg-gray-800 text-white font-black text-xl rounded-2xl shadow-2xl">Become a Volunteer</Button>
                 <Button size="lg" className="h-16 px-12 border border-gray-950 bg-transparent text-gray-950 hover:bg-gray-950 hover:text-white rounded-2xl font-black text-xl transition-colors">Contact Us</Button>
