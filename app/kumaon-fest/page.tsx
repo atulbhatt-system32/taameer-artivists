@@ -172,11 +172,11 @@ export default function KumaonFestPage() {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {events.highlights.map((item, index) => (
                 <div key={index} className="p-10 bg-white rounded-[2.5rem] shadow-sm border border-gray-100 group hover:border-yellow-500 transition-all hover:shadow-xl hover:-translate-y-2">
-                  <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-yellow-500 group-hover:text-white transition-all">
-                    {item.icon === "Music" && <Music className="w-7 h-7" />}
-                    {item.icon === "Palette" && <Palette className="w-7 h-7" />}
-                    {item.icon === "BookOpen" && <BookOpen className="w-7 h-7" />}
-                    {item.icon === "Camera" && <Camera className="w-7 h-7" />}
+                  <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-yellow-500 transition-all duration-300 shadow-sm">
+                    {item.icon === "Music" && <Music className="w-7 h-7 text-gray-950 group-hover:text-white transition-colors" />}
+                    {item.icon === "Palette" && <Palette className="w-7 h-7 text-gray-950 group-hover:text-white transition-colors" />}
+                    {item.icon === "BookOpen" && <BookOpen className="w-7 h-7 text-gray-950 group-hover:text-white transition-colors" />}
+                    {item.icon === "Camera" && <Camera className="w-7 h-7 text-gray-950 group-hover:text-white transition-colors" />}
                   </div>
                   <h4 className="text-2xl font-black text-gray-950 mb-4 tracking-tight leading-none uppercase">{item.title}</h4>
                   <p className="text-gray-500 text-sm leading-relaxed">{item.description}</p>
