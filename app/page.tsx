@@ -1,277 +1,224 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import {  MapPin, Users, Leaf, Camera, CalendarDays } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
-import { AllEventsCarousel } from "@/components/all-events-carousel"
-import { TicketSelectionModal } from "@/components/ticket-selection-modal"
-import { useState } from "react"
-import organizationData from "@/data/organization.json"
-import eventsData from "@/data/events.json"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Users, Leaf, Camera, CalendarDays, Sparkles, ArrowRight, Heart } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { AllEventsCarousel } from "@/components/all-events-carousel";
+import organizationData from "@/data/organization.json";
+import eventsData from "@/data/events.json";
 
 export default function HomePage() {
-  const { name, tagline, description, mission, locations, volunteers, impact, focusAreas } = organizationData
-  const { featuredEvent } = eventsData
-  const [isTicketSelectionOpen, setIsTicketSelectionOpen] = useState(false)
+  const { name, tagline, description, mission, locations, volunteers, impact, focusAreas } = organizationData;
+  const { featuredEvent } = eventsData;
 
   const formatDate = (startDate: string, endDate: string) => {
-    const start = new Date(startDate)
-    const end = new Date(endDate)
-    const startFormatted = start.toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-    })
-    const endFormatted = end.toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    })
-
-    return `${startFormatted} - ${endFormatted}`
-  }
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    return `${start.toLocaleDateString("en-US", { month: "long", day: "numeric" })} - ${end.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`;
+  };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gray-950 text-white selection:bg-yellow-500/30 selection:text-yellow-500">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-gray-900/90 border-gray-800">
-        <div className="container flex h-16 items-center justify-between px-4">
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500">
-                <span className="text-xs font-bold text-gray-900">TA</span>
-              </div>
-              <span className="text-xl font-bold">
-                <span className="text-yellow-400">Taameer</span> <span className="text-white">Artivists</span>
-              </span>
+      <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-gray-950/80 backdrop-blur-xl">
+        <div className="container flex h-20 items-center justify-between px-4 max-w-7xl mx-auto">
+          <Link href="/" className="flex items-center space-x-3 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-yellow-500 shadow-lg shadow-yellow-500/20 group-hover:rotate-6 transition-transform">
+              <span className="text-sm font-black text-gray-950">TA</span>
             </div>
+            <span className="text-xl font-black tracking-tighter">
+              TAAMEER <span className="text-yellow-500">ARTIVISTS</span>
+            </span>
           </Link>
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link href="#about" className="text-sm font-medium text-gray-300 hover:text-yellow-400 transition-colors">
-              About
-            </Link>
-            <Link href="#events" className="text-sm font-medium text-gray-300 hover:text-yellow-400 transition-colors">
-              Events
-            </Link>
-            <Link href="#impact" className="text-sm font-medium text-gray-300 hover:text-yellow-400 transition-colors">
-              Our Work
-            </Link>
-            <Link href="#contact" className="text-sm font-medium text-gray-300 hover:text-yellow-400 transition-colors">
-              Contact
-            </Link>
-            <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold">Support Us</Button>
+          <nav className="hidden md:flex items-center space-x-8">
+            {["About", "Events", "Impact", "Contact"].map((item) => (
+              <Link key={item} href={`#${item.toLowerCase()}`} className="text-xs font-black text-gray-400 hover:text-yellow-500 transition-colors tracking-widest uppercase">{item}</Link>
+            ))}
+            <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-full px-6 h-10 shadow-xl shadow-yellow-500/10">Support Us</Button>
           </nav>
         </div>
       </header>
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-8 md:gap-12 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_600px] items-center">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <Badge className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/20 border-yellow-500/30">
+        <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-gray-950">
+          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-yellow-500/10 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-yellow-500/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+          
+          <div className="container px-4 max-w-7xl mx-auto relative z-10">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              <div className="flex flex-col justify-center space-y-10">
+                <div className="space-y-6">
+                  <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 px-4 py-2 rounded-full text-sm font-black uppercase tracking-widest">
                     {tagline}
                   </Badge>
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    <span className="text-yellow-400">Taameer</span> <span className="text-white">Artivists Foundation</span>
+                  <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9]">
+                    {name.split(' ').map((word, i) => (
+                      <span key={i} className={i === 0 ? "text-yellow-500 block" : "block"}>{word} </span>
+                    ))}
                   </h1>
-                  
-                  <p className="max-w-[600px] text-gray-300 md:text-xl break-words overflow-x-auto">{description}</p>
+                  <p className="max-w-[540px] text-gray-400 text-xl leading-relaxed font-medium">
+                    {description}
+                  </p>
                 </div>
-                <div className="flex flex-col gap-2 sm:flex-row w-full">
-                  <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold w-full sm:w-auto">
-                    Join Our Mission
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button size="lg" className="h-16 px-10 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-xl rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-yellow-500/20">Join Our Mission</Button>
+                  <Button asChild size="lg" className="h-16 px-10 border border-gray-800 bg-transparent text-white hover:bg-gray-900 rounded-2xl font-bold text-xl transition-all">
+                    <Link href="/kumaon-fest">View Events</Link>
                   </Button>
-                  <Link href="/kumaon-fest" className="w-full sm:w-auto">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10 bg-transparent w-full sm:w-auto"
-                    >
-                      View Events
-                    </Button>
-                  </Link>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-400">
-                  <div className="flex items-center space-x-1">
-                    <MapPin className="h-4 w-4 text-yellow-400" />
-                    <span>{locations.join(" • ")}</span>
+                <div className="flex flex-wrap items-center gap-8 pt-4">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-yellow-500" />
+                    <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">{locations.join(" • ")}</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Users className="h-4 w-4 text-yellow-400" />
-                    <span>{volunteers} Volunteers</span>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-yellow-500" />
+                    <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">{volunteers} Volunteers</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-center mt-8 md:mt-0">
-                <Image
-                  src="/home.jpg"
-                  width={400}
-                  height={400}
-                  alt="Taameer Artivists community work"
-                  className="aspect-square overflow-hidden rounded-xl object-cover border-2 border-yellow-500/20 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg"
-                />
+              <div className="relative group">
+                <div className="absolute -inset-4 bg-yellow-500/20 rounded-[3rem] blur-2xl opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
+                <div className="relative aspect-square rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl shadow-black/50">
+                  <Image
+                    src="/home.jpg"
+                    fill
+                    className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                    alt="Taameer Artivists community work"
+                    priority
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-60" />
+                  <div className="absolute bottom-8 left-8 right-8 p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl">
+                    <p className="text-white font-black italic tracking-tight text-lg">Connecting Culture, Art & Heritage</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         {/* About Section */}
-        <section id="about" className="w-full py-12 md:py-24 lg:py-32 bg-white">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-gray-900">Our Mission</h2>
-                <p className="max-w-[900px] text-gray-600 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  {mission}
-                </p>
-              </div>
+        <section id="about" className="w-full py-32 bg-white">
+          <div className="container px-4 max-w-7xl mx-auto">
+            <div className="flex flex-col items-center text-center space-y-6 mb-20">
+              <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">OUR MISSION</Badge>
+              <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-gray-950 leading-none">OUR MISSION.</h2>
+              <p className="max-w-[800px] text-gray-500 text-xl font-medium leading-relaxed">
+                {mission}
+              </p>
             </div>
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-3 lg:gap-12">
+            <div className="grid md:grid-cols-3 gap-8">
               {focusAreas.map((area, index) => (
-                <Card key={index} className="border-gray-200 hover:border-yellow-400/50 transition-colors">
-                  <CardHeader>
-                    {area.icon === "Leaf" && <Leaf className="h-8 w-8 text-yellow-500" />}
-                    {area.icon === "Camera" && <Camera className="h-8 w-8 text-yellow-500" />}
-                    {area.icon === "Users" && <Users className="h-8 w-8 text-yellow-500" />}
-                    <CardTitle className="text-gray-900">{area.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600">{area.description}</p>
-                  </CardContent>
-                </Card>
+                <div key={index} className="p-10 rounded-[2.5rem] bg-gray-50 border border-gray-100 group hover:border-yellow-500 transition-all">
+                      <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-md group-hover:bg-yellow-500 transition-all duration-300">
+                        {area.icon === "Leaf" && <Leaf className="w-6 h-6 text-gray-950 group-hover:text-white transition-colors" />}
+                        {area.icon === "Camera" && <Camera className="w-6 h-6 text-gray-950 group-hover:text-white transition-colors" />}
+                        {area.icon === "Users" && <Users className="w-6 h-6 text-gray-950 group-hover:text-white transition-colors" />}
+                      </div>
+                  <h3 className="text-2xl font-black text-gray-950 mb-4 tracking-tight">{area.title}</h3>
+                  <p className="text-gray-500 leading-relaxed">{area.description}</p>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
         {/* Featured Event */}
-        <section id="events" className="w-full py-12 md:py-24 lg:py-32 bg-gray-50">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-gray-900">Featured Event</h2>
-              <p className="max-w-[600px] text-gray-600 md:text-xl">
-                Don&apos;t miss our signature annual celebration of Kumaoni culture and traditions
-              </p>
+        <section id="events" className="w-full py-32 bg-gray-50 border-y border-gray-100">
+          <div className="container px-4 max-w-7xl mx-auto">
+            <div className="flex flex-col items-center text-center space-y-4 mb-16">
+              <h2 className="text-4xl md:text-6xl font-black text-gray-950 tracking-tighter uppercase">Featured Event</h2>
+              <p className="max-w-[600px] text-gray-500 text-lg">Don't miss our signature annual celebration of Kumaoni culture and traditions</p>
             </div>
-            <div className="mx-auto max-w-4xl">
-              <Card className="overflow-hidden border-yellow-400/20 shadow-lg">
-                <div className="md:flex">
-                  <div className="md:w-1/2">
-                    <Image
-                      src={featuredEvent.image || "/placeholder.svg"}
-                      width={400}
-                      height={300}
-                      alt={featuredEvent.title}
-                      className="h-48 w-full object-cover md:h-full"
-                    />
+            <Card className="overflow-hidden border-none shadow-2xl bg-white rounded-[3rem]">
+              <div className="md:flex min-h-[500px]">
+                <div className="md:w-1/2 relative group">
+                  <Image
+                    src={featuredEvent.image || "/placeholder.svg"}
+                    fill
+                    alt={featuredEvent.title}
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                </div>
+                <div className="p-12 md:w-1/2 flex flex-col justify-center bg-white">
+                  <div className="flex items-center gap-3 mb-6">
+                    <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Annual Event</Badge>
+                    <div className="flex items-center text-xs font-black text-gray-400 tracking-widest uppercase gap-1">
+                      <CalendarDays className="w-3 h-3" /> {formatDate(featuredEvent.startDate, featuredEvent.endDate)}
+                    </div>
                   </div>
-                  <div className="p-6 md:w-1/2">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Badge className="bg-yellow-500/20 text-yellow-700 border-yellow-500/30">Annual Event</Badge>
-                      <Badge variant="outline" className="border-gray-300">
-                        September 2025
-                      </Badge>
-                    </div>
-                    <h3 className="text-2xl font-bold mb-2 text-gray-900">{featuredEvent.title}</h3>
-                    <p className="text-gray-600 mb-4">{featuredEvent.description}</p>
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <CalendarDays className="h-4 w-4 text-yellow-500" />
-                        <span>{formatDate(featuredEvent.startDate, featuredEvent.endDate)}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <MapPin className="h-4 w-4 text-yellow-500" />
-                        <span>{featuredEvent.location}</span>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      {/* <Button 
-                        className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold"
-                        onClick={() => setIsTicketSelectionOpen(true)}
-                      >
-                        Book Tickets
-                      </Button> */}
-
-<Link href="https://docs.google.com/forms/d/e/1FAIpQLSf3t-MQaPT_8Rik6GQbJSp13_LJwq6gCMxhdhaFg_BssaRjEQ/viewform" target="_blank" className="w-full sm:w-auto">
-  <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold">
-    Book Tickets
-  </Button>
-</Link>
-                      <Link href="/kumaon-fest">
-                        <Button
-                          variant="outline"
-                          className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 bg-transparent"
-                        >
-                          Learn More
-                        </Button>
-                      </Link>
-                    </div>
+                  <h3 className="text-4xl md:text-5xl font-black mb-4 text-gray-950 tracking-tighter">{featuredEvent.title}</h3>
+                  <p className="text-gray-500 text-lg mb-8 leading-relaxed">{featuredEvent.description}</p>
+                  <div className="flex flex-wrap gap-4 mt-auto">
+                    <Button asChild className="h-14 px-8 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-lg rounded-2xl shadow-xl shadow-yellow-500/10">
+                      <Link href="/kumaon-fest">Book Tickets</Link>
+                    </Button>
+                    <Button asChild variant="ghost" className="h-14 px-8 text-gray-950 font-black text-lg rounded-2xl hover:bg-gray-100">
+                      <Link href="/kumaon-fest">Learn More</Link>
+                    </Button>
                   </div>
                 </div>
-              </Card>
-            </div>
+              </div>
+            </Card>
           </div>
         </section>
 
         {/* All Events Carousel */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-gray-900">Our Events</h2>
-              <p className="max-w-[600px] text-gray-600 md:text-xl">
-                Discover our diverse range of community events, cultural celebrations, and social initiatives
-              </p>
+        <section className="w-full py-32 bg-white">
+          <div className="container px-4 max-w-7xl mx-auto">
+            <div className="text-center space-y-4 mb-20">
+              <h2 className="text-4xl md:text-6xl font-black text-gray-950 tracking-tighter uppercase">Our Events</h2>
+              <p className="text-gray-500 max-w-2xl mx-auto font-medium">Discover our diverse range of community events, cultural celebrations, and social initiatives</p>
             </div>
             <AllEventsCarousel />
           </div>
         </section>
 
         {/* Impact Section */}
-        <section id="impact" className="w-full py-12 md:py-24 lg:py-32 bg-gray-900">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-white">Our Impact</h2>
-              <p className="max-w-[600px] text-gray-300 md:text-xl">
-                See how we&apos;re making a difference in communities across {locations.join(" and ")}
-              </p>
+        <section id="impact" className="w-full py-32 bg-gray-950 text-white overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-yellow-500/10 rounded-full blur-[120px] pointer-events-none" />
+          <div className="container px-4 max-w-7xl mx-auto relative z-10">
+            <div className="flex flex-col items-center text-center space-y-6 mb-24">
+              <Badge className="bg-yellow-500 text-gray-950 font-black">OUR IMPACT</Badge>
+              <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-none uppercase">Our Impact.</h2>
             </div>
-            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
-              <div className="space-y-4">
-                <h3 className="text-2xl font-bold text-white">Cleanliness Drives</h3>
-                <p className="text-gray-300">
-                  Our regular cleanliness drives have transformed public spaces across {locations.join(" and ")}. We
-                  organize monthly community clean-up events, bringing together volunteers of all ages to maintain the
-                  beauty of our hill stations.
-                </p>
-                <div className="grid grid-cols-2 gap-4 pt-4">
-                  <div className="text-center p-4 bg-gray-800 rounded-lg border border-yellow-500/20">
-                    <div className="text-2xl font-bold text-yellow-400">{impact.cleanlinessdrives.count}</div>
-                    <div className="text-sm text-gray-400">{impact.cleanlinessdrives.label}</div>
+            <div className="grid lg:grid-cols-2 gap-12">
+              <div className="p-10 rounded-[2.5rem] bg-gray-900 border border-white/5 hover:border-yellow-500/50 transition-all">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="p-4 bg-yellow-500/10 rounded-2xl"><Leaf className="w-8 h-8 text-yellow-500" /></div>
+                  <h3 className="text-3xl font-black tracking-tight">Cleanliness Drives</h3>
+                </div>
+                <p className="text-gray-400 text-lg leading-relaxed mb-10">Our regular cleanliness drives have transformed public spaces across {locations.join(" and ")}. We organize monthly events bringing together volunteers of all ages.</p>
+                <div className="grid grid-cols-2 gap-6 mt-auto">
+                  <div className="p-8 bg-gray-950 rounded-[2rem] border border-white/5 flex flex-col items-center text-center">
+                    <div className="text-4xl font-black text-yellow-500 mb-2">{impact.cleanlinessdrives.count}</div>
+                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] leading-tight">{impact.cleanlinessdrives.label}</div>
                   </div>
-                  <div className="text-center p-4 bg-gray-800 rounded-lg border border-yellow-500/20">
-                    <div className="text-2xl font-bold text-yellow-400">{impact.volunteers.count}</div>
-                    <div className="text-sm text-gray-400">{impact.volunteers.label}</div>
+                  <div className="p-8 bg-gray-950 rounded-[2rem] border border-white/5 flex flex-col items-center text-center">
+                    <div className="text-4xl font-black text-yellow-500 mb-2">{impact.volunteers.count}</div>
+                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] leading-tight">{impact.volunteers.label}</div>
                   </div>
                 </div>
               </div>
-              <div className="space-y-4">
-                <h3 className="text-2xl font-bold text-white">Community Events</h3>
-                <p className="text-gray-300">
-                  Beyond cleanliness, we organize various community events that bring people together, celebrate local culture, and create lasting bonds. From cultural festivals to awareness campaigns, we&apos;re building stronger communities.
-                </p>
-                <div className="grid grid-cols-2 gap-4 pt-4">
-                  <div className="text-center p-4 bg-gray-800 rounded-lg border border-yellow-500/20">
-                    <div className="text-2xl font-bold text-yellow-400">{impact.events.count}</div>
-                    <div className="text-sm text-gray-400">{impact.events.label}</div>
+              <div className="p-10 rounded-[2.5rem] bg-gray-900 border border-white/5 hover:border-yellow-500/50 transition-all">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="p-4 bg-yellow-500/10 rounded-2xl"><Sparkles className="w-8 h-8 text-yellow-500" /></div>
+                  <h3 className="text-3xl font-black tracking-tight">Community Events</h3>
+                </div>
+                <p className="text-gray-400 text-lg leading-relaxed mb-10">Beyond cleanliness, we organize various community events that bring people together, celebrate local culture, and create lasting bonds.</p>
+                <div className="grid grid-cols-2 gap-6 mt-auto">
+                  <div className="p-8 bg-gray-950 rounded-[2rem] border border-white/5 flex flex-col items-center text-center">
+                    <div className="text-4xl font-black text-yellow-500 mb-2">{impact.events.count}</div>
+                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] leading-tight">{impact.events.label}</div>
                   </div>
-                  <div className="text-center p-4 bg-gray-800 rounded-lg border border-yellow-500/20">
-                    <div className="text-2xl font-bold text-yellow-400">{impact.peopleReached.count}</div>
-                    <div className="text-sm text-gray-400">{impact.peopleReached.label}</div>
+                  <div className="p-8 bg-gray-950 rounded-[2rem] border border-white/5 flex flex-col items-center text-center">
+                    <div className="text-4xl font-black text-yellow-500 mb-2">{impact.peopleReached.count}</div>
+                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] leading-tight">{impact.peopleReached.label}</div>
                   </div>
                 </div>
               </div>
@@ -280,53 +227,39 @@ export default function HomePage() {
         </section>
 
         {/* Contact Section */}
-        <section id="contact" className="w-full py-12 md:py-24 lg:py-32 bg-yellow-50">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-gray-900">Get Involved</h2>
-              <p className="max-w-[600px] text-gray-600 md:text-xl">
-                Join our mission to build better communities. Whether you want to volunteer, partner with us, or attend our events, we&apos;d love to hear from you.
-              </p>
-              <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold">
-                  Become a Volunteer
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 bg-transparent"
-                >
-                  Contact Us
-                </Button>
+        <section id="contact" className="w-full py-32 bg-yellow-500">
+          <div className="container px-4 max-w-7xl mx-auto">
+            <div className="flex flex-col items-center text-center space-y-8 text-gray-950">
+              <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-none uppercase">Get Involved</h2>
+              <p className="max-w-[700px] text-xl font-bold leading-relaxed">Join our mission to build better communities. Whether you want to volunteer, partner with us, or attend our events, we'd love to hear from you.</p>
+              <div className="flex flex-col sm:flex-row gap-6 pt-6">
+                <Button size="lg" className="h-16 px-12 bg-gray-950 hover:bg-gray-800 text-white font-black text-xl rounded-2xl shadow-2xl">Become a Volunteer</Button>
+                <Button size="lg" className="h-16 px-12 border border-gray-950 bg-transparent text-gray-950 hover:bg-gray-950 hover:text-white rounded-2xl font-black text-xl transition-colors">Contact Us</Button>
               </div>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Ticket Selection Modal */}
-      <TicketSelectionModal
-        isOpen={isTicketSelectionOpen}
-        onOpenChange={setIsTicketSelectionOpen}
-      />
-
       {/* Footer */}
-      <footer className="bg-gray-900 border-t border-gray-800">
-        <div className="container flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6">
-          <p className="text-xs text-gray-400">© 2024 {name}. All rights reserved.</p>
-          <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-            <Link href="#" className="text-xs hover:underline underline-offset-4 text-gray-400 hover:text-yellow-400">
-              Privacy Policy
+      <footer className="bg-white py-16 border-t border-gray-100 text-gray-950">
+        <div className="container px-4 max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-12 mb-12">
+            <Link href="/" className="flex items-center space-x-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-yellow-500 shadow-xl shadow-yellow-500/20">
+                <span className="text-xs font-black text-gray-950">TA</span>
+              </div>
+              <span className="text-xl font-black tracking-tighter">TAAMEER <span className="text-yellow-600">ARTIVISTS</span></span>
             </Link>
-            <Link href="#" className="text-xs hover:underline underline-offset-4 text-gray-400 hover:text-yellow-400">
-              Terms of Service
-            </Link>
-            <Link href="#" className="text-xs hover:underline underline-offset-4 text-gray-400 hover:text-yellow-400">
-              Contact
-            </Link>
-          </nav>
+            <nav className="flex gap-8 text-sm font-black uppercase tracking-widest text-gray-400">
+              <Link href="#" className="hover:text-gray-950">Privacy</Link>
+              <Link href="#" className="hover:text-gray-950">Terms</Link>
+              <Link href="#" className="hover:text-gray-950">Contact</Link>
+            </nav>
+          </div>
+          <p className="text-center text-sm font-bold text-gray-400 uppercase tracking-widest">© 2024 {name}. All rights reserved.</p>
         </div>
       </footer>
     </div>
-  )
+  );
 }
