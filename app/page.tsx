@@ -1,223 +1,382 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, Leaf, Camera, CalendarDays, Sparkles } from "lucide-react";
+import { Leaf, Camera, Users, CalendarDays, Sparkles, ArrowRight, MapPin, Instagram, Youtube, Facebook, Twitter } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { AllEventsCarousel } from "@/components/all-events-carousel";
 import organizationData from "@/data/organization.json";
 import eventsData from "@/data/events.json";
 
 export default function HomePage() {
-  const { name, tagline, description, mission, locations, volunteers, impact, focusAreas } = organizationData;
+  const [scrolled, setScrolled] = useState(false);
+  const { name, tagline, description, mission, locations, region, founded, volunteers, impact, focusAreas, contact, social } = organizationData;
   const { featuredEvent } = eventsData;
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 80);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const formatDate = (startDate: string, endDate: string) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    return `${start.toLocaleDateString("en-US", { month: "long", day: "numeric" })} - ${end.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`;
+    return `${start.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${end.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
   };
 
+  const stats = [
+    { value: impact.cleanlinessdrives.count, label: impact.cleanlinessdrives.label },
+    { value: impact.volunteers.count, label: impact.volunteers.label },
+    { value: impact.events.count, label: impact.events.label },
+    { value: impact.peopleReached.count, label: impact.peopleReached.label },
+  ];
+
   return (
-    <div className="flex flex-col min-h-screen bg-gray-950 text-white selection:bg-yellow-500/30 selection:text-yellow-500">
-      {/* Header */}
-      <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-gray-950/80 backdrop-blur-xl">
-        <div className="container flex h-20 items-center justify-between px-4 max-w-7xl mx-auto">
-          <Link href="/" className="flex items-center space-x-3 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-yellow-500 shadow-lg shadow-yellow-500/20 group-hover:rotate-6 transition-transform">
-              <span className="text-sm font-black text-gray-950">TA</span>
+    <div className="flex flex-col min-h-screen bg-white text-gray-900">
+
+      {/* ── NAV ───────────────────────────────────────────────────────── */}
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? "bg-white/95 backdrop-blur-xl shadow-sm border-b border-gray-100 py-4"
+          : "bg-transparent py-6"
+      }`}>
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+              <span className="text-xs font-black text-gray-900">TA</span>
             </div>
-            <span className="text-xl font-black tracking-tighter">
-              TAAMEER <span className="text-yellow-500">ARTIVISTS</span>
-            </span>
+            <div className="flex flex-col leading-none">
+              <span className={`font-black text-sm tracking-wider uppercase transition-colors ${scrolled ? "text-gray-900" : "text-white"}`}>Taameer</span>
+              <span className="font-black text-xs tracking-[0.3em] uppercase text-yellow-400">Artivists</span>
+            </div>
           </Link>
-          <nav className="hidden md:flex items-center space-x-8">
-            {["About", "Events", "Impact", "Contact"].map((item) => (
-              <Link key={item} href={`#${item.toLowerCase()}`} className="text-xs font-black text-gray-400 hover:text-yellow-500 transition-colors tracking-widest uppercase">{item}</Link>
+
+          {/* Nav Links */}
+          <nav className="hidden md:flex items-center gap-8">
+            {["About", "Mission", "Impact", "Events"].map((item) => (
+              <Link
+                key={item}
+                href={`#${item.toLowerCase()}`}
+                className={`text-sm font-semibold tracking-wide transition-colors hover:text-yellow-400 ${scrolled ? "text-gray-600" : "text-white/80"}`}
+              >
+                {item}
+              </Link>
             ))}
-            <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-full px-6 h-10 shadow-xl shadow-yellow-500/10">Support Us</Button>
           </nav>
+
+          {/* CTA */}
+          <Button
+            asChild
+            className="bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold text-sm rounded-xl px-6 h-11 shadow-lg shadow-yellow-400/20 transition-all hover:shadow-yellow-400/30 hover:scale-105"
+          >
+            <Link href="#contact">Get Involved</Link>
+          </Button>
         </div>
       </header>
 
-      <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-gray-950">
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-yellow-500/10 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-yellow-500/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
-          
-          <div className="container px-4 max-w-7xl mx-auto relative z-10">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <div className="flex flex-col justify-center space-y-10">
-                <div className="space-y-6">
-                  <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 px-4 py-2 rounded-full text-sm font-black uppercase tracking-widest">
-                    {tagline}
-                  </Badge>
-                  <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9]">
-                    {name.split(' ').map((word, i) => (
-                      <span key={i} className={i === 0 ? "text-yellow-500 block" : "block"}>{word} </span>
-                    ))}
-                  </h1>
-                  <p className="max-w-[540px] text-gray-400 text-xl leading-relaxed font-medium">
-                    {description}
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Button size="lg" className="h-16 px-10 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-xl rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-yellow-500/20">Join Our Mission</Button>
-                  <Button asChild size="lg" className="h-16 px-10 border border-gray-800 bg-transparent text-white hover:bg-gray-900 rounded-2xl font-bold text-xl transition-all">
-                    <Link href="/kumaon-fest">View Events</Link>
-                  </Button>
-                </div>
-                <div className="flex flex-wrap items-center gap-8 pt-4">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-yellow-500" />
-                    <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">{locations.join(" • ")}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-yellow-500" />
-                    <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">{volunteers} Volunteers</span>
-                  </div>
-                </div>
-              </div>
-              <div className="relative group">
-                <div className="absolute -inset-4 bg-yellow-500/20 rounded-[3rem] blur-2xl opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
-                <div className="relative aspect-square rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl shadow-black/50">
-                  <Image
-                    src="/home.jpg"
-                    fill
-                    className="object-cover transition-transform duration-1000 group-hover:scale-110"
-                    alt="Taameer Artivists community work"
-                    priority
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-60" />
-                  <div className="absolute bottom-8 left-8 right-8 p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl">
-                    <p className="text-white font-black italic tracking-tight text-lg">Connecting Culture, Art & Heritage</p>
-                  </div>
-                </div>
+      <main>
+
+        {/* ── HERO ─────────────────────────────────────────────────────── */}
+        <section className="relative h-screen min-h-[700px] flex items-end overflow-hidden">
+
+          {/* Full-bleed Background Image */}
+          <div className="absolute inset-0">
+            <Image
+              src="/home.jpg"
+              fill
+              alt="Taameer Artivists community"
+              className="object-cover object-center"
+              priority
+            />
+            {/* Dark gradient overlay – bottom-heavy so text pops, top-light so nav is readable */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20" />
+          </div>
+
+          {/* Hero Content – sits at the bottom */}
+          <div className="relative z-10 max-w-7xl mx-auto px-6 pb-20 w-full">
+
+            {/* Tag */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-px w-12 bg-yellow-400" />
+              <span className="text-yellow-400 text-xs font-black tracking-[0.3em] uppercase">{tagline}</span>
+            </div>
+
+            {/* Headline */}
+            <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white leading-[0.9] tracking-tighter mb-8 max-w-5xl">
+              Taameer<br />
+              <span className="text-yellow-400">Artivists</span>
+            </h1>
+
+            {/* Sub + CTA row */}
+            <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-8">
+              <p className="text-gray-300 text-lg max-w-xl leading-relaxed font-medium">
+                {description}
+              </p>
+              <div className="flex items-center gap-4 shrink-0">
+                <Button
+                  size="lg"
+                  className="h-14 px-8 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold rounded-xl shadow-xl transition-all hover:scale-105"
+                >
+                  Join The Movement
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="h-14 px-8 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:text-white rounded-xl font-bold transition-all"
+                >
+                  <Link href="/kumaon-fest">Our Events <ArrowRight className="w-4 h-4 ml-2" /></Link>
+                </Button>
               </div>
             </div>
+
+            {/* Location strip */}
+            <div className="flex items-center gap-2 mt-10 text-gray-400">
+              <MapPin className="w-4 h-4 text-yellow-400" />
+              <span className="text-sm font-medium">{region} · Est. {founded}</span>
+            </div>
+          </div>
+
+          {/* Scroll indicator */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 opacity-50">
+            <div className="w-px h-10 bg-white animate-pulse" />
+            <span className="text-white text-[9px] tracking-[0.3em] uppercase">Scroll</span>
           </div>
         </section>
 
-        {/* About Section */}
-        <section id="about" className="w-full py-32 bg-white">
-          <div className="container px-4 max-w-7xl mx-auto">
-            <div className="flex flex-col items-center text-center space-y-6 mb-20">
-              <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">OUR MISSION</Badge>
-              <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-gray-950 leading-none">OUR MISSION.</h2>
-              <p className="max-w-[800px] text-gray-500 text-xl font-medium leading-relaxed">
-                {mission}
-              </p>
-            </div>
-            <div className="grid md:grid-cols-3 gap-8">
-              {focusAreas.map((area, index) => (
-                <div key={index} className="p-10 rounded-[2.5rem] bg-gray-50 border border-gray-100 group hover:border-yellow-500 transition-all">
-                      <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-md group-hover:bg-yellow-500 transition-all duration-300">
-                        {area.icon === "Leaf" && <Leaf className="w-6 h-6 text-gray-950 group-hover:text-white transition-colors" />}
-                        {area.icon === "Camera" && <Camera className="w-6 h-6 text-gray-950 group-hover:text-white transition-colors" />}
-                        {area.icon === "Users" && <Users className="w-6 h-6 text-gray-950 group-hover:text-white transition-colors" />}
-                      </div>
-                  <h3 className="text-2xl font-black text-gray-950 mb-4 tracking-tight">{area.title}</h3>
-                  <p className="text-gray-500 leading-relaxed">{area.description}</p>
+        {/* ── STATS BAND ───────────────────────────────────────────────── */}
+        <section className="bg-gray-900 py-10 border-b border-white/5">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/10">
+              {stats.map((s, i) => (
+                <div key={i} className="px-8 py-4 first:pl-0 last:pr-0 text-center">
+                  <div className="text-4xl font-black text-yellow-400 tracking-tighter">{s.value}</div>
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">{s.label}</div>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Featured Event */}
-        <section id="events" className="w-full py-32 bg-gray-50 border-y border-gray-100">
-          <div className="container px-4 max-w-7xl mx-auto">
-            <div className="flex flex-col items-center text-center space-y-4 mb-16">
-              <h2 className="text-4xl md:text-6xl font-black text-gray-950 tracking-tighter uppercase">Featured Event</h2>
-              <p className="max-w-[600px] text-gray-500 text-lg">Don&apos;t miss our signature annual celebration of Kumaoni culture and traditions</p>
+        {/* ── ABOUT / MISSION ──────────────────────────────────────────── */}
+        <section id="about" className="py-28 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+
+              {/* Left: Text */}
+              <div>
+                <span className="text-xs font-black text-yellow-500 tracking-[0.3em] uppercase">Who We Are</span>
+                <h2 className="text-5xl md:text-6xl font-black text-gray-900 tracking-tight leading-none mt-4 mb-8">
+                  Art meets<br /><span className="text-yellow-400">Activism.</span>
+                </h2>
+                <p className="text-gray-500 text-lg leading-relaxed mb-8 max-w-lg">
+                  {mission}
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="h-px w-10 bg-yellow-400" />
+                  <span className="text-sm font-semibold text-gray-400 uppercase tracking-widest">Haldwani & Nainital, Uttarakhand</span>
+                </div>
+              </div>
+
+              {/* Right: Focus Area Cards */}
+              <div id="mission" className="grid gap-5">
+                {focusAreas.map((area, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start gap-5 p-6 rounded-2xl border border-gray-100 bg-gray-50 hover:border-yellow-300 hover:bg-yellow-50 transition-all group"
+                  >
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:bg-yellow-400 transition-colors shrink-0">
+                      {area.icon === "Leaf" && <Leaf className="w-5 h-5 text-gray-700 group-hover:text-gray-900" />}
+                      {area.icon === "Camera" && <Camera className="w-5 h-5 text-gray-700 group-hover:text-gray-900" />}
+                      {area.icon === "Users" && <Users className="w-5 h-5 text-gray-700 group-hover:text-gray-900" />}
+                    </div>
+                    <div>
+                      <h3 className="font-black text-gray-900 text-lg mb-1">{area.title}</h3>
+                      <p className="text-gray-500 text-sm leading-relaxed">{area.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <Card className="overflow-hidden border-none shadow-2xl bg-white rounded-[3rem]">
-              <div className="md:flex min-h-[500px]">
-                <div className="md:w-1/2 relative group">
+          </div>
+        </section>
+
+        {/* ── IMPACT ───────────────────────────────────────────────────── */}
+        <section id="impact" className="py-28 bg-gray-950 text-white relative overflow-hidden">
+
+          {/* Ambient glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(234,179,8,0.08),transparent_60%)] pointer-events-none" />
+
+          <div className="max-w-7xl mx-auto px-6 relative z-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
+              <div>
+                <span className="text-xs font-black text-yellow-400 tracking-[0.3em] uppercase">Our Footprint</span>
+                <h2 className="text-5xl md:text-7xl font-black tracking-tight leading-none mt-3">
+                  Real.<br /><span className="text-yellow-400">Impact.</span>
+                </h2>
+              </div>
+              <p className="text-gray-400 max-w-sm text-base leading-relaxed md:text-right">
+                From organizing community clean-ups to staging cultural celebrations — every number represents real people and real change.
+              </p>
+            </div>
+
+            {/* Two big cards */}
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white/5 border border-white/8 rounded-3xl p-10 relative overflow-hidden group hover:border-yellow-400/30 transition-all">
+                <div className="absolute -top-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <Leaf className="w-48 h-48 text-white" />
+                </div>
+                <div className="relative">
+                  <div className="text-xs font-black text-yellow-400 tracking-[0.3em] uppercase mb-4">Environment</div>
+                  <h3 className="text-3xl font-black mb-4 leading-tight">Cleanliness Drives</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-xs">
+                    Transforming public spaces across {locations.join(" and ")} through regular community clean-ups.
+                  </p>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <div className="text-5xl font-black text-yellow-400 tracking-tight">{impact.cleanlinessdrives.count}</div>
+                      <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">{impact.cleanlinessdrives.label}</div>
+                    </div>
+                    <div>
+                      <div className="text-5xl font-black text-yellow-400 tracking-tight">{impact.volunteers.count}</div>
+                      <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">{impact.volunteers.label}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/5 border border-white/8 rounded-3xl p-10 relative overflow-hidden group hover:border-yellow-400/30 transition-all">
+                <div className="absolute -top-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <Sparkles className="w-48 h-48 text-white" />
+                </div>
+                <div className="relative">
+                  <div className="text-xs font-black text-yellow-400 tracking-[0.3em] uppercase mb-4">Community</div>
+                  <h3 className="text-3xl font-black mb-4 leading-tight">Cultural Events</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-xs">
+                    Hosting events that bring communities together, celebrate local culture, and create lasting connections.
+                  </p>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <div className="text-5xl font-black text-yellow-400 tracking-tight">{impact.events.count}</div>
+                      <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">{impact.events.label}</div>
+                    </div>
+                    <div>
+                      <div className="text-5xl font-black text-yellow-400 tracking-tight">{impact.peopleReached.count}</div>
+                      <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">{impact.peopleReached.label}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── FEATURED EVENT ───────────────────────────────────────────── */}
+        <section id="events" className="py-28 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-12">
+              <div>
+                <span className="text-xs font-black text-yellow-500 tracking-[0.3em] uppercase">Annual Flagship</span>
+                <h2 className="text-5xl md:text-6xl font-black text-gray-900 tracking-tight leading-none mt-3">
+                  Featured<br /><span className="text-yellow-400">Event.</span>
+                </h2>
+              </div>
+              <Link href="/kumaon-fest" className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-yellow-500 transition-colors group">
+                View All Events <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+
+            {/* Event Card */}
+            <div className="rounded-3xl overflow-hidden border border-gray-100 shadow-2xl shadow-gray-200 group">
+              <div className="grid lg:grid-cols-[3fr_2fr]">
+
+                {/* Image */}
+                <div className="relative h-80 lg:h-auto min-h-[450px]">
                   <Image
                     src={featuredEvent.image || "/placeholder.svg"}
                     fill
                     alt={featuredEvent.title}
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/20 lg:bg-none" />
                 </div>
-                <div className="p-12 md:w-1/2 flex flex-col justify-center bg-white">
-                  <div className="flex items-center gap-3 mb-6">
-                    <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Annual Event</Badge>
-                    <div className="flex items-center text-xs font-black text-gray-400 tracking-widest uppercase gap-1">
-                      <CalendarDays className="w-3 h-3" /> {formatDate(featuredEvent.startDate, featuredEvent.endDate)}
+
+                {/* Content */}
+                <div className="bg-gray-900 p-10 lg:p-14 flex flex-col justify-between">
+                  <div>
+                    <Badge className="bg-yellow-400 text-gray-900 font-bold text-xs px-3 py-1 rounded-lg mb-6">Annual Event</Badge>
+
+                    <div className="flex items-center gap-2 text-gray-400 text-sm mb-4">
+                      <CalendarDays className="w-4 h-4 text-yellow-400" />
+                      <span className="font-medium">{formatDate(featuredEvent.startDate, featuredEvent.endDate)}</span>
                     </div>
+
+                    <h3 className="text-4xl font-black text-white leading-tight tracking-tight mb-4">
+                      {featuredEvent.title}
+                    </h3>
+                    <p className="text-gray-400 text-base leading-relaxed">
+                      {featuredEvent.description}
+                    </p>
                   </div>
-                  <h3 className="text-4xl md:text-5xl font-black mb-4 text-gray-950 tracking-tighter">{featuredEvent.title}</h3>
-                  <p className="text-gray-500 text-lg mb-8 leading-relaxed">{featuredEvent.description}</p>
-                  <div className="flex flex-wrap gap-4 mt-auto">
-                    <Button asChild className="h-14 px-8 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-lg rounded-2xl shadow-xl shadow-yellow-500/10">
-                      <Link href="/kumaon-fest">Book Tickets</Link>
+
+                  <div className="flex flex-col gap-3 mt-10">
+                    <Button asChild className="h-13 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold rounded-xl transition-all hover:scale-[1.02] py-3">
+                      <Link href="/kumaon-fest/tickets">Get Your Pass →</Link>
                     </Button>
-                    <Button asChild variant="ghost" className="h-14 px-8 text-gray-950 font-black text-lg rounded-2xl hover:bg-gray-100">
+                    <Button asChild variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-semibold py-3">
                       <Link href="/kumaon-fest">Learn More</Link>
                     </Button>
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
           </div>
         </section>
 
-        {/* All Events Carousel */}
-        <section className="w-full py-32 bg-white">
-          <div className="container px-4 max-w-7xl mx-auto">
-            <div className="text-center space-y-4 mb-20">
-              <h2 className="text-4xl md:text-6xl font-black text-gray-950 tracking-tighter uppercase">Our Events</h2>
-              <p className="text-gray-500 max-w-2xl mx-auto font-medium">Discover our diverse range of community events, cultural celebrations, and social initiatives</p>
-            </div>
-            <AllEventsCarousel />
-          </div>
-        </section>
+        {/* ── CONTACT / CTA ────────────────────────────────────────────── */}
+        <section id="contact" className="py-28 bg-yellow-400">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
 
-        {/* Impact Section */}
-        <section id="impact" className="w-full py-32 bg-gray-950 text-white overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-yellow-500/10 rounded-full blur-[120px] pointer-events-none" />
-          <div className="container px-4 max-w-7xl mx-auto relative z-10">
-            <div className="flex flex-col items-center text-center space-y-6 mb-24">
-              <Badge className="bg-yellow-500 text-gray-950 font-black">OUR IMPACT</Badge>
-              <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-none uppercase">Our Impact.</h2>
-            </div>
-            <div className="grid lg:grid-cols-2 gap-12">
-              <div className="p-10 rounded-[2.5rem] bg-gray-900 border border-white/5 hover:border-yellow-500/50 transition-all">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-4 bg-yellow-500/10 rounded-2xl"><Leaf className="w-8 h-8 text-yellow-500" /></div>
-                  <h3 className="text-3xl font-black tracking-tight">Cleanliness Drives</h3>
-                </div>
-                <p className="text-gray-400 text-lg leading-relaxed mb-10">Our regular cleanliness drives have transformed public spaces across {locations.join(" and ")}. We organize monthly events bringing together volunteers of all ages.</p>
-                <div className="grid grid-cols-2 gap-6 mt-auto">
-                  <div className="p-8 bg-gray-950 rounded-[2rem] border border-white/5 flex flex-col items-center text-center">
-                    <div className="text-4xl font-black text-yellow-500 mb-2">{impact.cleanlinessdrives.count}</div>
-                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] leading-tight">{impact.cleanlinessdrives.label}</div>
-                  </div>
-                  <div className="p-8 bg-gray-950 rounded-[2rem] border border-white/5 flex flex-col items-center text-center">
-                    <div className="text-4xl font-black text-yellow-500 mb-2">{impact.volunteers.count}</div>
-                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] leading-tight">{impact.volunteers.label}</div>
-                  </div>
-                </div>
+              <div>
+                <span className="text-xs font-black text-gray-700 tracking-[0.3em] uppercase">Join the Movement</span>
+                <h2 className="text-6xl md:text-7xl font-black text-gray-900 tracking-tight leading-none mt-4 mb-6">
+                  Let&apos;s build<br />something<br />together.
+                </h2>
+                <p className="text-gray-700 text-lg leading-relaxed max-w-md">
+                  Volunteer, partner with us, or simply show up. Every hand makes our community stronger.
+                </p>
               </div>
-              <div className="p-10 rounded-[2.5rem] bg-gray-900 border border-white/5 hover:border-yellow-500/50 transition-all">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-4 bg-yellow-500/10 rounded-2xl"><Sparkles className="w-8 h-8 text-yellow-500" /></div>
-                  <h3 className="text-3xl font-black tracking-tight">Community Events</h3>
+
+              <div className="space-y-5">
+                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/60">
+                  <div className="text-xs font-black text-gray-600 uppercase tracking-widest mb-1">Email Us</div>
+                  <a href={`mailto:${contact.email}`} className="text-gray-900 font-bold text-lg hover:underline">{contact.email}</a>
                 </div>
-                <p className="text-gray-400 text-lg leading-relaxed mb-10">Beyond cleanliness, we organize various community events that bring people together, celebrate local culture, and create lasting bonds.</p>
-                <div className="grid grid-cols-2 gap-6 mt-auto">
-                  <div className="p-8 bg-gray-950 rounded-[2rem] border border-white/5 flex flex-col items-center text-center">
-                    <div className="text-4xl font-black text-yellow-500 mb-2">{impact.events.count}</div>
-                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] leading-tight">{impact.events.label}</div>
-                  </div>
-                  <div className="p-8 bg-gray-950 rounded-[2rem] border border-white/5 flex flex-col items-center text-center">
-                    <div className="text-4xl font-black text-yellow-500 mb-2">{impact.peopleReached.count}</div>
-                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] leading-tight">{impact.peopleReached.label}</div>
+                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/60">
+                  <div className="text-xs font-black text-gray-600 uppercase tracking-widest mb-1">Call / WhatsApp</div>
+                  <a href={`tel:${contact.phone}`} className="text-gray-900 font-bold text-lg hover:underline">{contact.phone}</a>
+                </div>
+                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/60">
+                  <div className="text-xs font-black text-gray-600 uppercase tracking-widest mb-3">Follow Along</div>
+                  <div className="flex gap-4">
+                    <a href={social.instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white rounded-xl flex items-center justify-center hover:bg-gray-900 hover:text-white transition-all group">
+                      <Instagram className="w-4 h-4 text-gray-700 group-hover:text-white" />
+                    </a>
+                    <a href={social.youtube} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white rounded-xl flex items-center justify-center hover:bg-gray-900 hover:text-white transition-all group">
+                      <Youtube className="w-4 h-4 text-gray-700 group-hover:text-white" />
+                    </a>
+                    <a href={social.facebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white rounded-xl flex items-center justify-center hover:bg-gray-900 hover:text-white transition-all group">
+                      <Facebook className="w-4 h-4 text-gray-700 group-hover:text-white" />
+                    </a>
+                    <a href={social.twitter} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white rounded-xl flex items-center justify-center hover:bg-gray-900 hover:text-white transition-all group">
+                      <Twitter className="w-4 h-4 text-gray-700 group-hover:text-white" />
+                    </a>
                   </div>
                 </div>
               </div>
@@ -225,40 +384,65 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Contact Section */}
-        <section id="contact" className="w-full py-32 bg-yellow-500">
-          <div className="container px-4 max-w-7xl mx-auto">
-            <div className="flex flex-col items-center text-center space-y-8 text-gray-950">
-              <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-none uppercase">Get Involved</h2>
-              <p className="max-w-[700px] text-xl font-bold leading-relaxed">Join our mission to build better communities. Whether you want to volunteer, partner with us, or attend our events, we&apos;d love to hear from you.</p>
-              <div className="flex flex-col sm:flex-row gap-6 pt-6">
-                <Button size="lg" className="h-16 px-12 bg-gray-950 hover:bg-gray-800 text-white font-black text-xl rounded-2xl shadow-2xl">Become a Volunteer</Button>
-                <Button size="lg" className="h-16 px-12 border border-gray-950 bg-transparent text-gray-950 hover:bg-gray-950 hover:text-white rounded-2xl font-black text-xl transition-colors">Contact Us</Button>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white py-16 border-t border-gray-100 text-gray-950">
-        <div className="container px-4 max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-12 mb-12">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-yellow-500 shadow-xl shadow-yellow-500/20">
-                <span className="text-xs font-black text-gray-950">TA</span>
+      {/* ── FOOTER ───────────────────────────────────────────────────── */}
+      <footer className="bg-gray-950 border-t border-white/5 py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
+
+            {/* Brand */}
+            <div className="space-y-4 max-w-xs">
+              <Link href="/" className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center">
+                  <span className="text-xs font-black text-gray-900">TA</span>
+                </div>
+                <span className="text-white font-black text-lg tracking-tight">Taameer <span className="text-yellow-400">Artivists</span></span>
+              </Link>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Empowering communities through the fusion of art and activism since {founded}.
+              </p>
+              <p className="text-gray-600 text-xs">{contact.address}</p>
+            </div>
+
+            {/* Links */}
+            <div className="grid grid-cols-2 gap-12">
+              <div>
+                <h5 className="text-yellow-400 text-xs font-black uppercase tracking-[0.3em] mb-5">Navigate</h5>
+                <nav className="flex flex-col gap-3">
+                  {[
+                    { label: "About", href: "#about" },
+                    { label: "Mission", href: "#mission" },
+                    { label: "Impact", href: "#impact" },
+                    { label: "Kumaon Fest", href: "/kumaon-fest" },
+                  ].map((l) => (
+                    <Link key={l.label} href={l.href} className="text-gray-400 text-sm font-medium hover:text-white transition-colors">{l.label}</Link>
+                  ))}
+                </nav>
               </div>
-              <span className="text-xl font-black tracking-tighter">TAAMEER <span className="text-yellow-600">ARTIVISTS</span></span>
-            </Link>
-            <nav className="flex gap-8 text-sm font-black uppercase tracking-widest text-gray-400">
-              <Link href="#" className="hover:text-gray-950">Privacy</Link>
-              <Link href="#" className="hover:text-gray-950">Terms</Link>
-              <Link href="#" className="hover:text-gray-950">Contact</Link>
-            </nav>
+              <div>
+                <h5 className="text-yellow-400 text-xs font-black uppercase tracking-[0.3em] mb-5">Connect</h5>
+                <nav className="flex flex-col gap-3">
+                  {[
+                    { label: "Instagram", href: social.instagram },
+                    { label: "YouTube", href: social.youtube },
+                    { label: "Facebook", href: social.facebook },
+                    { label: "Twitter", href: social.twitter },
+                  ].map((l) => (
+                    <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="text-gray-400 text-sm font-medium hover:text-white transition-colors">{l.label}</a>
+                  ))}
+                </nav>
+              </div>
+            </div>
           </div>
-          <p className="text-center text-sm font-bold text-gray-400 uppercase tracking-widest">© 2024 {name}. All rights reserved.</p>
+
+          <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-gray-600 text-xs">© {new Date().getFullYear()} {name}. All rights reserved.</p>
+            <p className="text-gray-700 text-xs font-semibold tracking-widest uppercase">Made for the Culture.</p>
+          </div>
         </div>
       </footer>
+
     </div>
   );
 }

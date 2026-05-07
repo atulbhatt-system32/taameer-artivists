@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, MapPin, Ticket, Users, Music, Palette, BookOpen, Camera, ArrowRight, Star } from "lucide-react";
@@ -10,32 +11,39 @@ import { motion } from "framer-motion";
 import kumaonFestData from "@/data/kumaon-fest.json";
 
 export default function KumaonFestPage() {
+  const [scrolled, setScrolled] = useState(false);
   const { hero, about, events, schedule, gallery, tickets } = kumaonFestData;
 
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <div className="flex flex-col min-h-screen bg-gray-950 text-white selection:bg-yellow-500/30 selection:text-yellow-500">
+    <div className="flex flex-col min-h-screen bg-[#050505] text-white selection:bg-yellow-500/30 selection:text-yellow-500">
       {/* Header */}
-      <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-gray-950/80 backdrop-blur-xl">
-        <div className="container flex h-20 items-center justify-between px-4 max-w-7xl mx-auto">
+      <header className={`fixed top-0 z-50 w-full transition-all duration-700 ${scrolled ? "bg-black/80 backdrop-blur-3xl border-b border-white/10 py-4 shadow-2xl" : "bg-transparent py-8"}`}>
+        <div className="container flex items-center justify-between px-4 max-w-7xl mx-auto">
           <Link href="/" className="flex items-center space-x-3 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-yellow-500 shadow-lg shadow-yellow-500/20 group-hover:rotate-6 transition-transform">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-500 shadow-[0_0_20px_rgba(234,179,8,0.3)] group-hover:rotate-12 transition-transform">
               <span className="text-sm font-black text-gray-950">KF</span>
             </div>
-            <span className="text-xl font-black tracking-tighter">
+            <span className="text-2xl font-black tracking-tighter uppercase">
               KUMAON <span className="text-yellow-500">FEST</span>
             </span>
           </Link>
-          <nav className="hidden lg:flex items-center gap-8">
+          <nav className="hidden lg:flex items-center gap-12">
             {["About", "Events", "Schedule", "Gallery"].map((item) => (
               <Link 
                 key={item} 
                 href={`#${item.toLowerCase()}`} 
-                className="text-xs font-black text-gray-400 hover:text-yellow-500 transition-colors tracking-widest uppercase"
+                className="text-[10px] font-black text-gray-400 hover:text-white transition-all tracking-[0.2em] uppercase"
               >
                 {item}
               </Link>
             ))}
-            <Button asChild className="bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-full px-8 h-12 shadow-xl shadow-yellow-500/10 transition-all active:scale-95">
+            <Button asChild className="bg-yellow-500 hover:bg-white text-gray-950 font-black rounded-full px-8 h-12 shadow-xl shadow-yellow-500/20 transition-all active:scale-95">
               <Link href="/kumaon-fest/tickets">BOOK TICKETS</Link>
             </Button>
           </nav>
@@ -44,9 +52,9 @@ export default function KumaonFestPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-yellow-500/10 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-yellow-500/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+        <section className="relative min-h-[90vh] flex items-center pt-32 overflow-hidden bg-[#050505]">
+          {/* Spotlight Effect */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(234,179,8,0.1),transparent_70%)]" />
           
           <div className="container px-4 max-w-7xl mx-auto relative z-10">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
