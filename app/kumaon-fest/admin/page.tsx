@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getRegistrations, checkInUser, resendConfirmationEmail } from "@/app/actions/booking";
+import { getRegistrations, resendConfirmationEmail } from "@/app/actions/booking";
 import { Button } from "@/components/ui/button";
 import { 
   Users, 
@@ -177,14 +177,30 @@ export default function AdminPage() {
 
           if (id && id.length > 10) {
             try {
-              await checkInUser(id);
-              setNotification({ type: "success", message: `✅ Check-in successful for ticket ${id.slice(0, 8)}...` });
+              // Use client-side supabase directly (has admin auth session)
+              // Server actions don't share the browser's auth session, so RLS blocks them
+              const { data, error: updateError } = await supabase
+                .from("registrations")
+                .update({ checked_in_at: new Date().toISOString() })
+                .eq("id", id)
+                .select("full_name, pass_type, quantity, checked_in_at")
+                .single();
+
+              if (updateError) {
+                throw new Error(updateError.message);
+              }
+
+              setNotification({ 
+                type: "success", 
+                message: `✅ ${data.full_name} checked in — ${data.pass_type} (x${data.quantity})` 
+              });
               fetchData();
-            } catch {
-              setNotification({ type: "error", message: "Invalid ticket or already checked in." });
+            } catch (err: unknown) {
+              const error = err as Error;
+              setNotification({ type: "error", message: `Scan failed: ${error.message}` });
             }
           } else {
-            setNotification({ type: "error", message: "Invalid QR code — could not extract ticket ID." });
+            setNotification({ type: "error", message: `Invalid QR code — could not extract ticket ID. Scanned: "${decodedText.slice(0, 50)}"` });
           }
 
           setShowScanner(false);
