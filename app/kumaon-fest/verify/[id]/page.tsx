@@ -285,7 +285,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                 <Button 
                   variant="outline"
                   onClick={() => setShowScanner(true)}
-                  className="w-full h-14 rounded-2xl font-bold border-gray-800 text-gray-400 hover:text-white"
+                  className="w-full h-14 rounded-2xl font-bold border-gray-800 bg-transparent text-gray-400 hover:bg-gray-800 hover:text-white"
                 >
                   <Camera className="w-4 h-4 mr-2" /> Scan Next
                 </Button>

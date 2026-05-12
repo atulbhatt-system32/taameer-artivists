@@ -320,11 +320,11 @@ export default function AdminPage() {
             <h1 className="text-5xl font-black tracking-tighter">Admin <span className="text-yellow-500">Panel</span></h1>
             <p className="text-gray-500 font-bold uppercase text-xs tracking-widest mt-2">Kumaon Fest 2025 Bookings</p>
           </div>
-          <div className="flex flex-wrap gap-3 w-full md:w-auto">
-            <Button onClick={() => setShowScanner(true)} className="flex-1 md:flex-none h-12 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold"><Camera className="w-4 h-4 mr-2" /> Scan Ticket</Button>
-            <Button onClick={handleExportCSV} className="flex-1 md:flex-none h-12 rounded-xl bg-gray-950 border border-gray-800 text-white hover:bg-gray-800 transition-colors"><Download className="w-4 h-4 mr-2" /> Export</Button>
-            <Button onClick={fetchData} className="h-12 w-12 rounded-xl bg-gray-950 border border-gray-800 text-white hover:text-yellow-500 transition-colors"><RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /></Button>
-            <Button onClick={handleLogout} variant="ghost" className="h-12 px-6 rounded-xl border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-widest hover:bg-red-500/10">Logout</Button>
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-end gap-3 w-full md:w-auto">
+            <Button onClick={() => setShowScanner(true)} className="col-span-2 sm:col-span-1 h-12 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold"><Camera className="w-4 h-4 mr-2" /> Scan Ticket</Button>
+            <Button onClick={handleExportCSV} className="h-12 rounded-xl bg-gray-950 border border-gray-800 text-white hover:bg-gray-800 transition-colors"><Download className="w-4 h-4 mr-2" /> Export</Button>
+            <Button onClick={fetchData} className="h-12 rounded-xl bg-gray-950 border border-gray-800 text-white hover:text-yellow-500 transition-colors"><RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} /> Refresh</Button>
+            <Button onClick={handleLogout} variant="ghost" className="col-span-2 sm:col-span-1 h-12 rounded-xl border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-widest hover:bg-red-500/10">Logout</Button>
           </div>
         </div>
 
@@ -374,14 +374,15 @@ export default function AdminPage() {
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            {/* Desktop Table View */}
+            <table className="hidden md:table w-full text-left">
               <thead>
                 <tr className="bg-gray-950/50 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
-                  <th className="p-8">Attendee</th>
-                  <th className="p-8">Pass Details</th>
-                  <th className="p-8">Payment ID</th>
-                  <th className="p-8 text-center">Status</th>
-                  <th className="p-8 text-right">Actions</th>
+                  <th className="p-4 md:p-8">Attendee</th>
+                  <th className="p-4 md:p-8">Pass Details</th>
+                  <th className="p-4 md:p-8">Payment ID</th>
+                  <th className="p-4 md:p-8 text-center">Status</th>
+                  <th className="p-4 md:p-8 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
@@ -391,27 +392,27 @@ export default function AdminPage() {
                     className="hover:bg-gray-800/30 transition-colors cursor-pointer group"
                     onClick={() => window.location.href = `/kumaon-fest/verify/${reg.id}`}
                   >
-                    <td className="p-8">
-                      <div className="font-bold text-lg">{reg.full_name}</div>
+                    <td className="p-4 md:p-8">
+                      <div className="font-bold text-base md:text-lg">{reg.full_name}</div>
                       <div className="text-xs text-gray-500">{reg.email}</div>
                     </td>
-                    <td className="p-8">
-                      <div className="text-sm font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type}</div>
-                      <div className="text-xs text-gray-500 mt-1 font-bold">Quantity: {reg.quantity}</div>
+                    <td className="p-4 md:p-8">
+                      <div className="text-xs md:text-sm font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type}</div>
+                      <div className="text-[10px] md:text-xs text-gray-500 mt-1 font-bold">Quantity: {reg.quantity}</div>
                     </td>
-                    <td className="p-8">
-                      <code className="text-xs text-gray-500 bg-gray-950 px-2 py-1 rounded-md">{reg.payment_id || "N/A"}</code>
+                    <td className="p-4 md:p-8">
+                      <code className="text-[10px] md:text-xs text-gray-500 bg-gray-950 px-2 py-1 rounded-md">{reg.payment_id || "N/A"}</code>
                     </td>
-                    <td className="p-8 text-center">
+                    <td className="p-4 md:p-8 text-center">
                       {reg.checked_in_at ? (
-                        <span className="px-3 py-1.5 rounded-full bg-yellow-500/10 text-yellow-500 text-[10px] font-black uppercase border border-yellow-500/20">ENTERED</span>
+                        <span className="px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-yellow-500/10 text-yellow-500 text-[9px] md:text-[10px] font-black uppercase border border-yellow-500/20">ENTERED</span>
                       ) : reg.payment_status === "paid" ? (
-                        <span className="px-3 py-1.5 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase border border-green-500/20">PAID</span>
+                        <span className="px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-green-500/10 text-green-500 text-[9px] md:text-[10px] font-black uppercase border border-green-500/20">PAID</span>
                       ) : (
-                        <span className="px-3 py-1.5 rounded-full bg-red-500/10 text-red-500 text-[10px] font-black uppercase border border-red-500/20">PENDING</span>
+                        <span className="px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-red-500/10 text-red-500 text-[9px] md:text-[10px] font-black uppercase border border-red-500/20">PENDING</span>
                       )}
                     </td>
-                    <td className="p-8 text-right">
+                    <td className="p-4 md:p-8 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {reg.payment_status === "paid" && (
                           <Button 
@@ -431,6 +432,57 @@ export default function AdminPage() {
                 ))}
               </tbody>
             </table>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden flex flex-col divide-y divide-gray-800">
+              {filtered.map(reg => (
+                <div 
+                  key={reg.id} 
+                  className="p-5 hover:bg-gray-800/30 transition-colors cursor-pointer active:bg-gray-800/50"
+                  onClick={() => window.location.href = `/kumaon-fest/verify/${reg.id}`}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <div className="font-bold text-lg text-white leading-tight">{reg.full_name}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">{reg.email}</div>
+                    </div>
+                    <div>
+                      {reg.checked_in_at ? (
+                        <span className="px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-500 text-[9px] font-black uppercase border border-yellow-500/20">ENTERED</span>
+                      ) : reg.payment_status === "paid" ? (
+                        <span className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-[9px] font-black uppercase border border-green-500/20">PAID</span>
+                      ) : (
+                        <span className="px-2 py-1 rounded-full bg-red-500/10 text-red-500 text-[9px] font-black uppercase border border-red-500/20">PENDING</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-end mt-4">
+                    <div className="space-y-1">
+                      <div className="text-xs font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type} <span className="text-gray-500">(x{reg.quantity})</span></div>
+                      <code className="text-[10px] text-gray-500 bg-gray-950 px-2 py-0.5 rounded inline-block">{reg.payment_id || "N/A"}</code>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {reg.payment_status === "paid" && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-10 w-10 rounded-lg text-gray-400 hover:text-yellow-500"
+                          onClick={(e) => handleResendEmail(reg.id, e)}
+                          disabled={resendingEmail === reg.id}
+                        >
+                          {resendingEmail === reg.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                        </Button>
+                      )}
+                      <ChevronRight className="w-5 h-5 text-gray-600" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {filtered.length === 0 && (
+                <div className="p-8 text-center text-gray-500 text-sm">No bookings found.</div>
+              )}
+            </div>
           </div>
         </div>
       </div>
