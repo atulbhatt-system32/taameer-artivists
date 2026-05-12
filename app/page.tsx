@@ -283,7 +283,7 @@ export default function HomePage() {
               <div>
                 <span className="text-xs font-black text-yellow-500 tracking-[0.3em] uppercase">Annual Flagship</span>
                 <h2 className="text-5xl md:text-6xl font-black text-gray-900 tracking-tight leading-none mt-3">
-                  Featured<br /><span className="text-yellow-400">Event.</span>
+                  Summer<br /><span className="text-yellow-400">Event.</span>
                 </h2>
               </div>
               <Link href="/kumaon-fest" className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-yellow-500 transition-colors group">

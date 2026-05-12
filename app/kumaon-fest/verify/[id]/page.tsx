@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { CheckCircle2, User, Ticket, XCircle, AlertTriangle, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
   const [checkInLoading, setCheckInLoading] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
+  const scanProcessingRef = useRef(false);
 
   useEffect(() => {
     async function init() {
@@ -63,27 +64,43 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
     let html5QrCode: Html5Qrcode | null = null;
 
     if (showScanner) {
+      scanProcessingRef.current = false;
       const startScanner = async () => {
         try {
           html5QrCode = new Html5Qrcode("reader-verify");
           await html5QrCode.start(
             { facingMode: "environment" },
             { fps: 10, qrbox: { width: 250, height: 250 } },
-            (decodedText) => {
+            async (decodedText) => {
+              // Guard: prevent duplicate processing from rapid callbacks
+              if (scanProcessingRef.current) return;
+              scanProcessingRef.current = true;
+
+              // Stop scanner immediately
+              try {
+                if (html5QrCode && html5QrCode.isScanning) {
+                  await html5QrCode.stop();
+                }
+              } catch (e) {
+                console.error("Scanner stop error:", e);
+              }
+
+              // Extract ID, handling trailing slashes
               let newId = "";
               try {
                 const url = new URL(decodedText);
-                const pathParts = url.pathname.split("/");
-                newId = pathParts[pathParts.length - 1];
+                const pathParts = url.pathname.split("/").filter(Boolean);
+                newId = pathParts[pathParts.length - 1] || "";
               } catch {
-                newId = decodedText;
+                newId = decodedText.trim();
               }
 
               if (newId && newId.length > 10) {
-                html5QrCode?.stop().then(() => {
-                  setShowScanner(false);
-                  window.location.replace(`/kumaon-fest/verify/${newId}`);
-                });
+                setShowScanner(false);
+                window.location.replace(`/kumaon-fest/verify/${newId}`);
+              } else {
+                scanProcessingRef.current = false; // Allow retry on bad scan
+                setShowScanner(false);
               }
             },
             () => {}
@@ -97,6 +114,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
     }
 
     return () => {
+      scanProcessingRef.current = false;
       if (html5QrCode && html5QrCode.isScanning) {
         html5QrCode.stop().catch(console.error);
       }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getRegistrations, checkInUser, resendConfirmationEmail } from "@/app/actions/booking";
 import { Button } from "@/components/ui/button";
 import { 
@@ -52,6 +52,7 @@ export default function AdminPage() {
   const [authLoading, setAuthLoading] = useState(true);
   const [filterPass, setFilterPass] = useState<string>("All");
   const [resendingEmail, setResendingEmail] = useState<string | null>(null);
+  const scanProcessingRef = useRef(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -145,35 +146,58 @@ export default function AdminPage() {
   useEffect(() => {
     let scanner: Html5Qrcode | null = null;
     if (showScanner) {
+      scanProcessingRef.current = false;
       scanner = new Html5Qrcode("admin-reader");
       scanner.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 250 } },
         async (decodedText) => {
+          // Guard: prevent duplicate processing from rapid callbacks
+          if (scanProcessingRef.current) return;
+          scanProcessingRef.current = true;
+
+          // Stop scanner immediately to prevent further callbacks
+          try {
+            if (scanner && scanner.isScanning) {
+              await scanner.stop();
+            }
+          } catch (e) {
+            console.error("Scanner stop error:", e);
+          }
+
+          // Extract ID from URL, handling trailing slashes
           let id = "";
           try {
             const url = new URL(decodedText);
-            const pathParts = url.pathname.split("/");
-            id = pathParts[pathParts.length - 1];
+            const pathParts = url.pathname.split("/").filter(Boolean);
+            id = pathParts[pathParts.length - 1] || "";
           } catch {
-            id = decodedText;
+            id = decodedText.trim();
           }
-          
+
           if (id && id.length > 10) {
             try {
               await checkInUser(id);
-              setNotification({ type: "success", message: "Check-in successful!" });
-              setShowScanner(false);
+              setNotification({ type: "success", message: `✅ Check-in successful for ticket ${id.slice(0, 8)}...` });
               fetchData();
             } catch {
-              setNotification({ type: "error", message: "Invalid ticket or already used." });
+              setNotification({ type: "error", message: "Invalid ticket or already checked in." });
             }
+          } else {
+            setNotification({ type: "error", message: "Invalid QR code — could not extract ticket ID." });
           }
+
+          setShowScanner(false);
         },
         () => {}
-      ).catch(console.error);
+      ).catch((err) => {
+        console.error("Scanner start error:", err);
+        setNotification({ type: "error", message: "Camera access denied or unavailable." });
+        setShowScanner(false);
+      });
     }
     return () => {
+      scanProcessingRef.current = false;
       if (scanner && scanner.isScanning) {
         scanner.stop().catch(console.error);
       }

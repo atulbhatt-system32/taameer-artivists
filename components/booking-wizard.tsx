@@ -356,21 +356,77 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                           <FormItem><FormLabel className="text-white">Age *</FormLabel><FormControl><Input type="number" required placeholder="20" className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                       </div>
-                      <FormField control={form.control} name="gender" render={({ field }) => (
-                        <FormItem className="space-y-4">
-                          <FormLabel className="text-white">Gender</FormLabel>
-                          <FormControl>
-                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-wrap gap-6">
-                              {["Female", "Male", "Transgender", "I prefer not to say", "Other"].map((opt) => (
-                                <FormItem key={opt} className="flex items-center space-x-2 space-y-0">
-                                  <FormControl><RadioGroupItem value={opt} className="border-gray-700 text-yellow-500" /></FormControl>
-                                  <FormLabel className="font-normal cursor-pointer text-gray-300">{opt}</FormLabel>
-                                </FormItem>
-                              ))}
-                            </RadioGroup>
-                          </FormControl>
-                        </FormItem>
-                      )} />
+                      <FormField
+                        control={form.control}
+                        name="gender"
+                        render={({ field }) => (
+                          <FormItem className="space-y-4">
+                            <FormLabel className="text-white">Gender</FormLabel>
+                            <FormControl>
+                              <RadioGroup
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                className="flex flex-wrap gap-6"
+                              >
+                                {["Female", "Male", "Transgender", "I prefer not to say", "Other"].map((opt) => {
+                                  const id = `gender-${opt.toLowerCase().replace(/\s+/g, "-")}`;
+                                  return (
+                                    <FormItem key={opt} className="flex items-center space-x-2 space-y-0">
+                                      <FormControl>
+                                        <RadioGroupItem
+                                          value={opt}
+                                          id={id}
+                                          className="border-gray-700 text-yellow-500"
+                                        />
+                                      </FormControl>
+                                      <FormLabel htmlFor={id} className="font-normal cursor-pointer text-gray-300">
+                                        {opt}
+                                      </FormLabel>
+                                    </FormItem>
+                                  );
+                                })}
+                              </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="willPlayDandiya"
+                        render={({ field }) => (
+                          <FormItem className="space-y-4">
+                            <FormLabel className="text-white">Will you be playing Dandiya?</FormLabel>
+                            <FormControl>
+                              <RadioGroup
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                className="flex gap-6"
+                              >
+                                {["Yes", "No"].map((opt) => {
+                                  const id = `dandiya-${opt.toLowerCase()}`;
+                                  return (
+                                    <FormItem key={opt} className="flex items-center space-x-2 space-y-0">
+                                      <FormControl>
+                                        <RadioGroupItem
+                                          value={opt}
+                                          id={id}
+                                          className="border-gray-700 text-yellow-500"
+                                        />
+                                      </FormControl>
+                                      <FormLabel htmlFor={id} className="font-normal cursor-pointer text-gray-300">
+                                        {opt}
+                                      </FormLabel>
+                                    </FormItem>
+                                  );
+                                })}
+                              </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <div className="grid md:grid-cols-2 gap-8">
                         <FormField control={form.control} name="whatsappNo" render={({ field }) => (
                           <FormItem><FormLabel className="text-white">WhatsApp Number *</FormLabel><FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
