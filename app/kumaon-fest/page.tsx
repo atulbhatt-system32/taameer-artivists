@@ -9,6 +9,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 import kumaonFestData from "@/data/kumaon-fest.json";
+import organizationData from "@/data/organization.json";
 
 export default function KumaonFestPage() {
   const [scrolled, setScrolled] = useState(false);
@@ -287,7 +288,24 @@ export default function KumaonFestPage() {
               ))}
             </nav>
           </div>
-          <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+          
+          {/* Founder Details for KYC */}
+          {organizationData.founder_details && (
+            <div className="pt-8 pb-4 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left border-t border-white/5">
+              <div className="space-y-1">
+                <p className="text-gray-500 text-xs font-black uppercase tracking-widest">Founder & Contact Info</p>
+                <div className="flex flex-col md:flex-row gap-2 md:gap-6 text-gray-400 text-sm">
+                  <span>{organizationData.founder_details.name}</span>
+                  <span className="hidden md:inline">•</span>
+                  <span>{organizationData.founder_details.phone}</span>
+                  <span className="hidden md:inline">•</span>
+                  <span>{organizationData.founder_details.email}</span>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">© 2025 Kumaon Fest by Taameer Artivists Foundation.</p>
             <div className="flex gap-8">
               <Link href="/" className="text-xs font-black text-gray-500 hover:text-yellow-500 transition-colors uppercase tracking-widest">Back to Main Site</Link>
