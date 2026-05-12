@@ -129,7 +129,7 @@ export default function HomePage() {
                   variant="outline"
                   className="h-14 px-8 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:text-white rounded-xl font-bold transition-all"
                 >
-                  <Link href="/kumaon-fest">Our Events <ArrowRight className="w-4 h-4 ml-2" /></Link>
+                  <Link href="#events">Our Events <ArrowRight className="w-4 h-4 ml-2" /></Link>
                 </Button>
               </div>
             </div>
@@ -286,7 +286,7 @@ export default function HomePage() {
                   Summer<br /><span className="text-yellow-400">Event.</span>
                 </h2>
               </div>
-              <Link href="/kumaon-fest" className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-yellow-500 transition-colors group">
+              <Link href="#events" className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-yellow-500 transition-colors group">
                 View All Events <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
@@ -329,7 +329,7 @@ export default function HomePage() {
                       <Link href="/kumaon-fest/tickets">Get Your Pass →</Link>
                     </Button>
                     <Button asChild variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-semibold py-3">
-                      <Link href="/kumaon-fest">Learn More</Link>
+                      <Link href="#events">Learn More</Link>
                     </Button>
                   </div>
                 </div>
@@ -424,7 +424,7 @@ export default function HomePage() {
                     { label: "About", href: "#about" },
                     { label: "Mission", href: "#mission" },
                     { label: "Impact", href: "#impact" },
-                    { label: "Kumaon Fest", href: "/kumaon-fest" },
+                    { label: "Kumaon Fest", href: "#events" },
                   ].map((l) => (
                     <Link key={l.label} href={l.href} className="text-gray-400 text-sm font-medium hover:text-white transition-colors">{l.label}</Link>
                   ))}

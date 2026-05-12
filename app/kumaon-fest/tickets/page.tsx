@@ -10,9 +10,9 @@ export default function TicketsPage() {
       {/* Header */}
       <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-gray-950/80 backdrop-blur-xl">
         <div className="container flex h-20 items-center justify-between px-4 max-w-7xl mx-auto">
-          <Link href="/kumaon-fest" className="flex items-center space-x-3 group text-gray-400 hover:text-white transition-colors">
+          <Link href="/" className="flex items-center space-x-3 group text-gray-400 hover:text-white transition-colors">
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-bold uppercase tracking-widest">Back to Festival</span>
+            <span className="text-sm font-bold uppercase tracking-widest">Back to Home</span>
           </Link>
           <div className="flex items-center space-x-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-yellow-500 shadow-lg shadow-yellow-500/20">
