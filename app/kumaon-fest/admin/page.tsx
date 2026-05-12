@@ -177,8 +177,22 @@ export default function AdminPage() {
 
           if (id && id.length > 10) {
             try {
-              // Use client-side supabase directly (has admin auth session)
-              // Server actions don't share the browser's auth session, so RLS blocks them
+              // Fetch the ticket first to check if it's already used
+              const { data: existingTicket, error: fetchError } = await supabase
+                .from("registrations")
+                .select("checked_in_at, full_name")
+                .eq("id", id)
+                .single();
+
+              if (fetchError || !existingTicket) {
+                throw new Error("Ticket not found in the database.");
+              }
+
+              if (existingTicket.checked_in_at) {
+                throw new Error(`TICKET ALREADY USED! Scanned previously at ${new Date(existingTicket.checked_in_at).toLocaleTimeString()}`);
+              }
+
+              // If not used, proceed to check-in
               const { data, error: updateError } = await supabase
                 .from("registrations")
                 .update({ checked_in_at: new Date().toISOString() })
