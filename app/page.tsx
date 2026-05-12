@@ -403,6 +403,16 @@ export default function HomePage() {
                 Empowering communities through the fusion of art and activism since {founded}.
               </p>
               <p className="text-gray-600 text-xs">{contact.address}</p>
+              
+              {/* Founder Details for KYC */}
+              {organizationData.founder_details && (
+                <div className="pt-4 mt-2 border-t border-white/10">
+                  <p className="text-gray-500 text-xs font-semibold mb-2">Founder & Contact Info</p>
+                  <p className="text-gray-400 text-sm">{organizationData.founder_details.name}</p>
+                  <p className="text-gray-400 text-sm">{organizationData.founder_details.phone}</p>
+                  <p className="text-gray-400 text-sm">{organizationData.founder_details.email}</p>
+                </div>
+              )}
             </div>
 
             {/* Links */}
