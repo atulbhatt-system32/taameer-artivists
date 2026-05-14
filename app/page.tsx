@@ -416,7 +416,7 @@ export default function HomePage() {
             </div>
 
             {/* Links */}
-            <div className="grid grid-cols-2 gap-12">
+            <div className="grid grid-cols-3 gap-12">
               <div>
                 <h5 className="text-yellow-400 text-xs font-black uppercase tracking-[0.3em] mb-5">Navigate</h5>
                 <nav className="flex flex-col gap-3">
@@ -425,6 +425,18 @@ export default function HomePage() {
                     { label: "Mission", href: "#mission" },
                     { label: "Impact", href: "#impact" },
                     { label: "Kumaon Fest", href: "#events" },
+                  ].map((l) => (
+                    <Link key={l.label} href={l.href} className="text-gray-400 text-sm font-medium hover:text-white transition-colors">{l.label}</Link>
+                  ))}
+                </nav>
+              </div>
+              <div>
+                <h5 className="text-yellow-400 text-xs font-black uppercase tracking-[0.3em] mb-5">Legal</h5>
+                <nav className="flex flex-col gap-3">
+                  {[
+                    { label: "Privacy Policy", href: "/privacy-policy" },
+                    { label: "Cancellation & Refund", href: "/cancellation-and-refund" },
+                    { label: "Terms & Conditions", href: "/terms-and-conditions" },
                   ].map((l) => (
                     <Link key={l.label} href={l.href} className="text-gray-400 text-sm font-medium hover:text-white transition-colors">{l.label}</Link>
                   ))}
