@@ -290,7 +290,7 @@ export function TicketSelectionModal({ isOpen, onOpenChange }: TicketSelectionMo
         {/* Payment Modal - Direct rendering when state is true */}
         {isPaymentOpen && selectedPass && (
           <PaymentModal
-            eventTitle={`Kumaon Fest 2025 - ${selectedPass.name}`}
+            eventTitle={`Kumaon Fest 2026 - ${selectedPass.name}`}
             eventPrice={selectedPass.price}
             eventId={`KF2025-${selectedPass.id.toUpperCase()}`}
             isOpen={isPaymentOpen}

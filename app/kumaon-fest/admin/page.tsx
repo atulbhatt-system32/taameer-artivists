@@ -319,7 +319,7 @@ export default function AdminPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div>
             <h1 className="text-5xl font-black tracking-tighter">Admin <span className="text-yellow-500">Panel</span></h1>
-            <p className="text-gray-500 font-bold uppercase text-xs tracking-widest mt-2">Kumaon Fest 2025 Bookings</p>
+            <p className="text-gray-500 font-bold uppercase text-xs tracking-widest mt-2">Kumaon Fest 2026 Bookings</p>
           </div>
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-end gap-3 w-full md:w-auto">
             <Button onClick={() => setShowScanner(true)} className="col-span-2 sm:col-span-1 h-12 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold"><Camera className="w-4 h-4 mr-2" /> Scan Ticket</Button>

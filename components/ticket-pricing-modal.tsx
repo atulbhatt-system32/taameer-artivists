@@ -78,7 +78,7 @@ export function TicketPricingModal({ children, onBookTickets }: TicketPricingMod
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-4xl w-[95vw] max-w-[95vw] p-3 sm:p-4 md:p-6 max-h-[90vh] overflow-y-auto rounded-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-900">Kumaon Fest 2025 - Ticket Pricing</DialogTitle>
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-900">Kumaon Fest 2026 - Ticket Pricing</DialogTitle>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-2 gap-2">
             <div>
               <p className="text-base sm:text-lg font-semibold text-gray-700">Choose the perfect pass for your festival experience</p>
@@ -162,7 +162,7 @@ export function TicketPricingModal({ children, onBookTickets }: TicketPricingMod
             <div className="p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">Ready to Book Your Tickets?</h3>
               <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-                Choose your preferred pass and complete your booking to secure your spot at Kumaon Fest 2025!
+                Choose your preferred pass and complete your booking to secure your spot at Kumaon Fest 2026!
               </p>
               <Button 
                 className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold text-sm sm:text-sm"
