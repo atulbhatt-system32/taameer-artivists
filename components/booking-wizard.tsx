@@ -14,6 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useFieldArray } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
@@ -43,6 +44,11 @@ const formSchema = z.object({
   address: z.string().min(5, { message: "Please provide a complete address." }),
   willPlayDandiya: z.enum(["Yes", "No"]),
   instagramHandle: z.string().optional(),
+  additionalAttendees: z.array(z.object({
+    fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    age: z.string().min(1, { message: "Age is required." }),
+    gender: z.enum(["Female", "Male", "Transgender", "I prefer not to say", "Other"]),
+  })).optional(),
   agreed: z.boolean().refine((val) => val === true, {
     message: "You must agree to the terms.",
   }),
@@ -112,9 +118,32 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
       address: "",
       willPlayDandiya: "No",
       instagramHandle: "",
+      additionalAttendees: [],
       agreed: false,
     },
   });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "additionalAttendees" as never,
+  });
+
+  const selectedQuantity = parseInt(form.watch("quantity") || "1");
+
+  useEffect(() => {
+    const currentCount = fields.length;
+    const targetCount = Math.max(0, selectedQuantity - 1);
+
+    if (targetCount > currentCount) {
+      for (let i = currentCount; i < targetCount; i++) {
+        append({ fullName: "", age: "", gender: "Female" });
+      }
+    } else if (targetCount < currentCount) {
+      for (let i = currentCount - 1; i >= targetCount; i--) {
+        remove(i);
+      }
+    }
+  }, [selectedQuantity, append, remove, fields.length]);
 
   const selectPass = (type: string) => {
     form.setValue("passType", type as "Student Pass" | "Regular Pass" | "VIP Pass");
@@ -122,7 +151,6 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const selectedQuantity = parseInt(form.watch("quantity") || "0");
   const selectedPass = form.watch("passType");
 
   const getPrice = () => {
@@ -350,18 +378,18 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                       </div>
                       <div className="grid md:grid-cols-2 gap-8">
                         <FormField control={form.control} name="fullName" render={({ field }) => (
-                          <FormItem><FormLabel className="text-white">Full Name *</FormLabel><FormControl><Input placeholder="John Doe" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Full Name *</FormLabel><FormControl><Input placeholder="John Doe" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="age" render={({ field }) => (
-                          <FormItem><FormLabel className="text-white">Age *</FormLabel><FormControl><Input type="number" required placeholder="20" className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Age *</FormLabel><FormControl><Input type="number" required placeholder="20" className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                       </div>
                       <FormField
                         control={form.control}
                         name="gender"
                         render={({ field }) => (
-                          <FormItem className="space-y-4">
-                            <FormLabel className="text-white">Gender</FormLabel>
+                          <FormItem className="space-y-5">
+                            <FormLabel className="text-white mb-2 block">Gender</FormLabel>
                             <FormControl>
                               <RadioGroup
                                 onValueChange={field.onChange}
@@ -396,8 +424,8 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                         control={form.control}
                         name="willPlayDandiya"
                         render={({ field }) => (
-                          <FormItem className="space-y-4">
-                            <FormLabel className="text-white">Will you be playing Dandiya?</FormLabel>
+                          <FormItem className="space-y-5">
+                            <FormLabel className="text-white mb-6 block text-lg font-bold">Will you be playing Dandiya?</FormLabel>
                             <FormControl>
                               <RadioGroup
                                 onValueChange={field.onChange}
@@ -429,14 +457,14 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                       />
                       <div className="grid md:grid-cols-2 gap-8">
                         <FormField control={form.control} name="whatsappNo" render={({ field }) => (
-                          <FormItem><FormLabel className="text-white">WhatsApp Number *</FormLabel><FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">WhatsApp Number *</FormLabel><FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="contactNo" render={({ field }) => (
-                          <FormItem><FormLabel className="text-white">Contact Number *</FormLabel><FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Contact Number *</FormLabel><FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                       </div>
                       <FormField control={form.control} name="email" render={({ field }) => (
-                        <FormItem><FormLabel className="text-white">Email Address *</FormLabel><FormControl><Input type="email" placeholder="you@example.com" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Email Address *</FormLabel><FormControl><Input type="email" placeholder="you@example.com" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
                     </div>
 
@@ -448,14 +476,103 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                       </div>
                       <div className="grid md:grid-cols-2 gap-8">
                         <FormField control={form.control} name="passType" render={({ field }) => (
-                          <FormItem><FormLabel className="text-white">Pass Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-12 bg-gray-950 border-gray-800 text-white"><SelectValue /></SelectTrigger></FormControl><SelectContent className="bg-gray-900 border-gray-800 text-white">{tiers.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent></Select></FormItem>
+                          <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Pass Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-12 bg-gray-950 border-gray-800 text-white"><SelectValue /></SelectTrigger></FormControl><SelectContent className="bg-gray-900 border-gray-800 text-white">{tiers.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent></Select></FormItem>
                         )} />
                         <FormField control={form.control} name="quantity" render={({ field }) => (
-                          <FormItem><FormLabel className="text-white">Number of People</FormLabel><FormControl><Input type="number" min="1" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormDescription className="text-gray-500">5+ for bulk discount</FormDescription><FormMessage /></FormItem>
+                          <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Number of People</FormLabel><FormControl><Input type="number" min="1" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} onChange={(e) => {
+                            field.onChange(e);
+                          }} /></FormControl><FormDescription className="text-gray-500">5+ for bulk discount</FormDescription><FormMessage /></FormItem>
                         )} />
                       </div>
+
+                      {/* Additional Attendees */}
+                      {fields.length > 0 && (
+                        <div className="space-y-8 pt-4">
+                          <div className="flex items-center gap-4 text-yellow-500">
+                            <Users className="w-6 h-6" />
+                            <h3 className="text-xl font-bold tracking-tight">Other Persons Details</h3>
+                            <div className="h-px bg-gray-800 flex-1" />
+                          </div>
+                          <div className="space-y-10">
+                            {fields.map((field, index) => (
+                              <div key={field.id} className="p-6 bg-white/5 rounded-[2rem] border border-white/5 space-y-6">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-yellow-500 text-gray-950 flex items-center justify-center font-bold text-sm">
+                                    {index + 2}
+                                  </div>
+                                  <span className="font-bold text-white uppercase tracking-widest text-xs">Person {index + 2}</span>
+                                </div>
+                                <div className="grid md:grid-cols-2 gap-8">
+                                  <FormField
+                                    control={form.control}
+                                    name={`additionalAttendees.${index}.fullName` as any}
+                                    render={({ field }) => (
+                                      <FormItem className="space-y-3">
+                                        <FormLabel className="text-white">Full Name *</FormLabel>
+                                        <FormControl>
+                                          <Input placeholder={`Person ${index + 2} Name`} required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={form.control}
+                                    name={`additionalAttendees.${index}.age` as any}
+                                    render={({ field }) => (
+                                      <FormItem className="space-y-3">
+                                        <FormLabel className="text-white">Age *</FormLabel>
+                                        <FormControl>
+                                          <Input type="number" required placeholder="20" className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                                <FormField
+                                  control={form.control}
+                                  name={`additionalAttendees.${index}.gender` as any}
+                                  render={({ field }) => (
+                                    <FormItem className="space-y-4">
+                                      <FormLabel className="text-white">Gender</FormLabel>
+                                      <FormControl>
+                                        <RadioGroup
+                                          onValueChange={field.onChange}
+                                          value={field.value}
+                                          className="flex flex-wrap gap-6"
+                                        >
+                                          {["Female", "Male", "Transgender", "I prefer not to say", "Other"].map((opt) => {
+                                            const id = `gender-${index}-${opt.toLowerCase().replace(/\s+/g, "-")}`;
+                                            return (
+                                              <FormItem key={opt} className="flex items-center space-x-2 space-y-0">
+                                                <FormControl>
+                                                  <RadioGroupItem
+                                                    value={opt}
+                                                    id={id}
+                                                    className="border-gray-700 text-yellow-500"
+                                                  />
+                                                </FormControl>
+                                                <FormLabel htmlFor={id} className="font-normal cursor-pointer text-gray-300">
+                                                  {opt}
+                                                </FormLabel>
+                                              </FormItem>
+                                            );
+                                          })}
+                                        </RadioGroup>
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       <FormField control={form.control} name="address" render={({ field }) => (
-                        <FormItem><FormLabel className="text-white">Complete Address</FormLabel><FormControl><Textarea placeholder="Street, City, State, PIN" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500 min-h-[120px] rounded-2xl" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Complete Address</FormLabel><FormControl><Textarea placeholder="Street, City, State, PIN" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500 min-h-[120px] rounded-2xl" {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
                       <FormField control={form.control} name="agreed" render={({ field }) => (
                         <FormItem className="flex items-start space-x-3 space-y-0 p-6 bg-yellow-500/5 rounded-2xl border border-yellow-500/10"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-1 border-gray-700 data-[state=checked]:bg-yellow-500" /></FormControl><FormLabel className="text-sm text-gray-400 cursor-pointer leading-relaxed">I agree to the terms and conditions.</FormLabel></FormItem>

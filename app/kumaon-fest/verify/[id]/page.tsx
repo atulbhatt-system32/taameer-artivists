@@ -16,6 +16,7 @@ interface Registration {
   pass_type: string;
   quantity: number;
   checked_in_at: string | null;
+  additional_attendees?: { fullName: string; age: string; gender: string }[];
 }
 
 interface ConfirmAction {
@@ -251,6 +252,20 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                   <p className="font-bold text-xl uppercase">{registration.pass_type} (x{registration.quantity})</p>
                 </div>
               </div>
+
+              {registration.additional_attendees && registration.additional_attendees.length > 0 && (
+                <div className="p-6 bg-gray-950/50 border border-gray-800 rounded-3xl space-y-4">
+                  <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest">Additional Attendees</p>
+                  <div className="space-y-3">
+                    {registration.additional_attendees.map((a, i) => (
+                      <div key={i} className="flex justify-between items-center bg-gray-900/50 p-3 rounded-xl border border-white/5">
+                        <span className="font-bold text-sm text-gray-300">{i + 2}. {a.fullName}</span>
+                        <span className="text-[10px] bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded uppercase font-bold">{a.gender}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {isCheckedIn && registration.checked_in_at && (
                 <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-3xl">

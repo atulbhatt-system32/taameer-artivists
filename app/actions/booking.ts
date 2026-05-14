@@ -17,6 +17,7 @@ export interface RegistrationData {
   address: string;
   willPlayDandiya: string;
   instagramHandle?: string;
+  additionalAttendees?: { fullName: string; age: string; gender: string }[];
   agreed: boolean;
 }
 
@@ -53,34 +54,41 @@ export async function createRazorpayOrder(amount: number) {
 export async function preRegisterUser(data: RegistrationData) {
   console.log("SERVER: preRegisterUser hit with email:", data.email);
 
-  const { data: regData, error } = await supabase
-    .from("registrations")
-    .insert([
-      {
-        full_name: data.fullName,
-        age: data.age,
-        gender: data.gender,
-        whatsapp_no: data.whatsappNo,
-        contact_no: data.contactNo,
-        email: data.email,
-        pass_type: data.passType,
-        quantity: parseInt(data.quantity) || 1,
-        address: data.address,
-        will_play_dandiya: data.willPlayDandiya,
-        instagram_handle: data.instagramHandle,
-        agreed: data.agreed,
-        payment_status: "pending",
-      },
-    ])
-    .select()
-    .single();
+  const attendees = [
+    { fullName: data.fullName, age: data.age, gender: data.gender },
+    ...(data.additionalAttendees || [])
+  ];
 
-  if (error) {
+  const groupId = `GROUP_${crypto.randomUUID().slice(0, 8)}`;
+  
+  const insertData = attendees.map(attendee => ({
+    full_name: attendee.fullName,
+    age: attendee.age,
+    gender: attendee.gender,
+    whatsapp_no: data.whatsappNo,
+    contact_no: data.contactNo,
+    email: data.email,
+    pass_type: data.passType,
+    quantity: 1, // Individual ticket
+    address: data.address,
+    will_play_dandiya: data.willPlayDandiya,
+    instagram_handle: groupId, // Using this as group_id
+    agreed: data.agreed,
+    payment_status: "pending",
+  }));
+
+  const { data: regDataList, error } = await supabase
+    .from("registrations")
+    .insert(insertData)
+    .select();
+
+  if (error || !regDataList || regDataList.length === 0) {
     console.error("Supabase Error:", error);
-    throw new Error(`Failed to pre-register: ${error.message}`);
+    throw new Error(`Failed to pre-register: ${error?.message || "Unknown error"}`);
   }
 
-  return { success: true, registrationId: regData.id };
+  // Return the ID of the first one for the payment initiation
+  return { success: true, registrationId: regDataList[0].id };
 }
 
 export async function confirmPayment(data: PaymentConfirmationData) {
@@ -101,18 +109,21 @@ export async function confirmPayment(data: PaymentConfirmationData) {
     }
   }
 
-  // 2. Fetch user details for email
-  const { data: regData, error: fetchError } = await supabase
+  // 2. Fetch primary registration to get Group ID
+  const { data: primaryReg, error: fetchError } = await supabase
     .from("registrations")
     .select("*")
     .eq("id", data.registrationId)
     .single();
 
-  if (fetchError || !regData) {
+  if (fetchError || !primaryReg) {
     throw new Error("Registration not found.");
   }
 
-  // 3. Update status to paid
+  const groupId = primaryReg.instagram_handle;
+  const isGroup = groupId?.startsWith("GROUP_");
+
+  // 3. Update status to paid for the whole group
   const { error: updateError } = await supabase
     .from("registrations")
     .update({
@@ -120,10 +131,20 @@ export async function confirmPayment(data: PaymentConfirmationData) {
       order_id: data.orderId,
       payment_status: "paid",
     })
-    .eq("id", data.registrationId);
+    .filter(isGroup ? 'instagram_handle' : 'id', 'eq', isGroup ? groupId : data.registrationId);
 
   if (updateError) {
     throw new Error("Failed to update payment status.");
+  }
+
+  // 3b. Fetch all tickets in the group for the email
+  const { data: allTickets } = await supabase
+    .from("registrations")
+    .select("*")
+    .eq(isGroup ? "instagram_handle" : "id", isGroup ? groupId : data.registrationId);
+
+  if (!allTickets || allTickets.length === 0) {
+    throw new Error("Tickets not found after update.");
   }
 
   // 4. Send Email
@@ -139,45 +160,61 @@ export async function confirmPayment(data: PaymentConfirmationData) {
     });
 
     const domain = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const verifyUrl = `${domain}/kumaon-fest/verify/${regData.id}`;
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verifyUrl)}`;
+    
+    // Generate individual ticket sections
+    const ticketSections = allTickets.map(ticket => {
+      const verifyUrl = `${domain}/kumaon-fest/verify/${ticket.id}`;
+      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verifyUrl)}`;
+      
+      return `
+        <div style="background-color: #f8fafc; border: 2px dashed #e2e8f0; border-radius: 20px; padding: 25px; margin-bottom: 35px; page-break-inside: avoid;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding-bottom: 15px;">
+                <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block;">Attendee</span>
+                <strong style="font-size: 18px; color: #1e293b;">${ticket.full_name}</strong>
+              </td>
+              <td style="padding-bottom: 15px; text-align: right;">
+                <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block;">Pass Type</span>
+                <strong style="font-size: 14px; color: #1e293b;">${ticket.pass_type}</strong>
+              </td>
+            </tr>
+          </table>
+          <div style="text-align: center; margin: 20px 0;">
+            <img src="${qrCodeUrl}" alt="Ticket QR Code" style="display: block; width: 180px; height: 180px; margin: 0 auto;" />
+            <p style="font-size: 10px; color: #94a3b8; margin-top: 10px; font-family: monospace;">TICKET ID: ${ticket.id}</p>
+          </div>
+          <div style="text-align: center;">
+            <a href="${verifyUrl}" style="display: inline-block; background-color: #EAB308; color: #000000; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 700; text-decoration: none;">View Digital Ticket</a>
+          </div>
+        </div>
+      `;
+    }).join("");
 
     try {
       const info = await transporter.sendMail({
         from: `"The Kumaon Fest" <${smtpUser}>`,
-        to: regData.email,
-        subject: "Booking Confirmation - The Kumaon Fest",
+        to: primaryReg.email,
+        subject: `Booking Confirmation (${allTickets.length} Tickets) - The Kumaon Fest`,
         html: `
           <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f7f9; padding: 40px 20px;">
             <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #e1e8ed;">
               <div style="background: linear-gradient(135deg, #EAB308, #CA8A04); padding: 40px 20px; text-align: center; color: #000000;">
-                <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">The Kumaon Fest 2025</h1>
-                <p style="margin: 10px 0 0; opacity: 0.9; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 2px;">Official Entry Pass</p>
+                <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">The Kumaon Fest 2026</h1>
+                <p style="margin: 10px 0 0; opacity: 0.9; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 2px;">Your Entry Passes Are Ready</p>
               </div>
               <div style="padding: 40px; color: #1f2937;">
-                <p style="font-size: 18px; margin-bottom: 20px;">Hi <strong>${regData.full_name}</strong>,</p>
+                <p style="font-size: 18px; margin-bottom: 20px;">Hi <strong>${primaryReg.full_name}</strong>,</p>
                 <p style="font-size: 16px; line-height: 1.6; color: #4b5563; margin-bottom: 30px;">
-                  Your booking for <strong>The Kumaon Fest 2025</strong> is confirmed! Here is your entry ticket. 
+                  Your booking for <strong>The Kumaon Fest 2026</strong> is confirmed! We've generated <strong>${allTickets.length} separate tickets</strong> for your group. Each attendee must present their own QR code at the gate.
                 </p>
-                <div style="background-color: #f8fafc; border: 2px dashed #e2e8f0; border-radius: 20px; padding: 25px; margin-bottom: 35px;">
-                  <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                      <td style="padding-bottom: 15px;">
-                        <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block;">Pass Type</span>
-                        <strong style="font-size: 16px; color: #1e293b;">${regData.pass_type}</strong>
-                      </td>
-                      <td style="padding-bottom: 15px; text-align: right;">
-                        <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block;">Quantity</span>
-                        <strong style="font-size: 16px; color: #1e293b;">${regData.quantity} Pax</strong>
-                      </td>
-                    </tr>
-                  </table>
-                </div>
-                <div style="text-align: center; margin-bottom: 35px;">
-                  <img src="${qrCodeUrl}" alt="Ticket QR Code" style="display: block; width: 200px; height: 200px; margin: 0 auto;" />
-                </div>
-                <div style="text-align: center;">
-                  <a href="${verifyUrl}" style="display: inline-block; background-color: #EAB308; color: #000000; padding: 16px 32px; border-radius: 14px; font-size: 16px; font-weight: 700; text-decoration: none;">View Digital Ticket</a>
+                
+                ${ticketSections}
+
+                <div style="text-align: center; margin-top: 20px; padding: 20px; background-color: #fffbeb; border-radius: 16px; border: 1px solid #fef3c7;">
+                  <p style="margin: 0; font-size: 13px; color: #92400e; font-weight: 600;">
+                    Tip: You can forward this email to other attendees or save the screenshots of individual QR codes.
+                  </p>
                 </div>
               </div>
             </div>
@@ -224,18 +261,32 @@ export async function checkInUser(id: string) {
 }
 
 export async function resendConfirmationEmail(id: string) {
-  const { data: regData, error: fetchError } = await supabase
+  // 1. Fetch the ticket to get group info
+  const { data: triggerTicket, error: fetchError } = await supabase
     .from("registrations")
     .select("*")
     .eq("id", id)
     .single();
 
-  if (fetchError || !regData) {
+  if (fetchError || !triggerTicket) {
     throw new Error("Registration not found.");
   }
 
-  if (regData.payment_status !== "paid") {
+  if (triggerTicket.payment_status !== "paid") {
     throw new Error("Cannot send confirmation for unpaid registration.");
+  }
+
+  const groupId = triggerTicket.instagram_handle;
+  const isGroup = groupId?.startsWith("GROUP_");
+
+  // 2. Fetch all tickets in the group
+  const { data: allTickets } = await supabase
+    .from("registrations")
+    .select("*")
+    .eq(isGroup ? "instagram_handle" : "id", isGroup ? groupId : id);
+
+  if (!allTickets || allTickets.length === 0) {
+    throw new Error("Tickets not found.");
   }
 
   const smtpUser = process.env.GOOGLE_SMTP_USER;
@@ -251,45 +302,61 @@ export async function resendConfirmationEmail(id: string) {
   });
 
   const domain = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const verifyUrl = `${domain}/kumaon-fest/verify/${regData.id}`;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verifyUrl)}`;
+
+  // Generate individual ticket sections
+  const ticketSections = allTickets.map(ticket => {
+    const verifyUrl = `${domain}/kumaon-fest/verify/${ticket.id}`;
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verifyUrl)}`;
+    
+    return `
+      <div style="background-color: #f8fafc; border: 2px dashed #e2e8f0; border-radius: 20px; padding: 25px; margin-bottom: 35px; page-break-inside: avoid;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding-bottom: 15px;">
+              <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block;">Attendee</span>
+              <strong style="font-size: 18px; color: #1e293b;">${ticket.full_name}</strong>
+            </td>
+            <td style="padding-bottom: 15px; text-align: right;">
+              <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block;">Pass Type</span>
+              <strong style="font-size: 14px; color: #1e293b;">${ticket.pass_type}</strong>
+            </td>
+          </tr>
+        </table>
+        <div style="text-align: center; margin: 20px 0;">
+          <img src="${qrCodeUrl}" alt="Ticket QR Code" style="display: block; width: 180px; height: 180px; margin: 0 auto;" />
+          <p style="font-size: 10px; color: #94a3b8; margin-top: 10px; font-family: monospace;">TICKET ID: ${ticket.id}</p>
+        </div>
+        <div style="text-align: center;">
+          <a href="${verifyUrl}" style="display: inline-block; background-color: #EAB308; color: #000000; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 700; text-decoration: none;">View Digital Ticket</a>
+        </div>
+      </div>
+    `;
+  }).join("");
 
   try {
     await transporter.sendMail({
       from: `"The Kumaon Fest" <${smtpUser}>`,
-      to: regData.email,
-      subject: "Booking Confirmation - The Kumaon Fest",
+      to: triggerTicket.email,
+      subject: `Booking Confirmation (${allTickets.length} Tickets) - The Kumaon Fest`,
       html: `
         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f7f9; padding: 40px 20px;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #e1e8ed;">
             <div style="background: linear-gradient(135deg, #EAB308, #CA8A04); padding: 40px 20px; text-align: center; color: #000000;">
-              <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">The Kumaon Fest 2025</h1>
-              <p style="margin: 10px 0 0; opacity: 0.9; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 2px;">Official Entry Pass</p>
+              <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">The Kumaon Fest 2026</h1>
+              <p style="margin: 10px 0 0; opacity: 0.9; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 2px;">Your Entry Passes Are Ready</p>
             </div>
             <div style="padding: 40px; color: #1f2937;">
-              <p style="font-size: 18px; margin-bottom: 20px;">Hi <strong>${regData.full_name}</strong>,</p>
+              <p style="font-size: 18px; margin-bottom: 20px;">Hi <strong>${triggerTicket.full_name}</strong>,</p>
               <p style="font-size: 16px; line-height: 1.6; color: #4b5563; margin-bottom: 30px;">
-                As requested, here is your booking confirmation for <strong>The Kumaon Fest 2025</strong>. 
+                As requested, here are your booking details for <strong>The Kumaon Fest 2026</strong>. Each attendee must present their own QR code at the gate.
               </p>
-              <div style="background-color: #f8fafc; border: 2px dashed #e2e8f0; border-radius: 20px; padding: 25px; margin-bottom: 35px;">
-                <table style="width: 100%; border-collapse: collapse;">
-                  <tr>
-                    <td style="padding-bottom: 15px;">
-                      <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block;">Pass Type</span>
-                      <strong style="font-size: 16px; color: #1e293b;">${regData.pass_type}</strong>
-                    </td>
-                    <td style="padding-bottom: 15px; text-align: right;">
-                      <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block;">Quantity</span>
-                      <strong style="font-size: 16px; color: #1e293b;">${regData.quantity} Pax</strong>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-              <div style="text-align: center; margin-bottom: 35px;">
-                <img src="${qrCodeUrl}" alt="Ticket QR Code" style="display: block; width: 200px; height: 200px; margin: 0 auto;" />
-              </div>
-              <div style="text-align: center;">
-                <a href="${verifyUrl}" style="display: inline-block; background-color: #EAB308; color: #000000; padding: 16px 32px; border-radius: 14px; font-size: 16px; font-weight: 700; text-decoration: none;">View Digital Ticket</a>
+              
+              ${ticketSections}
+
+              <div style="text-align: center; margin-top: 20px; padding: 20px; background-color: #fffbeb; border-radius: 16px; border: 1px solid #fef3c7;">
+                <p style="margin: 0; font-size: 13px; color: #92400e; font-weight: 600;">
+                  Tip: You can forward this email to other attendees or save the screenshots of individual QR codes.
+                </p>
               </div>
             </div>
           </div>

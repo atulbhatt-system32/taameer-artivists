@@ -36,6 +36,7 @@ interface Registration {
   payment_status: string;
   checked_in_at: string | null;
   created_at: string;
+  additional_attendees?: { fullName: string; age: string; gender: string }[];
 }
 
 export default function AdminPage() {
@@ -395,6 +396,16 @@ export default function AdminPage() {
                     <td className="p-4 md:p-8">
                       <div className="font-bold text-base md:text-lg">{reg.full_name}</div>
                       <div className="text-xs text-gray-500">{reg.email}</div>
+                      {reg.additional_attendees && reg.additional_attendees.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Plus:</div>
+                          {reg.additional_attendees.map((a, i) => (
+                            <div key={i} className="text-[10px] text-gray-500 bg-white/5 px-2 py-0.5 rounded border border-white/5 inline-block mr-1">
+                              {a.fullName}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className="p-4 md:p-8">
                       <div className="text-xs md:text-sm font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type}</div>
@@ -445,6 +456,15 @@ export default function AdminPage() {
                     <div>
                       <div className="font-bold text-lg text-white leading-tight">{reg.full_name}</div>
                       <div className="text-xs text-gray-400 mt-0.5">{reg.email}</div>
+                      {reg.additional_attendees && reg.additional_attendees.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1">
+                          {reg.additional_attendees.map((a, i) => (
+                            <span key={i} className="text-[9px] bg-white/5 border border-white/10 px-2 py-0.5 rounded text-gray-400">
+                              {a.fullName}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div>
                       {reg.checked_in_at ? (
