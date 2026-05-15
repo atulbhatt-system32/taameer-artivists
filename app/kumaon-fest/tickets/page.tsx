@@ -2,6 +2,7 @@
 
 import { BookingWizard } from "@/components/booking-wizard";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 
 export default function TicketsPage() {
@@ -15,8 +16,13 @@ export default function TicketsPage() {
             <span className="text-sm font-bold uppercase tracking-widest">Back to Home</span>
           </Link>
           <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-yellow-500 shadow-lg shadow-yellow-500/20">
-              <span className="text-sm font-black text-gray-950">KF</span>
+            <div className="relative h-12 w-12 drop-shadow-xl">
+              <Image
+                src="/new-images/IMG_6419.PNG"
+                fill
+                alt="Logo"
+                className="object-contain"
+              />
             </div>
             <span className="text-xl font-black tracking-tighter">
               KUMAON <span className="text-yellow-500">FEST</span>

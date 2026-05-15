@@ -20,14 +20,22 @@ export default function EventsPage() {
     ? allEvents 
     : allEvents.filter((e) => e.category === filter);
 
+  const upcomingEvents = filteredEvents.filter(e => e.status !== "past");
+  const pastEvents = filteredEvents.filter(e => e.status === "past");
+
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* ── NAV ───────────────────────────────────────────────────────── */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100 py-4">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-              <span className="text-xs font-black text-gray-900">TA</span>
+            <div className="relative w-12 h-12 group-hover:scale-105 transition-transform drop-shadow-xl">
+              <Image
+                src="/new-images/IMG_6419.PNG"
+                fill
+                alt="Logo"
+                className="object-contain"
+              />
             </div>
             <div className="flex flex-col leading-none">
               <span className="font-black text-sm tracking-wider uppercase text-gray-900">Taameer</span>
@@ -36,7 +44,7 @@ export default function EventsPage() {
           </Link>
           <Button
             asChild
-            className="bg-gray-900 hover:bg-gray-800 text-white font-bold text-sm rounded-xl px-6 h-11 transition-all hover:scale-105"
+            className="bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold text-sm rounded-xl px-6 h-11 shadow-lg shadow-yellow-400/20 transition-all hover:scale-105"
           >
             <Link href="/#contact">Get Involved</Link>
           </Button>
@@ -74,64 +82,111 @@ export default function EventsPage() {
             ))}
           </div>
 
-          {/* Events Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredEvents.map((event, index) => (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                key={event.id}
-                className="group flex flex-col bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-gray-200 transition-all hover:-translate-y-1"
-              >
-                <div className="relative h-64 w-full overflow-hidden">
-                  <Image
-                    src={event.image || "/placeholder.svg"}
-                    fill
-                    alt={event.title}
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-white/90 backdrop-blur-md text-gray-900 font-bold border-none shadow-sm">
-                      {event.category}
-                    </Badge>
-                  </div>
-                  {event.featured && (
-                    <div className="absolute top-4 left-4">
-                      <div className="bg-yellow-400 text-gray-900 text-[10px] font-black px-2 py-1 rounded flex items-center gap-1 shadow-lg">
-                        <Sparkles className="w-3 h-3" /> FEATURED
+          {/* Upcoming Events Grid */}
+          {upcomingEvents.length > 0 && (
+            <div className="mb-20">
+              <h2 className="text-3xl font-black mb-8 flex items-center gap-3">
+                <div className="w-2 h-8 bg-yellow-400 rounded-full" />
+                Upcoming Events
+              </h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {upcomingEvents.map((event, index) => (
+                  <Link 
+                    href={`/events/${event.id}`} 
+                    key={event.id}
+                    className="block outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 rounded-3xl"
+                  >
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group flex flex-col bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-gray-200 transition-all hover:-translate-y-1 h-full"
+                    >
+                    <div className="relative h-64 w-full overflow-hidden bg-white">
+                      <Image
+                        src={event.image || "/placeholder.svg"}
+                        fill
+                        alt={event.name}
+                        className="object-contain p-2 transition-transform duration-700 group-hover:scale-110"
+                      />
+                      <div className="absolute top-4 right-4">
+                        <Badge className="bg-white/90 backdrop-blur-md text-gray-900 font-bold border-none shadow-sm">
+                          {event.category}
+                        </Badge>
+                      </div>
+                      {event.featured && (
+                        <div className="absolute top-4 left-4">
+                          <div className="bg-yellow-400 text-gray-900 text-[10px] font-black px-2 py-1 rounded flex items-center gap-1 shadow-lg">
+                            <Sparkles className="w-3 h-3" /> FEATURED
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-8 flex flex-col flex-1">
+                      <div className="flex items-center gap-2 text-yellow-600 text-xs font-bold uppercase tracking-widest mb-3">
+                        <CalendarDays className="w-4 h-4" />
+                        {event.date}
+                      </div>
+                      <h3 className="text-2xl font-black text-gray-900 mb-3 group-hover:text-yellow-600 transition-colors">
+                        {event.name}
+                      </h3>
+                      <p className="text-gray-500 text-sm leading-relaxed mb-6 line-clamp-3">
+                        {event.description}
+                      </p>
+                      
+                      <div className="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-gray-400 text-xs font-medium">
+                          <MapPin className="w-3.5 h-3.5" />
+                          {event.venue}, {event.city}
+                        </div>
+                        <div className="font-bold text-gray-900 group-hover:text-yellow-600 flex items-center transition-colors">
+                          {event.pricing?.display === "Free" ? "Join Now" : "Book Pass"} <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
+                    </motion.div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
-                <div className="p-8 flex flex-col flex-1">
-                  <div className="flex items-center gap-2 text-yellow-600 text-xs font-bold uppercase tracking-widest mb-3">
-                    <CalendarDays className="w-4 h-4" />
-                    {event.startDate === "recurring" ? "Monthly / Recurring" : event.startDate}
-                  </div>
-                  <h3 className="text-2xl font-black text-gray-900 mb-3 group-hover:text-yellow-600 transition-colors">
-                    {event.title}
-                  </h3>
-                  <p className="text-gray-500 text-sm leading-relaxed mb-6 line-clamp-3">
-                    {event.description}
-                  </p>
-                  
-                  <div className="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-gray-400 text-xs font-medium">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {event.location}
+          {/* Past Events Grid */}
+          {pastEvents.length > 0 && (
+            <div>
+              <h2 className="text-3xl font-black mb-8 flex items-center gap-3 text-gray-400">
+                <div className="w-2 h-8 bg-gray-200 rounded-full" />
+                Past Memories
+              </h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {pastEvents.map((event, index) => (
+                  <Link href={`/events/${event.id}`} key={event.id} className="block outline-none focus-visible:ring-2 focus-visible:ring-gray-400 rounded-3xl">
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      viewport={{ once: true }}
+                      className="group bg-gray-50 rounded-3xl overflow-hidden border border-gray-100 grayscale hover:grayscale-0 transition-all duration-500 h-full"
+                    >
+                    <div className="relative h-48 w-full">
+                      <Image src={event.image} fill alt={event.name} className="object-cover" />
+                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/10 transition-colors" />
+                      <div className="absolute top-4 right-4">
+                        <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-md">
+                          {event.date.split(',')[1] || event.date}
+                        </Badge>
+                      </div>
                     </div>
-                    <Button asChild variant="ghost" className="p-0 h-auto font-bold text-gray-900 hover:text-yellow-600 hover:bg-transparent group/btn">
-                      <Link href={event.id.includes("kumaon-fest") ? "/kumaon-fest/tickets" : "#"}>
-                        {event.pricing?.display === "Free" ? "Join Now" : "Book Pass"} <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover/btn:translate-x-1" />
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                    <div className="p-6">
+                      <h4 className="font-black text-lg text-gray-900 mb-1">{event.name}</h4>
+                      <p className="text-gray-500 text-xs font-medium">{event.city}</p>
+                    </div>
+                    </motion.div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Empty State */}
           {filteredEvents.length === 0 && (

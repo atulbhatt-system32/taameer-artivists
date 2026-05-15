@@ -43,9 +43,8 @@ const formSchema = z.object({
   contactNo: z.string().min(10, { message: "Enter a valid contact number." }),
   email: z.string().email({ message: "Enter a valid email address." }),
   passType: z.enum(["Student Pass", "Regular Pass", "VIP Pass"]),
-  quantity: z.string().min(1, { message: "Quantity is required." }),
+  quantity: z.string().min(1, { message: "Quantity is required." }).refine((val) => parseInt(val) <= 5, { message: "Maximum 5 people allowed per booking." }),
   address: z.string().min(5, { message: "Please provide a complete address." }),
-  willPlayDandiya: z.enum(["Yes", "No"]),
   instagramHandle: z.string().optional(),
   additionalAttendees: z.array(z.object({
     fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -88,7 +87,6 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
       passType: "Regular Pass",
       quantity: "1",
       address: "",
-      willPlayDandiya: "No",
       instagramHandle: "",
       additionalAttendees: [],
       agreed: false,
@@ -261,7 +259,29 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                       <FormItem><FormControl><Input placeholder="Age" type="number" required className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} /></FormControl></FormItem>
                     )} />
                     <FormField control={form.control} name="quantity" render={({ field }) => (
-                      <FormItem><FormControl><Input placeholder="Qty" type="number" required className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} /></FormControl></FormItem>
+                      <FormItem>
+                        <FormControl>
+                          <Input 
+                            placeholder="Qty" 
+                            type="number" 
+                            min="1" 
+                            max="5" 
+                            required 
+                            className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" 
+                            {...field} 
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              if (val > 5) {
+                                field.onChange("5");
+                              } else if (val < 1) {
+                                field.onChange("1");
+                              } else {
+                                field.onChange(e.target.value);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                      </FormItem>
                     )} />
                   </div>
                   <FormField control={form.control} name="address" render={({ field }) => (
@@ -351,10 +371,10 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                 <ChevronLeft className="w-4 h-4" /> Go Back
               </button>
               
-              <div className="bg-gray-900/50 border border-gray-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl">
-                <div className="mb-10">
-                  <h2 className="text-3xl font-bold text-white mb-2">Registration Details</h2>
-                  <p className="text-gray-400">Booking <span className="text-yellow-500 font-bold">{selectedPass}</span></p>
+              <div className="bg-gray-900/50 border border-gray-800 p-5 md:p-12 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl">
+                <div className="mb-8 md:mb-10 text-center md:text-left">
+                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Registration Details</h2>
+                  <p className="text-sm text-gray-400">Booking <span className="text-yellow-500 font-bold">{selectedPass}</span></p>
                 </div>
 
                 <Form {...form}>
@@ -409,51 +429,34 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                         )}
                       />
                       
-                      <FormField
-                        control={form.control}
-                        name="willPlayDandiya"
-                        render={({ field }) => (
-                          <FormItem className="space-y-5">
-                            <FormLabel className="text-white mb-6 block text-lg font-bold">Will you be playing Dandiya?</FormLabel>
+                      <div className="grid md:grid-cols-2 gap-8">
+                        <FormField control={form.control} name="whatsappNo" render={({ field }) => (
+                          <FormItem className="space-y-6">
+                            <FormLabel className="text-white font-bold text-lg">WhatsApp Number *</FormLabel>
                             <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                className="flex gap-6"
-                              >
-                                {["Yes", "No"].map((opt) => {
-                                  const id = `dandiya-${opt.toLowerCase()}`;
-                                  return (
-                                    <FormItem key={opt} className="flex items-center space-x-2 space-y-0">
-                                      <FormControl>
-                                        <RadioGroupItem
-                                          value={opt}
-                                          id={id}
-                                          className="border-gray-700 text-yellow-500"
-                                        />
-                                      </FormControl>
-                                      <FormLabel htmlFor={id} className="font-normal cursor-pointer text-gray-300">
-                                        {opt}
-                                      </FormLabel>
-                                    </FormItem>
-                                  );
-                                })}
-                              </RadioGroup>
+                              <Input placeholder="+91 XXXXX XXXXX" required className="h-16 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-2xl" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
-                        )}
-                      />
-                      <div className="grid md:grid-cols-2 gap-10">
-                        <FormField control={form.control} name="whatsappNo" render={({ field }) => (
-                          <FormItem className="space-y-4"><FormLabel className="text-white mb-3 block font-semibold">WhatsApp Number *</FormLabel><FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-14 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="contactNo" render={({ field }) => (
-                          <FormItem className="space-y-4"><FormLabel className="text-white mb-3 block font-semibold">Contact Number *</FormLabel><FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-14 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem className="space-y-6">
+                            <FormLabel className="text-white font-bold text-lg">Contact Number *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="+91 XXXXX XXXXX" required className="h-16 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-2xl" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )} />
                       </div>
                       <FormField control={form.control} name="email" render={({ field }) => (
-                        <FormItem className="space-y-4"><FormLabel className="text-white mb-3 block font-semibold">Email Address *</FormLabel><FormControl><Input type="email" placeholder="you@example.com" required className="h-14 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem className="space-y-6">
+                          <FormLabel className="text-white font-bold text-lg">Email Address *</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="you@example.com" required className="h-16 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-2xl" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
                       )} />
                     </div>
 
@@ -468,9 +471,31 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                           <FormItem className="space-y-4"><FormLabel className="text-white mb-3 block font-semibold">Pass Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-14 bg-gray-950 border-gray-800 text-white rounded-xl"><SelectValue /></SelectTrigger></FormControl><SelectContent className="bg-gray-900 border-gray-800 text-white">{tiers.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent></Select></FormItem>
                         )} />
                         <FormField control={form.control} name="quantity" render={({ field }) => (
-                          <FormItem className="space-y-4"><FormLabel className="text-white mb-3 block font-semibold">Number of People</FormLabel><FormControl><Input type="number" min="1" required className="h-14 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-xl" {...field} onChange={(e) => {
-                            field.onChange(e);
-                          }} /></FormControl><FormDescription className="text-gray-500">5+ for bulk discount</FormDescription><FormMessage /></FormItem>
+                          <FormItem className="space-y-4">
+                            <FormLabel className="text-white mb-3 block font-semibold">Number of People (optional)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                min="1" 
+                                max="5" 
+                                required 
+                                className="h-14 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-xl" 
+                                {...field} 
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value);
+                                  if (val > 5) {
+                                    field.onChange("5");
+                                  } else if (val < 1) {
+                                    field.onChange("1");
+                                  } else {
+                                    field.onChange(e.target.value);
+                                  }
+                                }} 
+                              />
+                            </FormControl>
+                            <FormDescription className="text-[10px] md:text-xs text-gray-500">Max 5 people. Select 5 for bulk discount.</FormDescription>
+                            <FormMessage />
+                          </FormItem>
                         )} />
                       </div>
 
@@ -484,12 +509,12 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                           </div>
                           <div className="space-y-10">
                             {fields.map((field, index) => (
-                              <div key={field.id} className="p-6 bg-white/5 rounded-[2rem] border border-white/5 space-y-6">
+                              <div key={field.id} className="p-4 md:p-6 bg-white/5 rounded-[1.5rem] md:rounded-[2rem] border border-white/5 space-y-4 md:space-y-6">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-yellow-500 text-gray-950 flex items-center justify-center font-bold text-sm">
+                                  <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-yellow-500 text-gray-950 flex items-center justify-center font-bold text-xs md:text-sm">
                                     {index + 2}
                                   </div>
-                                  <span className="font-bold text-white uppercase tracking-widest text-xs">Person {index + 2}</span>
+                                  <span className="font-bold text-white uppercase tracking-widest text-[10px] md:text-xs">Person {index + 2}</span>
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-10">
                                   <FormField
@@ -580,15 +605,26 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
               <div className="bg-gray-900/50 border border-gray-800 p-8 rounded-[2.5rem] sticky top-8">
                 <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2"><ShoppingBag className="w-5 h-5 text-yellow-500" /> Order Summary</h3>
                 <div className="space-y-4">
-                  <div className="flex justify-between text-gray-400"><span>{selectedPass} x {selectedQuantity}</span><span>₹{getPrice()}</span></div>
+                  <div className="flex justify-between text-gray-400 text-sm"><span>{selectedPass} x {selectedQuantity}</span><span>₹{getPrice()}</span></div>
                   <div className="h-px bg-gray-800" />
-                  <div className="flex justify-between text-2xl font-bold text-white"><span>Total</span><span className="text-yellow-500">₹{getPrice()}</span></div>
+                  <div className="flex justify-between text-xl md:text-2xl font-bold text-white"><span>Total</span><span className="text-yellow-500">₹{getPrice()}</span></div>
                   <div className="pt-6 space-y-4">
                     <div className="flex items-start gap-3 text-xs text-gray-500 leading-relaxed"><CreditCard className="w-4 h-4 shrink-0 text-yellow-500" /> Secure payment via Cashfree. Multiple options available (UPI, Card, NetBanking).</div>
                   </div>
                 </div>
               </div>
 
+              <div className="bg-gray-900/50 border border-gray-800 p-8 rounded-[2.5rem]">
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2"><Sparkles className="w-5 h-5 text-yellow-500" /> Rules & Regulations</h3>
+                <ul className="space-y-3">
+                  {eventsData.featuredEvent.rules.map((rule, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-xs text-gray-400 leading-relaxed">
+                      <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1 shrink-0" />
+                      {rule}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </motion.div>
         )}

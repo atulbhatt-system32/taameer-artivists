@@ -1,22 +1,19 @@
 {
   "featuredEvent": {
-    "id": "kumaon-fest-2024",
-    "title": "Kumaon Fest 2026",
-    "description": "Art, Culture, Literature, Concerts, Exhibition, Folk Art, Music, Food, Games",
-    "longDescription": "Kumaon Fest is an annual celebration that brings together the diverse cultural tapestry of the Kumaon region. Organized by Taameer Artivists Foundation, this festival serves as a vibrant platform for artists, musicians, writers, and cultural enthusiasts to showcase and celebrate our rich heritage.",
-    "image": "/Fest2025.png",
-    "startDate": "2025-09-27",
-    "endDate": "2025-09-28",
-    "location": "Haldwani, Uttarakhand",
-    "venue": "Cultural Center, Haldwani",
-    "category": "Cultural Festival",
-    "status": "upcoming",
+    "name": "The Kumaon Fest - Summer Carnival",
+    "date": "May 30, 2026",
+    "city": "Haldwani",
+    "venue": "Kripa Sindhu Banquet",
+    "timings": "5 PM - 10 PM",
+    "image": "/new-images/IMG_6432.PNG",
+    "category": "Carnival",
+    "description": "The biggest summer carnival in Haldwani featuring live music, food, and cultural performances.",
     "pricing": [
       {
         "id": "Student Pass",
         "name": "Student Pass",
         "price": 299,
-        "bulkPrice": 249,
+        "bulkPrice": 299,
         "description": "Valid Student ID required at gate",
         "features": ["All sessions access", "Student ID verification", "Food court access"],
         "popular": false
@@ -24,300 +21,97 @@
       {
         "id": "Regular Pass",
         "name": "Regular Pass",
-        "price": 349,
-        "bulkPrice": 299,
-        "description": "General admission for all events",
+        "price": 399,
+        "bulkPrice": 349,
+        "description": "General admission for the carnival",
         "features": ["All sessions access", "Priority seating", "Food court access"],
         "popular": true
       },
       {
-        "id": "VIP Pass",
-        "name": "VIP Pass",
-        "price": 999,
-        "bulkPrice": 899,
-        "description": "Front row seating + Backstage access",
-        "features": ["VIP Lounge", "Artist Meet & Greet", "Backstage tour"],
+        "id": "Premium Pass",
+        "name": "Premium Pass",
+        "price": 599,
+        "bulkPrice": 549,
+        "description": "Closer to the stage access",
+        "features": ["Near stage access", "Artist Meet & Greet", "Food court access"],
+        "popular": false
+      },
+      {
+        "id": "Fanpit",
+        "name": "Fanpit",
+        "price": 2999,
+        "bulkPrice": 2999,
+        "description": "Front row experience",
+        "features": ["Front row access", "Exclusive VIP Lounge", "Artist Meet & Greet"],
+        "popular": false
+      },
+      {
+        "id": "Group of 4",
+        "name": "Group of 4",
+        "price": 9999,
+        "bulkPrice": 9999,
+        "description": "Best value for a group of friends",
+        "features": ["Entry for 4 people", "Reserved group area", "Food court access"],
         "popular": false
       }
     ],
     "expectedAttendees": "2000+",
-    "highlights": [
-      "Traditional Folk Music Concerts",
-      "Contemporary Art Exhibitions",
-      "Poetry & Literature Sessions",
-      "Cultural Dance Performances",
-      "Handicraft Workshops",
-      "Local Cuisine Stalls"
-    ],
-    "schedule": [
-      {
-        "day": 1,
-        "date": "2025-09-27",
-        "title": "Opening Ceremony & Music",
-        "events": [
-          {
-            "time": "10:00 AM",
-            "title": "Opening Ceremony",
-            "description": "Welcome address and cultural inauguration"
-          },
-          {
-            "time": "2:00 PM",
-            "title": "Folk Music Concert",
-            "description": "Traditional Kumaoni musicians"
-          },
-          {
-            "time": "7:00 PM",
-            "title": "Evening Performances",
-            "description": "Dance and cultural shows"
-          }
-        ]
-      },
-      {
-        "day": 2,
-        "date": "2025-09-27",
-        "title": "Art & Literature",
-        "events": [
-          {
-            "time": "10:00 AM",
-            "title": "Art Exhibition Opening",
-            "description": "Contemporary and traditional art"
-          },
-          {
-            "time": "2:00 PM",
-            "title": "Literature Panel",
-            "description": "Authors and poets discussion"
-          },
-          {
-            "time": "6:00 PM",
-            "title": "Poetry Evening",
-            "description": "Kumaoni and Hindi poetry"
-          }
-        ]
-      },
-      {
-        "day": 3,
-        "date": "2025-09-28",
-        "title": "Grand Finale",
-        "events": [
-          {
-            "time": "11:00 AM",
-            "title": "Cultural Workshops",
-            "description": "Hands-on traditional crafts"
-          },
-          {
-            "time": "4:00 PM",
-            "title": "Community Celebration",
-            "description": "Local food and performances"
-          },
-          {
-            "time": "8:00 PM",
-            "title": "Grand Finale Concert",
-            "description": "Closing ceremony and performances"
-          }
-        ]
-      }
+    "rules": [
+      "Alcohol is strictly not allowed",
+      "Valid ID proof required for entry",
+      "Student ID mandatory for Student Pass",
+      "No outside food or drinks"
     ]
   },
   "allEvents": [
     {
-      "id": "kumaon-fest-2025",
-      "title": "Kumaon Fest 2025",
-      "description": "Annual celebration of Kumaoni culture with music, art, literature, and traditional performances.",
+      "id": "kf-2026-summer",
+      "name": "The Kumaon Fest - Summer Carnival",
+      "date": "May 30, 2026",
+      "city": "Haldwani",
+      "venue": "Kripa Sindhu Banquet",
+      "category": "Music Festival",
+      "description": "The biggest summer carnival in Haldwani featuring live music by Kartikey Uniyal, Rakesh Manral and many more. Join us for a night of magic!",
+      "image": "/new-images/IMG_6431.PNG",
+      "featured": true,
+      "pricing": { "display": "Paid" },
+      "status": "upcoming",
+      "gallery": [
+        { "src": "/new-images/IMG_6432.PNG", "alt": "Summer Carnival Main Poster" },
+        { "src": "/new-images/IMG_6431.PNG", "alt": "Artist Lineup Poster" },
+        { "src": "/new-images/IMG_6499.PNG", "alt": "Book Your Stall - Live Concert" },
+        { "src": "/new-images/IMG_6495.PNG", "alt": "Pop Up Market" },
+        { "src": "/new-images/IMG_6496.PNG", "alt": "Food Fest" },
+        { "src": "/new-images/IMG_6494.PNG", "alt": "Exhibition Early Bird Offer" },
+        { "src": "/new-images/IMG_6497.PNG", "alt": "How to Book a Stall" }
+      ]
+    },
+    {
+      "id": "kf-2024",
+      "name": "Kumaon Fest 2024",
+      "date": "Sept 18-20, 2024",
+      "city": "Haldwani",
+      "venue": "Haldwani Ground",
+      "category": "Music Festival",
+      "description": "A decade of cultural excellence featuring international artist collaborations and digital art integrations.",
       "image": "/2024main.jpg",
-      "startDate": "2025-09-27",
-      "endDate": "2025-09-28",
-      "location": "Haldwani, Uttarakhand",
-      "pricing": {
-        "min": 299,
-        "max": 1299,
-        "display": "₹299 - ₹1299"
-      },
-      "category": "Cultural Festival",
-      "status": "upcoming",
-      "expectedAttendees": "2000+",
-      "featured": true
+      "featured": false,
+      "pricing": { "display": "Completed" },
+      "status": "past"
     },
     {
-      "id": "Safaachat Cleanliness Awareness Campaign ",
-      "title": "Safaachat Cleanliness Awareness Campaign ",
-      "description": "Monthly community cleanup initiative to keep our city beautiful and environmentally sustainable.",
-      "image": "/safaachat.jpg",
-      "startDate": "recurring",
-      "endDate": null,
-      "location": "Various locations, Haldwani",
-      "pricing": {
-        "min": 0,
-        "max": 0,
-        "display": "Free"
-      },
-      "category": "Community Service",
-      "status": "recurring",
-      "expectedAttendees": "150+",
-      "featured": false
-    },
-    {
-      "id": "Adopt A Plant",
-      "title": "Adopt A Plant",
-      "description": "Educational workshop on lake conservation and environmental protection in the hill regions.",
-      "image": "/adoptaplant.jpg",
-      "startDate": "2024-10-05",
-      "endDate": "2024-10-05",
-      "location": "Nainital Lake, Uttarakhand",
-      "pricing": {
-        "min": 0,
-        "max": 0,
-        "display": "Free"
-      },
-      "category": "Environmental",
-      "status": "upcoming",
-      "expectedAttendees": "100+",
-      "featured": false
-    },
-    {
-      "id": "Clean Your Closet",
-      "title": "Clean Your Closet",
-      "description": "Showcase of local artisans and traditional Kumaoni handicrafts with live demonstrations.",
-      "image": "/closet.jpg",
-      "startDate": "2024-11-12",
-      "endDate": "2024-11-14",
-      "location": "Haldwani Cultural Center",
-      "pricing": {
-        "min": 50,
-        "max": 50,
-        "display": "₹50"
-      },
-      "category": "Art & Culture",
-      "status": "upcoming",
-      "expectedAttendees": "500+",
-      "featured": false
-    },
-
-    {
-      "id": "Blood Donation Camp",
-      "title": "Blood Donation Camp",
-      "description": "Annual winter clothing and blanket distribution drive for underprivileged communities.",
-      "image": "/blood.jpg",
-      "startDate": "2024-12-20",
-      "endDate": "2024-12-25",
-      "location": "Multiple locations",
-      "pricing": {
-        "min": 0,
-        "max": 0,
-        "display": "Free (Donations welcome)"
-      },
-      "category": "Social Service",
-      "status": "upcoming",
-      "expectedAttendees": "1000+",
-      "featured": false
+      "id": "kf-2023",
+      "name": "Kumaon Fest 2023",
+      "date": "Sept 20-22, 2023",
+      "city": "Haldwani",
+      "venue": "Community Center",
+      "category": "Music Festival",
+      "description": "Expanding horizons with fusion music blending traditional and modern elements.",
+      "image": "/2023a.jpg",
+      "featured": false,
+      "pricing": { "display": "Completed" },
+      "status": "past"
     }
-  ],
-  "upcomingEvents": [
-    {
-      "id": "kumaon-fest-2024",
-      "title": "Kumaon Fest 2024",
-      "date": "Sep 15-17",
-      "time": "10:00 AM onwards",
-      "location": "Haldwani",
-      "image": "/placeholder.svg?height=200&width=300",
-      "category": "Festival",
-      "daysLeft": 45
-    },
-    {
-      "id": "community-cleanup-drive",
-      "title": "Community Cleanup Drive",
-      "date": "Aug 10",
-      "time": "7:00 AM - 11:00 AM",
-      "location": "Mall Road, Haldwani",
-      "image": "/placeholder.svg?height=200&width=300",
-      "category": "Community",
-      "daysLeft": 12
-    },
-    {
-      "id": "art-workshop-kids",
-      "title": "Art Workshop for Kids",
-      "date": "Aug 15",
-      "time": "2:00 PM - 5:00 PM",
-      "location": "Community Center",
-      "image": "/placeholder.svg?height=200&width=300",
-      "category": "Workshop",
-      "daysLeft": 17
-    },
-    {
-      "id": "environmental-awareness-talk",
-      "title": "Environmental Awareness Talk",
-      "date": "Aug 20",
-      "time": "6:00 PM - 8:00 PM",
-      "location": "Nainital Lake",
-      "image": "/placeholder.svg?height=200&width=300",
-      "category": "Education",
-      "daysLeft": 22
-    },
-    {
-      "id": "traditional-music-evening",
-      "title": "Traditional Music Evening",
-      "date": "Aug 25",
-      "time": "7:00 PM - 10:00 PM",
-      "location": "Cultural Center",
-      "image": "/placeholder.svg?height=200&width=300",
-      "category": "Cultural",
-      "daysLeft": 27
-    }
-  ],
-  "relatedEvents": [
-    {
-      "id": "haldwani-heritage-walk",
-      "title": "Haldwani Heritage Walk",
-      "description": "Explore the historical landmarks and cultural heritage of Haldwani city.",
-      "date": "October 8, 2024",
-      "location": "Old Haldwani",
-      "image": "/placeholder.svg?height=200&width=350",
-      "price": "Free",
-      "expectedAttendees": "50+",
-      "category": "Heritage"
-    },
-    {
-      "id": "mountain-photography-workshop",
-      "title": "Mountain Photography Workshop",
-      "description": "Learn landscape photography techniques in the beautiful Kumaon hills.",
-      "date": "October 22, 2024",
-      "location": "Nainital Hills",
-      "image": "/placeholder.svg?height=200&width=350",
-      "price": "₹499",
-      "expectedAttendees": "25+",
-      "category": "Workshop"
-    },
-    {
-      "id": "folk-dance-competition",
-      "title": "Folk Dance Competition",
-      "description": "Showcase traditional Kumaoni dance forms in this exciting competition.",
-      "date": "November 5, 2024",
-      "location": "Cultural Center",
-      "image": "/placeholder.svg?height=200&width=350",
-      "price": "₹100",
-      "expectedAttendees": "200+",
-      "category": "Competition"
-    },
-    {
-      "id": "local-cuisine-festival",
-      "title": "Local Cuisine Festival",
-      "description": "Taste authentic Kumaoni dishes prepared by local chefs and home cooks.",
-      "date": "November 18, 2024",
-      "location": "Food Court, Haldwani",
-      "image": "/placeholder.svg?height=200&width=350",
-      "price": "₹150",
-      "expectedAttendees": "300+",
-      "category": "Food"
-    },
-    {
-      "id": "winter-storytelling-night",
-      "title": "Winter Storytelling Night",
-      "description": "Listen to traditional Kumaoni folk tales around a cozy bonfire.",
-      "date": "December 15, 2024",
-      "location": "Community Garden",
-      "image": "/placeholder.svg?height=200&width=350",
-      "price": "₹75",
-      "expectedAttendees": "80+",
-      "category": "Cultural"
-    }
+   
   ]
 }

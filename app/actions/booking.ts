@@ -15,7 +15,7 @@ export interface RegistrationData {
   passType: string;
   quantity: string;
   address: string;
-  willPlayDandiya: string;
+  willPlayDandiya?: string;
   instagramHandle?: string;
   additionalAttendees?: { fullName: string; age: string; gender: string }[];
   agreed: boolean;
@@ -95,7 +95,7 @@ export async function preRegisterUser(data: RegistrationData) {
     pass_type: data.passType,
     quantity: 1, // Individual ticket
     address: data.address,
-    will_play_dandiya: data.willPlayDandiya,
+    will_play_dandiya: data.willPlayDandiya || "No",
     instagram_handle: groupId, // Using this as group_id
     agreed: data.agreed,
     payment_status: "pending",

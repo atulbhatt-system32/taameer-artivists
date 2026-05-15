@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -24,6 +26,19 @@ import organizationData from "@/data/organization.json";
 
 export default function KumaonFestLandingPage() {
   const { hero, about, events, schedule, gallery, community, tickets } = kumaonFestData;
+  const [showSticky, setShowSticky] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowSticky(true);
+      } else {
+        setShowSticky(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const getIcon = (iconName: string) => {
     switch (iconName) {
@@ -45,8 +60,13 @@ export default function KumaonFestLandingPage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-gray-950/80 backdrop-blur-xl border-b border-white/5 py-4">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-              <span className="text-xs font-black text-gray-950">KF</span>
+            <div className="relative w-12 h-12 group-hover:scale-105 transition-transform drop-shadow-xl">
+              <Image
+                src="/new-images/IMG_6419.PNG"
+                fill
+                alt="Logo"
+                className="object-contain"
+              />
             </div>
             <div className="flex flex-col leading-none">
               <span className="font-black text-sm tracking-wider uppercase text-white">Kumaon</span>
@@ -80,7 +100,7 @@ export default function KumaonFestLandingPage() {
               <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 font-black uppercase tracking-[0.2em] mb-6 px-4 py-1.5">
                 {hero.badge}
               </Badge>
-              <h1 className="text-7xl md:text-8xl font-black tracking-tighter leading-[0.85] mb-8">
+              <h1 className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.9] mb-8">
                 {hero.title.split(' ').slice(0, -1).join(' ')}<br />
                 <span className="text-yellow-500">{hero.title.split(' ').pop()}</span>
               </h1>
@@ -89,12 +109,12 @@ export default function KumaonFestLandingPage() {
               </p>
               
               <div className="flex flex-wrap gap-4 mb-12">
-                <Button asChild size="lg" className="h-16 px-10 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-2xl text-lg shadow-2xl shadow-yellow-500/30 group">
+                <Button asChild size="lg" className="h-14 md:h-16 px-8 md:px-10 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-2xl text-base md:text-lg shadow-2xl shadow-yellow-500/30 group">
                   <Link href="/kumaon-fest/tickets">
                     {hero.buttons.primary.text} <Ticket className="w-5 h-5 ml-2 group-hover:rotate-12 transition-transform" />
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="h-16 px-10 border-white/10 bg-white/5 hover:bg-white/10 text-white font-black rounded-2xl text-lg">
+                <Button asChild size="lg" variant="outline" className="h-14 md:h-16 px-8 md:px-10 border-white/10 bg-white/5 hover:bg-white/10 text-white font-black rounded-2xl text-base md:text-lg">
                    <Link href="#schedule">{hero.buttons.secondary.text}</Link>
                 </Button>
               </div>
@@ -113,16 +133,26 @@ export default function KumaonFestLandingPage() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1 }}
-              className="relative aspect-square"
+              className="relative aspect-[4/5] md:aspect-[3/4] w-full max-w-[500px] mx-auto lg:ml-auto"
             >
               <div className="absolute inset-0 bg-yellow-500/20 blur-[100px] rounded-full pointer-events-none animate-pulse" />
-              <div className="relative h-full w-full rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl">
+              <div className="relative h-full w-full rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl bg-gray-900">
                 <Image
                   src={hero.image}
                   fill
-                  alt="Kumaon Fest Hero"
-                  className="object-cover"
+                  alt="The Kumaon Fest Summer Carnival"
+                  className="object-contain lg:object-cover"
+                  priority
                 />
+                {/* Floating Logo Badge */}
+                <div className="absolute top-6 right-6 w-32 h-32 md:w-40 md:h-40 z-20 drop-shadow-2xl animate-bounce-slow">
+                  <Image
+                    src="/new-images/IMG_6419.PNG"
+                    fill
+                    alt="Summer Carnival Logo"
+                    className="object-contain"
+                  />
+                </div>
               </div>
             </motion.div>
           </div>
@@ -155,15 +185,32 @@ export default function KumaonFestLandingPage() {
               <div>
                 <Badge className="bg-yellow-500 text-gray-950 font-black uppercase mb-6">{about.title}</Badge>
                 <h2 className="text-5xl md:text-6xl font-black tracking-tighter leading-none mb-8">
-                  Where Tradition<br />
-                  <span className="text-yellow-600">Meets Modern.</span>
+                  The Biggest <br />
+                  <span className="text-yellow-600">Summer Carnival.</span>
                 </h2>
                 <p className="text-gray-600 text-lg font-medium leading-relaxed mb-6">
                   {about.description}
                 </p>
-                <p className="text-gray-500 leading-relaxed mb-10">
-                  {about.subDescription}
-                </p>
+                <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 mb-8">
+                  <h4 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-4 italic">Star-studded Lineup</h4>
+                  <p className="text-gray-900 font-bold text-lg leading-relaxed">
+                    Kartikey Uniyal <span className="text-yellow-600 text-sm mx-2">●</span> 
+                    Rakesh Manral <span className="text-yellow-600 text-sm mx-2">●</span> 
+                    Arti <span className="text-yellow-600 text-sm mx-2">●</span> 
+                    Hendrix <span className="text-yellow-600 text-sm mx-2">●</span> 
+                    Tristv <span className="text-yellow-600 text-sm mx-2">●</span> 
+                    Aryan <span className="text-yellow-600 text-sm mx-2">●</span> 
+                    Rohan Pangtey <span className="text-yellow-600 text-sm mx-2">●</span> 
+                    Sagar Bisht <span className="text-yellow-600 text-sm mx-2">●</span> 
+                    Surprise Artist
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-2xl mb-10">
+                  <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center text-white shrink-0">
+                    <Heart className="w-5 h-5 fill-current" />
+                  </div>
+                  <p className="text-red-900 text-sm font-bold">Safety First: Alcohol is strictly not allowed at the venue.</p>
+                </div>
                 <div className="grid grid-cols-2 gap-8 pt-8 border-t border-gray-100">
                   {about.stats.map((stat, i) => (
                     <div key={i}>
@@ -283,26 +330,55 @@ export default function KumaonFestLandingPage() {
         </section>
 
         {/* ── TICKETS CTA ─────────────────────────────────────────────── */}
-        <section className="py-32 bg-gray-950 relative overflow-hidden">
+        <section className="py-32 bg-red-600 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_70%)]" />
           <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
-            <Sparkles className="w-12 h-12 text-yellow-500 mx-auto mb-8 animate-bounce" />
-            <h2 className="text-6xl md:text-7xl font-black tracking-tighter mb-6">{tickets.title}</h2>
-            <p className="text-gray-500 text-lg mb-12 max-w-xl mx-auto">
+            <Sparkles className="w-12 h-12 text-white mx-auto mb-8 animate-bounce" />
+            <h2 className="text-6xl md:text-7xl font-black tracking-tighter mb-6 text-white leading-none">
+              {tickets.title}
+            </h2>
+            <p className="text-white/80 text-xl mb-12 max-w-xl mx-auto font-medium">
               {tickets.subtitle}
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button asChild size="lg" className="h-16 px-12 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-2xl text-xl shadow-2xl shadow-yellow-500/20 transition-all hover:scale-105">
-                <Link href="/kumaon-fest/tickets">Book Tickets Now <ArrowRight className="ml-2 w-6 h-6" /></Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="h-16 px-12 border-white/10 bg-white/5 text-white font-black rounded-2xl text-xl hover:bg-white/10">
-                <Link href="#schedule">View Schedule</Link>
+              <Button asChild size="lg" className="h-16 md:h-20 px-10 md:px-12 bg-white hover:bg-gray-50 text-red-600 font-black rounded-2xl text-xl md:text-2xl shadow-2xl transition-all hover:scale-105 active:scale-95">
+                <Link href="/kumaon-fest/tickets">Reserve My Spot <ArrowRight className="ml-2 w-6 h-6 md:w-7 md:h-7" /></Link>
               </Button>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="bg-gray-950 border-t border-white/5 py-20">
+      <motion.div 
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ 
+          y: showSticky ? 0 : 100,
+          opacity: showSticky ? 1 : 0
+        }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="fixed bottom-6 left-4 right-4 z-[100] flex justify-center"
+      >
+        <div className="w-full max-w-lg bg-gray-950/80 backdrop-blur-2xl border border-white/10 rounded-full p-2 pl-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-between gap-4 overflow-hidden">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-gray-500 text-[10px] line-through font-bold">₹999</span>
+              <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">Early Bird</span>
+            </div>
+            <div className="text-white text-2xl font-black tracking-tighter leading-none flex items-baseline gap-1">
+              ₹299<span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider ml-0.5">onwards</span>
+            </div>
+          </div>
+          
+          <Button asChild className="h-12 md:h-14 px-6 md:px-8 bg-red-600 hover:bg-red-700 text-white font-black rounded-full text-sm md:text-base shadow-lg shadow-red-600/20 group transition-all active:scale-95 shrink-0">
+            <Link href="/kumaon-fest/tickets" className="flex items-center gap-2">
+              <span>Reserve Now</span> 
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </Button>
+        </div>
+      </motion.div>
+
+      <footer className="bg-gray-950 border-t border-white/5 py-20 pb-40 lg:pb-20">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-10">
            <div className="flex items-center gap-4">
                <div className="w-12 h-12 bg-yellow-500 rounded-2xl flex items-center justify-center">

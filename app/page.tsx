@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
 import { Leaf, Camera, Users, CalendarDays, Sparkles, ArrowRight, MapPin, Instagram, Youtube, Facebook, Twitter } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,8 +15,13 @@ export default function HomePage() {
   const { name, tagline, description, mission, locations, region, founded, volunteers, impact, focusAreas, contact, social } = organizationData;
   const { featuredEvent } = eventsData;
 
+  const [showSticky, setShowSticky] = useState(false);
+
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 80);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 80);
+      setShowSticky(window.scrollY > 500);
+    };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -46,8 +52,13 @@ export default function HomePage() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-              <span className="text-xs font-black text-gray-900">TA</span>
+            <div className="relative w-12 h-12 group-hover:scale-105 transition-transform drop-shadow-xl">
+              <Image
+                src="/new-images/IMG_6419.PNG"
+                fill
+                alt="Logo"
+                className="object-contain"
+              />
             </div>
             <div className="flex flex-col leading-none">
               <span className={`font-black text-sm tracking-wider uppercase transition-colors ${scrolled ? "text-gray-900" : "text-white"}`}>Taameer</span>
@@ -97,8 +108,9 @@ export default function HomePage() {
               className="object-cover object-center"
               priority
             />
-            {/* Dark gradient overlay – bottom-heavy so text pops, top-light so nav is readable */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20" />
+            {/* Darker gradient overlay for better text contrast on mobile and desktop */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30" />
+            <div className="absolute inset-0 bg-black/20 lg:bg-transparent" /> {/* Extra darkening for mobile */}
           </div>
 
           {/* Hero Content – sits at the bottom */}
@@ -110,15 +122,15 @@ export default function HomePage() {
               <span className="text-yellow-400 text-xs font-black tracking-[0.3em] uppercase">{tagline}</span>
             </div>
 
-            {/* Headline */}
-            <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white leading-[0.9] tracking-tighter mb-8 max-w-5xl">
+            {/* Headline with shadow */}
+            <h1 className="text-5xl md:text-8xl lg:text-9xl font-black text-white leading-[0.9] tracking-tighter mb-8 max-w-5xl drop-shadow-2xl">
               Taameer<br />
               <span className="text-yellow-400">Artivists</span>
             </h1>
 
             {/* Sub + CTA row */}
             <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-8">
-              <p className="text-gray-300 text-lg max-w-xl leading-relaxed font-medium">
+              <p className="text-white/90 text-lg max-w-xl leading-relaxed font-semibold drop-shadow-lg">
                 {description}
               </p>
               <div className="flex items-center gap-4 shrink-0">
@@ -193,7 +205,7 @@ export default function HomePage() {
                 {focusAreas.map((area, index) => (
                   <div
                     key={index}
-                    className="flex items-start gap-5 p-6 rounded-2xl border border-gray-100 bg-gray-50 hover:border-yellow-300 hover:bg-yellow-50 transition-all group"
+                    className="flex items-start gap-5 p-6 rounded-3xl border border-gray-100 bg-gray-50 hover:border-yellow-300 hover:bg-yellow-50 transition-all group"
                   >
                     <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:bg-yellow-400 transition-colors shrink-0">
                       {area.icon === "Leaf" && <Leaf className="w-5 h-5 text-gray-700 group-hover:text-gray-900" />}
@@ -214,7 +226,7 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-yellow-500/5 blur-[100px] pointer-events-none" />
               <div className="relative w-48 h-48 rounded-[2.5rem] overflow-hidden border-2 border-yellow-500/20 shrink-0 group-hover:scale-105 transition-transform duration-500">
                 <Image 
-                  src="/founder.png" 
+                  src="/placeholder.svg" 
                   fill 
                   alt={organizationData.founder_details.name} 
                   className="object-cover"
@@ -256,7 +268,7 @@ export default function HomePage() {
 
             {/* Two big cards */}
             <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-white/5 border border-white/8 rounded-3xl p-10 relative overflow-hidden group hover:border-yellow-400/30 transition-all">
+              <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden group hover:border-yellow-400/30 transition-all">
                 <div className="absolute -top-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity">
                   <Leaf className="w-48 h-48 text-white" />
                 </div>
@@ -279,7 +291,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="bg-white/5 border border-white/8 rounded-3xl p-10 relative overflow-hidden group hover:border-yellow-400/30 transition-all">
+              <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden group hover:border-yellow-400/30 transition-all">
                 <div className="absolute -top-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity">
                   <Sparkles className="w-48 h-48 text-white" />
                 </div>
@@ -322,43 +334,42 @@ export default function HomePage() {
             </div>
 
             {/* Event Card */}
-            <div className="rounded-3xl overflow-hidden border border-gray-100 shadow-2xl shadow-gray-200 group">
-              <div className="grid lg:grid-cols-[3fr_2fr]">
+            <div className="rounded-[3rem] overflow-hidden border border-gray-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] group">
+              <div className="grid lg:grid-cols-2">
 
                 {/* Image */}
-                <div className="relative h-80 lg:h-auto min-h-[450px]">
+                <div className="relative h-80 lg:h-auto min-h-[500px] bg-[#fbf3db]">
                   <Image
                     src={featuredEvent.image || "/placeholder.svg"}
                     fill
-                    alt={featuredEvent.title}
-                    className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                    alt={featuredEvent.name}
+                    className="object-contain p-4 transition-transform duration-700 group-hover:scale-[1.03]"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/20 lg:bg-none" />
                 </div>
 
                 {/* Content */}
-                <div className="bg-gray-900 p-10 lg:p-14 flex flex-col justify-between">
+                <div className="bg-gray-950 p-8 lg:p-16 flex flex-col justify-center">
                   <div>
-                    <Badge className="bg-yellow-400 text-gray-900 font-bold text-xs px-3 py-1 rounded-lg mb-6">Annual Event</Badge>
+                    <Badge className="bg-yellow-400 text-gray-900 font-black text-[10px] px-3 py-1 rounded-full mb-6 uppercase tracking-widest shadow-lg shadow-yellow-400/20">Annual Event</Badge>
 
-                    <div className="flex items-center gap-2 text-gray-400 text-sm mb-4">
+                    <div className="flex items-center gap-2 text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">
                       <CalendarDays className="w-4 h-4 text-yellow-400" />
-                      <span className="font-medium">{formatDate(featuredEvent.startDate, featuredEvent.endDate)}</span>
+                      <span>{featuredEvent.date}</span>
                     </div>
 
-                    <h3 className="text-4xl font-black text-white leading-tight tracking-tight mb-4">
-                      {featuredEvent.title}
+                    <h3 className="text-4xl md:text-5xl font-black text-white leading-[1.1] tracking-tighter mb-6">
+                      {featuredEvent.name}
                     </h3>
-                    <p className="text-gray-400 text-base leading-relaxed">
+                    <p className="text-gray-400 text-lg leading-relaxed mb-10 font-medium">
                       {featuredEvent.description}
                     </p>
                   </div>
 
-                  <div className="flex flex-col gap-3 mt-10">
-                    <Button asChild className="h-13 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold rounded-xl transition-all hover:scale-[1.02] py-3">
-                      <Link href="/kumaon-fest/tickets">Get Your Pass →</Link>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button asChild size="lg" className="h-14 px-8 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-black rounded-full transition-all hover:scale-105 active:scale-95 shadow-xl shadow-yellow-400/20">
+                      <Link href="/kumaon-fest/tickets">Get Your Pass <ArrowRight className="w-5 h-5 ml-2" /></Link>
                     </Button>
-                    <Button asChild variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/5 rounded-xl font-semibold py-3">
+                    <Button asChild size="lg" variant="ghost" className="h-14 px-8 text-gray-400 hover:text-white hover:bg-white/5 rounded-full font-bold transition-all">
                       <Link href="#events">Learn More</Link>
                     </Button>
                   </div>
@@ -384,15 +395,15 @@ export default function HomePage() {
               </div>
 
               <div className="space-y-5">
-                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/60">
+                <div className="bg-white/40 backdrop-blur-md rounded-3xl p-6 border border-white/60">
                   <div className="text-xs font-black text-gray-600 uppercase tracking-widest mb-1">Email Us</div>
                   <a href={`mailto:${contact.email}`} className="text-gray-900 font-bold text-lg hover:underline">{contact.email}</a>
                 </div>
-                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/60">
+                <div className="bg-white/40 backdrop-blur-md rounded-3xl p-6 border border-white/60">
                   <div className="text-xs font-black text-gray-600 uppercase tracking-widest mb-1">Call / WhatsApp</div>
                   <a href={`tel:${contact.phone}`} className="text-gray-900 font-bold text-lg hover:underline">{contact.phone}</a>
                 </div>
-                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/60">
+                <div className="bg-white/40 backdrop-blur-md rounded-3xl p-6 border border-white/60">
                   <div className="text-xs font-black text-gray-600 uppercase tracking-widest mb-3">Follow Along</div>
                   <div className="flex gap-4">
                     <a href={social.instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white rounded-xl flex items-center justify-center hover:bg-gray-900 hover:text-white transition-all group">
@@ -424,8 +435,13 @@ export default function HomePage() {
             {/* Brand */}
             <div className="space-y-4 max-w-xs">
               <Link href="/" className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center">
-                  <span className="text-xs font-black text-gray-900">TA</span>
+                <div className="relative w-12 h-12 drop-shadow-xl">
+                  <Image
+                    src="/new-images/IMG_6419.PNG"
+                    fill
+                    alt="Logo"
+                    className="object-contain"
+                  />
                 </div>
                 <span className="text-white font-black text-lg tracking-tight">Taameer <span className="text-yellow-400">Artivists</span></span>
               </Link>
@@ -494,6 +510,36 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* ── STICKY CTA BAR ───────────────────────────────────────────── */}
+      <motion.div 
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ 
+          y: showSticky ? 0 : 100,
+          opacity: showSticky ? 1 : 0
+        }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="fixed bottom-6 left-4 right-4 z-[100] flex justify-center"
+      >
+        <div className="w-full max-w-lg bg-gray-950/80 backdrop-blur-2xl border border-white/10 rounded-full p-2 pl-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-between gap-4 overflow-hidden">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-gray-500 text-[10px] line-through font-bold">₹999</span>
+              <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">Early Bird</span>
+            </div>
+            <div className="text-white text-2xl font-black tracking-tighter leading-none flex items-baseline gap-1">
+              ₹299<span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider ml-0.5">onwards</span>
+            </div>
+          </div>
+          
+          <Button asChild className="h-12 md:h-14 px-6 md:px-8 bg-yellow-600 hover:bg-yellow-700 text-white font-black rounded-full text-sm md:text-base shadow-lg shadow-red-600/20 group transition-all active:scale-95 shrink-0">
+            <Link href="/kumaon-fest/tickets" className="flex items-center gap-2">
+              <span>Book Now</span> 
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </Button>
+        </div>
+      </motion.div>
 
     </div>
   );
