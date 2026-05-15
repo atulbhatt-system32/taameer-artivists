@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { Cashfree, CFEnvironment } from "cashfree-pg";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import { unstable_noStore as noStore } from "next/cache";
 
 export interface RegistrationData {
   fullName: string;
@@ -407,4 +408,42 @@ export async function registerUser(data: RegistrationData & { paymentId: string;
     orderId: data.orderId,
     signature: data.signature,
   });
+}
+
+export async function getEventConfig() {
+  noStore(); // Prevent Next.js from caching this server action
+  try {
+    const { data, error } = await supabase
+      .from("event_config")
+      .select("*");
+      
+    if (error) {
+      console.error("Supabase config error:", error);
+      throw error;
+    }
+    
+    return data.reduce((acc: any, curr: any) => {
+      acc[curr.key] = curr.value;
+      return acc;
+    }, {});
+  } catch (err) {
+    console.warn("Event config fetch failed, using local defaults");
+    return null;
+  }
+}
+
+export async function getEventPricing() {
+  noStore();
+  try {
+    const { data, error } = await supabase
+      .from("event_pricing")
+      .select("*")
+      .order("created_at", { ascending: true });
+      
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.warn("Event pricing fetch failed, using local defaults");
+    return null;
+  }
 }

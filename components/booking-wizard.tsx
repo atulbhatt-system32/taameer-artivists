@@ -26,14 +26,15 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { preRegisterUser, createCashfreeOrder, confirmPayment } from "@/app/actions/booking";
+import { preRegisterUser, createCashfreeOrder, confirmPayment, getEventConfig, getEventPricing } from "@/app/actions/booking";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Ticket, Users, Sparkles, ChevronLeft, CreditCard, ShoppingBag } from "lucide-react";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
 import eventsData from "@/data/events.json";
 
-const tiers = eventsData.featuredEvent.pricing;
+// Remove static tiers definition
+// const tiers = eventsData.featuredEvent.pricing;
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -42,7 +43,7 @@ const formSchema = z.object({
   whatsappNo: z.string().min(10, { message: "Enter a valid WhatsApp number." }),
   contactNo: z.string().min(10, { message: "Enter a valid contact number." }),
   email: z.string().email({ message: "Enter a valid email address." }),
-  passType: z.enum(["Student Pass", "Regular Pass", "VIP Pass"]),
+  passType: z.enum(["Student Pass", "Regular Pass", "Premium Pass", "Fanpit", "Group of 4"]),
   quantity: z.string().min(1, { message: "Quantity is required." }).refine((val) => parseInt(val) <= 5, { message: "Maximum 5 people allowed per booking." }),
   address: z.string().min(5, { message: "Please provide a complete address." }),
   instagramHandle: z.string().optional(),
@@ -64,9 +65,37 @@ declare global {
 
 export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "full" }) {
   const [step, setStep] = useState(0); 
+  const [dbConfig, setDbConfig] = useState<any>(null);
+  const [dbPricing, setDbPricing] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [registrationId, setRegistrationId] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ type: "success" | "error" | "warning"; message: string } | null>(null);
+  const [registrationId, setRegistrationId] = useState<string | null>(null);
+
+  const tiers = dbPricing.length > 0 ? dbPricing : eventsData.featuredEvent.pricing;
+
+  const isEarlyBird = dbConfig?.early_bird_active !== undefined 
+    ? (dbConfig.early_bird_active === "true" || dbConfig.early_bird_active === true)
+    : eventsData.featuredEvent.earlyBirdActive;
+
+  const minPrice = isEarlyBird 
+    ? Math.min(...tiers.map(p => (p as any).earlyBirdPrice))
+    : Math.min(...tiers.map(p => (p as any).regularPrice));
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [config, pricing] = await Promise.all([
+          getEventConfig(),
+          getEventPricing()
+        ]);
+        if (config) setDbConfig(config);
+        if (pricing) setDbPricing(pricing);
+      } catch (err) {
+        console.error("Failed to load DB data", err);
+      }
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -116,7 +145,7 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
   }, [selectedQuantity, append, remove, fields.length]);
 
   const selectPass = (type: string) => {
-    form.setValue("passType", type as "Student Pass" | "Regular Pass" | "VIP Pass");
+    form.setValue("passType", type as any);
     setStep(1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -124,10 +153,10 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
   const selectedPass = form.watch("passType");
 
   const getPrice = () => {
-    const pass = tiers.find(t => t.id === selectedPass);
+    const pass = tiers.find(t => t.id === (selectedPass as any));
     if (!pass) return 0;
-    const unitPrice = selectedQuantity >= 5 ? pass.bulkPrice : pass.price;
-    return unitPrice * selectedQuantity;
+    const price = isEarlyBird ? (pass as any).earlyBirdPrice : (pass as any).regularPrice;
+    return price * selectedQuantity;
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -210,6 +239,21 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
         <AnimatePresence mode="wait">
           {step === 0 && (
             <motion.div key="sel" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2 mb-0.5">
+                  {isEarlyBird ? (
+                    <>
+                      <span className="text-gray-500 text-[10px] line-through font-bold">₹999</span>
+                      <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">Early Bird</span>
+                    </>
+                  ) : (
+                    <span className="text-yellow-500 text-[9px] font-black uppercase tracking-[0.15em] bg-yellow-500/10 px-2 py-0.5 rounded-full">Booking Open</span>
+                  )}
+                </div>
+                <div className="text-white text-2xl font-black tracking-tighter leading-none flex items-baseline gap-1">
+                  ₹{minPrice}<span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider ml-0.5">onwards</span>
+                </div>
+              </div>
               <div className="text-center">
                 <h3 className="text-xl font-bold text-white">Book Your Pass</h3>
                 <p className="text-xs text-gray-400">Select a pass to get started</p>
@@ -225,7 +269,16 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                       <div className="font-bold text-sm text-white group-hover:text-yellow-400 transition-colors">{tier.name}</div>
                       <div className="text-[10px] text-gray-500">{tier.description}</div>
                     </div>
-                    <div className="text-yellow-500 font-black">₹{tier.price}</div>
+                    <div className="text-right">
+                      <div className="text-yellow-500 font-black">
+                        ₹{isEarlyBird ? (tier as any).earlyBirdPrice : (tier as any).regularPrice}
+                      </div>
+                      {isEarlyBird && (tier as any).regularPrice && (
+                        <div className="text-[10px] text-gray-500 line-through">
+                          ₹{(tier as any).regularPrice}
+                        </div>
+                      )}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -342,8 +395,17 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                 <div key={tier.id} className={`group relative h-full rounded-3xl p-6 border transition-all duration-500 hover:border-yellow-500/50 ${tier.popular ? "border-yellow-500 bg-yellow-500/5 shadow-2xl shadow-yellow-500/20" : "border-gray-800 bg-gray-900/50"} flex flex-col`}>
                   {tier.popular && <span className="absolute -top-3 left-6 bg-yellow-500 text-gray-950 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">Popular Choice</span>}
                   <div className="text-xl font-bold text-yellow-500 mb-1">{tier.name}</div>
-                  <div className="text-4xl font-black tracking-tighter mb-3 flex items-baseline gap-1 text-white">
-                    <span className="text-xl font-normal text-gray-500">₹</span>{tier.price}
+                  <div className="flex flex-col mb-3">
+                    <div className="text-4xl font-black tracking-tighter flex items-baseline gap-1 text-white">
+                      <span className="text-xl font-normal text-gray-500">₹</span>
+                      {isEarlyBird ? (tier as any).earlyBirdPrice : (tier as any).regularPrice}
+                    </div>
+                    {isEarlyBird && (tier as any).regularPrice && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500 line-through">₹{(tier as any).regularPrice}</span>
+                        <Badge variant="outline" className="text-[10px] border-yellow-500/50 text-yellow-500 h-5 px-1.5 font-bold">EARLY BIRD</Badge>
+                      </div>
+                    )}
                   </div>
                   <p className="text-sm text-gray-400 mb-6 leading-relaxed flex-1">{tier.description}</p>
                   <div className="space-y-3 mb-6">
@@ -356,7 +418,6 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                   </div>
                   <Button onClick={() => selectPass(tier.id)} className="w-full h-12 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black transition-transform active:scale-95 shadow-xl shadow-yellow-500/10">Book Now</Button>
                   <div className="mt-3 text-center">
-                    <p className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">Bulk (5+) : ₹{tier.bulkPrice}</p>
                   </div>
                 </div>
               ))}

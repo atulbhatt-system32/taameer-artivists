@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getRegistrations, resendConfirmationEmail } from "@/app/actions/booking";
+import { getRegistrations, resendConfirmationEmail, getEventPricing } from "@/app/actions/booking";
 import { Button } from "@/components/ui/button";
 import { 
   Users, 
@@ -27,7 +27,8 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import eventsData from "@/data/events.json";
 
-const tiers = eventsData.featuredEvent.pricing;
+// Remove static tiers constant
+// const tiers = eventsData.featuredEvent.pricing;
 
 interface Registration {
   id: string;
@@ -45,6 +46,9 @@ interface Registration {
 export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [dbPricing, setDbPricing] = useState<any[]>([]);
+  
+  const tiers = dbPricing.length > 0 ? dbPricing : eventsData.featuredEvent.pricing;
   const [searchTerm, setSearchTerm] = useState("");
   const [showScanner, setShowScanner] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error" | "info"; message: string } | null>(null);
@@ -87,8 +91,12 @@ export default function AdminPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const data = await getRegistrations();
-      setRegistrations(data as Registration[]);
+      const [regs, pricing] = await Promise.all([
+        getRegistrations(),
+        getEventPricing()
+      ]);
+      setRegistrations(regs as Registration[]);
+      if (pricing) setDbPricing(pricing);
     } catch (err) {
       console.error(err);
       setNotification({ type: "error", message: "Failed to fetch bookings." });
@@ -238,14 +246,15 @@ export default function AdminPage() {
     };
   }, [showScanner]);
 
-  const stats = {
+   const stats = {
     total: registrations.filter(r => r.payment_status === 'paid').length,
     pax: registrations.filter(r => r.payment_status === 'paid').reduce((acc, curr) => acc + (curr.quantity || 0), 0),
     revenue: registrations.filter(r => r.payment_status === 'paid').reduce((acc, curr) => {
       const tier = tiers.find(t => t.name === curr.pass_type);
       if (!tier) return acc;
       const qty = curr.quantity || 1;
-      const unitPrice = qty >= 5 ? tier.bulkPrice : tier.price;
+      const isEB = eventsData.featuredEvent.earlyBirdActive;
+      const unitPrice = isEB ? (tier as any).earlyBirdPrice : (tier as any).regularPrice;
       return acc + (unitPrice || 0) * qty;
     }, 0)
   };

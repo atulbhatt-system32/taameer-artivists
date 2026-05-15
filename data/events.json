@@ -8,12 +8,13 @@
     "image": "/new-images/IMG_6432.PNG",
     "category": "Carnival",
     "description": "The biggest summer carnival in Haldwani featuring live music, food, and cultural performances.",
+    "earlyBirdActive": false,
     "pricing": [
       {
         "id": "Student Pass",
         "name": "Student Pass",
-        "price": 299,
-        "bulkPrice": 299,
+        "earlyBirdPrice": 249,
+        "regularPrice": 349,
         "description": "Valid Student ID required at gate",
         "features": ["All sessions access", "Student ID verification", "Food court access"],
         "popular": false
@@ -21,8 +22,8 @@
       {
         "id": "Regular Pass",
         "name": "Regular Pass",
-        "price": 399,
-        "bulkPrice": 349,
+        "earlyBirdPrice": 349,
+        "regularPrice": 399,
         "description": "General admission for the carnival",
         "features": ["All sessions access", "Priority seating", "Food court access"],
         "popular": true
@@ -30,28 +31,28 @@
       {
         "id": "Premium Pass",
         "name": "Premium Pass",
-        "price": 599,
-        "bulkPrice": 549,
-        "description": "Closer to the stage access",
-        "features": ["Near stage access", "Artist Meet & Greet", "Food court access"],
+        "earlyBirdPrice": 549,
+        "regularPrice": 699,
+        "description": "Closer to the stage access + Goodies",
+        "features": ["Tote Bag", "Separate space for the event", "Artist Meet & Greet"],
         "popular": false
       },
       {
         "id": "Fanpit",
         "name": "Fanpit",
-        "price": 2999,
-        "bulkPrice": 2999,
+        "earlyBirdPrice": 1999,
+        "regularPrice": 2999,
         "description": "Front row experience",
-        "features": ["Front row access", "Exclusive VIP Lounge", "Artist Meet & Greet"],
+        "features": ["A VIP sitting area", "Tables & chairs to enjoy event", "Front row access"],
         "popular": false
       },
       {
         "id": "Group of 4",
         "name": "Group of 4",
-        "price": 9999,
-        "bulkPrice": 9999,
+        "earlyBirdPrice": 6999,
+        "regularPrice": 9999,
         "description": "Best value for a group of friends",
-        "features": ["Entry for 4 people", "Reserved group area", "Food court access"],
+        "features": ["Entry for 4 people", "Reserved group area", "Exclusive Lounge access"],
         "popular": false
       }
     ],

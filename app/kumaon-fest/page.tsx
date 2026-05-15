@@ -23,10 +23,36 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import kumaonFestData from "@/data/kumaon-fest.json";
 import organizationData from "@/data/organization.json";
+import eventsData from "@/data/events.json";
+import { getEventConfig, getEventPricing } from "@/app/actions/booking";
 
 export default function KumaonFestLandingPage() {
   const { hero, about, events, schedule, gallery, community, tickets } = kumaonFestData;
   const [showSticky, setShowSticky] = useState(false);
+  const [dbConfig, setDbConfig] = useState<any>(null);
+  const [dbPricing, setDbPricing] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [config, pricing] = await Promise.all([
+        getEventConfig(),
+        getEventPricing()
+      ]);
+      if (config) setDbConfig(config);
+      if (pricing) setDbPricing(pricing);
+    };
+    fetchData();
+  }, []);
+
+  const tiers = dbPricing.length > 0 ? dbPricing : eventsData.featuredEvent.pricing;
+
+  const isEarlyBird = dbConfig?.early_bird_active !== undefined 
+    ? (dbConfig.early_bird_active === "true" || dbConfig.early_bird_active === true)
+    : eventsData.featuredEvent.earlyBirdActive;
+
+  const minPrice = isEarlyBird 
+    ? Math.min(...tiers.map(p => (p as any).earlyBirdPrice))
+    : Math.min(...tiers.map(p => (p as any).regularPrice));
 
   useEffect(() => {
     const handleScroll = () => {
@@ -361,11 +387,17 @@ export default function KumaonFestLandingPage() {
         <div className="w-full max-w-lg bg-gray-950/80 backdrop-blur-2xl border border-white/10 rounded-full p-2 pl-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-between gap-4 overflow-hidden">
           <div className="flex flex-col">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-gray-500 text-[10px] line-through font-bold">₹999</span>
-              <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">Early Bird</span>
+              {isEarlyBird ? (
+                <>
+                  <span className="text-gray-500 text-[10px] line-through font-bold">₹999</span>
+                  <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">Early Bird</span>
+                </>
+              ) : (
+                <span className="text-yellow-500 text-[9px] font-black uppercase tracking-[0.15em] bg-yellow-500/10 px-2 py-0.5 rounded-full">Booking Open</span>
+              )}
             </div>
             <div className="text-white text-2xl font-black tracking-tighter leading-none flex items-baseline gap-1">
-              ₹299<span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider ml-0.5">onwards</span>
+              ₹{minPrice}<span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider ml-0.5">onwards</span>
             </div>
           </div>
           
