@@ -3,7 +3,7 @@
     "badge": "Summer Carnival 2026",
     "title": "The Kumaon Fest Summer Carnival",
     "description": "Join us on 30th May for an unforgettable night of music, art, and culture at Kripa Sindhu Banquet, Haldwani. Featuring Kartikey Uniyal and many more!",
-    "image": "/new-images/IMG_6431.PNG",
+    "image": "/new-images/img_6431.png",
     "details": [
       { "icon": "CalendarDays", "text": "30 May 2026" },
       { "icon": "MapPin", "text": "Haldwani" },
@@ -24,9 +24,9 @@
       { "number": "5Hrs", "label": "Non-stop Music" }
     ],
     "images": [
-      { "src": "/new-images/IMG_6432.PNG" },
-      { "src": "/new-images/IMG_6494.PNG" },
-      { "src": "/new-images/IMG_6495.PNG" }
+      { "src": "/new-images/img_6432.png" },
+      { "src": "/new-images/img_6494.png" },
+      { "src": "/new-images/img_6495.png" }
     ]
   },
   "events": {
@@ -76,8 +76,8 @@
     "title": "Summer Carnival Gallery",
     "subtitle": "Relive the best moments from our previous editions.",
     "images": [
-      { "src": "/new-images/IMG_6497.PNG", "alt": "Carnival Moment 1" },
-      { "src": "/new-images/IMG_6499.PNG", "alt": "Carnival Moment 2" }
+      { "src": "/new-images/img_6497.png", "alt": "Carnival Moment 1" },
+      { "src": "/new-images/img_6499.png", "alt": "Carnival Moment 2" }
     ]
   },
   "community": {
@@ -92,7 +92,7 @@
       { "text": "Apply as Artist" }
     ],
     "images": [
-      { "src": "/new-images/IMG_6496.PNG" }
+      { "src": "/new-images/img_6496.png" }
     ]
   },
   "tickets": {

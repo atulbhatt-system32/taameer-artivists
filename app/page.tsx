@@ -34,7 +34,6 @@ export default function HomePage() {
 
   const stats = [
     { value: impact.cleanlinessdrives.count, label: impact.cleanlinessdrives.label },
-    { value: impact.volunteers.count, label: impact.volunteers.label },
     { value: impact.events.count, label: impact.events.label },
     { value: impact.peopleReached.count, label: impact.peopleReached.label },
   ];
@@ -84,13 +83,7 @@ export default function HomePage() {
             ))}
           </nav>
 
-          {/* CTA */}
-          <Button
-            asChild
-            className="bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold text-sm rounded-xl px-6 h-11 shadow-lg shadow-yellow-400/20 transition-all hover:shadow-yellow-400/30 hover:scale-105"
-          >
-            <Link href="#contact">Get Involved</Link>
-          </Button>
+
         </div>
       </header>
 
@@ -139,7 +132,7 @@ export default function HomePage() {
                   size="lg"
                   className="h-14 px-8 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold rounded-xl shadow-xl transition-all hover:scale-105"
                 >
-                  <Link href="#contact">Join The Movement</Link>
+                  <a href={social.instagram} target="_blank" rel="noopener noreferrer">Join The Movement</a>
                 </Button>
                 <Button
                   asChild
@@ -147,7 +140,7 @@ export default function HomePage() {
                   variant="outline"
                   className="h-14 px-8 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:text-white rounded-xl font-bold transition-all"
                 >
-                  <Link href="/events">Our Events <ArrowRight className="w-4 h-4 ml-2" /></Link>
+                  <Link href="/kumaon-fest/">Our Events <ArrowRight className="w-4 h-4 ml-2" /></Link>
                 </Button>
               </div>
             </div>
@@ -169,7 +162,7 @@ export default function HomePage() {
         {/* ── STATS BAND ───────────────────────────────────────────────── */}
         <section className="bg-gray-900 py-10 border-b border-white/5">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/10">
+            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
               {stats.map((s, i) => (
                 <div key={i} className="px-8 py-4 first:pl-0 last:pr-0 text-center">
                   <div className="text-4xl font-black text-yellow-400 tracking-tighter">{s.value}</div>
@@ -221,29 +214,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Founder Section */}
-            <div className="mt-20 p-8 md:p-12 bg-gray-900 rounded-[3rem] text-white flex flex-col md:flex-row items-center gap-12 border border-white/5 shadow-2xl relative overflow-hidden group">
-              <div className="absolute inset-0 bg-yellow-500/5 blur-[100px] pointer-events-none" />
-              <div className="relative w-48 h-48 rounded-[2.5rem] overflow-hidden border-2 border-yellow-500/20 shrink-0 group-hover:scale-105 transition-transform duration-500">
-                <Image 
-                  src="/placeholder.svg" 
-                  fill 
-                  alt={organizationData.founder_details.name} 
-                  className="object-cover"
-                />
-              </div>
-              <div className="relative text-center md:text-left">
-                <Badge className="bg-yellow-500 text-gray-900 font-black uppercase mb-4">Our Founder</Badge>
-                <h3 className="text-4xl font-black tracking-tighter mb-4">{organizationData.founder_details.name}</h3>
-                <p className="text-gray-400 text-lg leading-relaxed mb-6 max-w-xl">
-                   Driven by a vision of equality and positivity, {organizationData.founder_details.name} founded {organizationData.name} in {organizationData.founded} to bridge the gap between social reform and cultural celebration.
-                </p>
-                <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm font-bold text-gray-500 uppercase tracking-widest">
-                  <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-yellow-500" /> Visionary</span>
-                  <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-yellow-500" /> Philanthropist</span>
-                </div>
-              </div>
-            </div>
+
           </div>
         </section>
 
@@ -278,14 +249,10 @@ export default function HomePage() {
                   <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-xs">
                     Transforming public spaces across {locations.join(" and ")} through regular community clean-ups.
                   </p>
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6">
                     <div>
                       <div className="text-5xl font-black text-yellow-400 tracking-tight">{impact.cleanlinessdrives.count}</div>
                       <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">{impact.cleanlinessdrives.label}</div>
-                    </div>
-                    <div>
-                      <div className="text-5xl font-black text-yellow-400 tracking-tight">{impact.volunteers.count}</div>
-                      <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">{impact.volunteers.label}</div>
                     </div>
                   </div>
                 </div>
@@ -409,15 +376,7 @@ export default function HomePage() {
                     <a href={social.instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white rounded-xl flex items-center justify-center hover:bg-gray-900 hover:text-white transition-all group">
                       <Instagram className="w-4 h-4 text-gray-700 group-hover:text-white" />
                     </a>
-                    <a href={social.youtube} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white rounded-xl flex items-center justify-center hover:bg-gray-900 hover:text-white transition-all group">
-                      <Youtube className="w-4 h-4 text-gray-700 group-hover:text-white" />
-                    </a>
-                    <a href={social.facebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white rounded-xl flex items-center justify-center hover:bg-gray-900 hover:text-white transition-all group">
-                      <Facebook className="w-4 h-4 text-gray-700 group-hover:text-white" />
-                    </a>
-                    <a href={social.twitter} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white rounded-xl flex items-center justify-center hover:bg-gray-900 hover:text-white transition-all group">
-                      <Twitter className="w-4 h-4 text-gray-700 group-hover:text-white" />
-                    </a>
+                    
                   </div>
                 </div>
               </div>
@@ -492,10 +451,7 @@ export default function HomePage() {
                 <h5 className="text-yellow-400 text-xs font-black uppercase tracking-[0.3em] mb-5">Connect</h5>
                 <nav className="flex flex-col gap-3">
                   {[
-                    { label: "Instagram", href: social.instagram },
-                    { label: "YouTube", href: social.youtube },
-                    { label: "Facebook", href: social.facebook },
-                    { label: "Twitter", href: social.twitter },
+                    { label: "Instagram", href: social.instagram }
                   ].map((l) => (
                     <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="text-gray-400 text-sm font-medium hover:text-white transition-colors">{l.label}</a>
                   ))}

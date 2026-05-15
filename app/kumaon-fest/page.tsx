@@ -50,9 +50,15 @@ export default function KumaonFestLandingPage() {
     ? (dbConfig.early_bird_active === "true" || dbConfig.early_bird_active === true)
     : eventsData.featuredEvent.earlyBirdActive;
 
-  const minPrice = isEarlyBird 
-    ? Math.min(...tiers.map(p => (p as any).earlyBirdPrice))
-    : Math.min(...tiers.map(p => (p as any).regularPrice));
+  // Find the tier with the minimum price
+  const minTier = [...tiers].sort((a, b) => {
+    const priceA = isEarlyBird ? (a as any).earlyBirdPrice : (a as any).regularPrice;
+    const priceB = isEarlyBird ? (b as any).earlyBirdPrice : (b as any).regularPrice;
+    return priceA - priceB;
+  })[0];
+
+  const minPrice = isEarlyBird ? (minTier as any).earlyBirdPrice : (minTier as any).regularPrice;
+  const originalPrice = (minTier as any).regularPrice;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -88,7 +94,7 @@ export default function KumaonFestLandingPage() {
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative w-12 h-12 group-hover:scale-105 transition-transform drop-shadow-xl">
               <Image
-                src="/new-images/IMG_6419.PNG"
+                src="/new-images/img_6419.png"
                 fill
                 alt="Logo"
                 className="object-contain"
@@ -173,7 +179,7 @@ export default function KumaonFestLandingPage() {
                 {/* Floating Logo Badge */}
                 <div className="absolute top-6 right-6 w-32 h-32 md:w-40 md:h-40 z-20 drop-shadow-2xl animate-bounce-slow">
                   <Image
-                    src="/new-images/IMG_6419.PNG"
+                    src="/new-images/img_6419.png"
                     fill
                     alt="Summer Carnival Logo"
                     className="object-contain"
@@ -389,7 +395,7 @@ export default function KumaonFestLandingPage() {
             <div className="flex items-center gap-2 mb-0.5">
               {isEarlyBird ? (
                 <>
-                  <span className="text-gray-500 text-[10px] line-through font-bold">₹999</span>
+                  <span className="text-gray-500 text-[10px] line-through font-bold">₹{originalPrice}</span>
                   <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">Early Bird</span>
                 </>
               ) : (
@@ -423,8 +429,12 @@ export default function KumaonFestLandingPage() {
             </div>
             <p className="text-gray-500 text-sm">Organized by {organizationData.name}</p>
             <div className="flex gap-6">
-              <Link href={organizationData.social.instagram} className="text-gray-500 hover:text-yellow-500 transition-colors font-bold text-xs uppercase tracking-widest">Instagram</Link>
-              <Link href={organizationData.social.facebook} className="text-gray-500 hover:text-yellow-500 transition-colors font-bold text-xs uppercase tracking-widest">Facebook</Link>
+              {organizationData.social.instagram && (
+                <Link href={organizationData.social.instagram} className="text-gray-500 hover:text-yellow-500 transition-colors font-bold text-xs uppercase tracking-widest">Instagram</Link>
+              )}
+              {(organizationData.social as any).facebook && (
+                <Link href={(organizationData.social as any).facebook} className="text-gray-500 hover:text-yellow-500 transition-colors font-bold text-xs uppercase tracking-widest">Facebook</Link>
+              )}
             </div>
         </div>
       </footer>
