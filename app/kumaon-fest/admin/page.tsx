@@ -25,6 +25,9 @@ import { Html5Qrcode } from "html5-qrcode";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
+import eventsData from "@/data/events.json";
+
+const tiers = eventsData.featuredEvent.pricing;
 
 interface Registration {
   id: string;
@@ -239,10 +242,10 @@ export default function AdminPage() {
     total: registrations.filter(r => r.payment_status === 'paid').length,
     pax: registrations.filter(r => r.payment_status === 'paid').reduce((acc, curr) => acc + (curr.quantity || 0), 0),
     revenue: registrations.filter(r => r.payment_status === 'paid').reduce((acc, curr) => {
-      const prices: Record<string, number> = { "Student Pass": 349, "Regular Pass": 449, "VIP Pass": 649 };
-      const bulkPrices: Record<string, number> = { "Student Pass": 299, "Regular Pass": 399, "VIP Pass": 599 };
+      const tier = tiers.find(t => t.name === curr.pass_type);
+      if (!tier) return acc;
       const qty = curr.quantity || 1;
-      const unitPrice = qty >= 5 ? bulkPrices[curr.pass_type] : prices[curr.pass_type];
+      const unitPrice = qty >= 5 ? tier.bulkPrice : tier.price;
       return acc + (unitPrice || 0) * qty;
     }, 0)
   };
@@ -359,7 +362,7 @@ export default function AdminPage() {
               />
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
-              {["All", "Student Pass", "Regular Pass", "VIP Pass"].map((pass) => (
+              {["All", ...tiers.map(t => t.name)].map((pass) => (
                 <Button
                   key={pass}
                   onClick={() => setFilterPass(pass)}

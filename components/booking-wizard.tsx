@@ -26,11 +26,14 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { preRegisterUser, createRazorpayOrder, confirmPayment } from "@/app/actions/booking";
+import { preRegisterUser, createCashfreeOrder, confirmPayment } from "@/app/actions/booking";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Ticket, Users, Sparkles, ChevronLeft, CreditCard, ShoppingBag } from "lucide-react";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
+import eventsData from "@/data/events.json";
+
+const tiers = eventsData.featuredEvent.pricing;
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -54,40 +57,9 @@ const formSchema = z.object({
   }),
 });
 
-const tiers = [
-  { 
-    id: "Student Pass",
-    name: "Student Pass", 
-    price: 349, 
-    bulkPrice: 299, 
-    description: "Only regular school and college IDs accepted.",
-    perks: ["Entry for both days", "Student ID mandatory", "High energy zone"],
-    color: "from-yellow-400 to-yellow-600"
-  },
-  { 
-    id: "Regular Pass",
-    name: "Regular Pass", 
-    price: 449, 
-    bulkPrice: 399, 
-    description: "Standard entry for the 2-day festival.",
-    perks: ["Full event access", "Standard parking", "All performance zones"],
-    color: "from-yellow-500 to-yellow-700",
-    popular: true
-  },
-  { 
-    id: "VIP Pass",
-    name: "VIP Pass", 
-    price: 649, 
-    bulkPrice: 599, 
-    description: "Separate space with premium view and free Dandiya.",
-    perks: ["Separate VIP lounge", "Free Dandiya sticks", "Premium parking"],
-    color: "from-yellow-600 to-yellow-800"
-  },
-];
-
 declare global {
   interface Window {
-    Razorpay: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    Cashfree: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   }
 }
 
@@ -99,7 +71,7 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
 
   useEffect(() => {
     const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
     script.async = true;
     document.body.appendChild(script);
   }, []);
@@ -171,43 +143,60 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
       setRegistrationId(regId);
 
       const amount = getPrice();
-      const order = await createRazorpayOrder(amount);
-      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_SlCOWTakUIqCQv"; 
+      const order = await createCashfreeOrder(amount, {
+        name: values.fullName,
+        email: values.email,
+        phone: values.contactNo,
+      });
       
-      if (!window.Razorpay) {
-        setNotification({ type: "error", message: "Payment system loading..." });
+      if (!window.Cashfree) {
+        setNotification({ type: "error", message: "Payment system loading... Please try again." });
         setIsSubmitting(false);
         return;
       }
 
-      const options = {
-        key: razorpayKey,
-        amount: order.amount,
-        currency: "INR",
-        name: "Taameer Artivists",
-        description: `${values.passType} x ${values.quantity}`,
-        order_id: order.id,
-        handler: async function (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) {
+      const cashfree = window.Cashfree({ mode: "sandbox" }); // Change to "production" for live
+
+      cashfree.checkout({
+        paymentSessionId: order.paymentSessionId,
+        redirectTarget: "_modal",
+      }).then(async (result: any) => {
+        if (result.error) {
+          setNotification({ type: "error", message: result.error.message || "Payment cancelled." });
+          setIsSubmitting(false);
+        } else if (result.paymentDetails) {
           try {
-            await confirmPayment({
-              registrationId: regId,
-              paymentId: response.razorpay_payment_id,
-              orderId: response.razorpay_order_id,
-              signature: response.razorpay_signature,
-            });
+              await confirmPayment({
+                registrationId: regId,
+                paymentId: result.paymentDetails.paymentMessage || "",
+                orderId: order.orderId || "",
+                signature: "", // Cashfree verifies server-side via API
+              });
             setStep(2);
           } catch (err: unknown) {
             const error = err as Error;
             setNotification({ type: "error", message: `Verification failed: ${error.message}` });
           }
-        },
-        prefill: { name: values.fullName, email: values.email, contact: values.contactNo },
-        theme: { color: "#EAB308" },
-        modal: { ondismiss: () => setIsSubmitting(false) }
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+        } else {
+          // Payment may have been redirected, verify via server
+          try {
+            await confirmPayment({
+              registrationId: regId,
+              paymentId: "",
+              orderId: order.orderId || "",
+              signature: "",
+            });
+            setStep(2);
+          } catch (err: unknown) {
+            const error = err as Error;
+            setNotification({ type: "error", message: `Verification failed: ${error.message}` });
+            setIsSubmitting(false);
+          }
+        }
+      }).catch((err: any) => {
+        setNotification({ type: "error", message: err.message || "Payment failed." });
+        setIsSubmitting(false);
+      });
     } catch (error: unknown) {
       const err = error as Error;
       setNotification({ type: "error", message: err.message || "Payment failed." });
@@ -338,7 +327,7 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                   </div>
                   <p className="text-sm text-gray-400 mb-6 leading-relaxed flex-1">{tier.description}</p>
                   <div className="space-y-3 mb-6">
-                    {tier.perks.map((p) => (
+                    {tier.features?.map((p: string) => (
                       <div key={p} className="flex items-center gap-2 text-sm text-gray-300">
                         <Sparkles className="w-3.5 h-3.5 text-yellow-500 shrink-0" />
                         {p}
@@ -378,10 +367,10 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                       </div>
                       <div className="grid md:grid-cols-2 gap-8">
                         <FormField control={form.control} name="fullName" render={({ field }) => (
-                          <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Full Name *</FormLabel><FormControl><Input placeholder="John Doe" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem className="space-y-4"><FormLabel className="text-white mb-3 block font-semibold">Full Name *</FormLabel><FormControl><Input placeholder="John Doe" required className="h-14 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="age" render={({ field }) => (
-                          <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Age *</FormLabel><FormControl><Input type="number" required placeholder="20" className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem className="space-y-4"><FormLabel className="text-white mb-3 block font-semibold">Age *</FormLabel><FormControl><Input type="number" required placeholder="20" className="h-14 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                       </div>
                       <FormField
@@ -389,7 +378,7 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                         name="gender"
                         render={({ field }) => (
                           <FormItem className="space-y-5">
-                            <FormLabel className="text-white mb-2 block">Gender</FormLabel>
+                            <FormLabel className="text-white mb-4 block font-semibold text-lg">Gender</FormLabel>
                             <FormControl>
                               <RadioGroup
                                 onValueChange={field.onChange}
@@ -455,16 +444,16 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                           </FormItem>
                         )}
                       />
-                      <div className="grid md:grid-cols-2 gap-8">
+                      <div className="grid md:grid-cols-2 gap-10">
                         <FormField control={form.control} name="whatsappNo" render={({ field }) => (
-                          <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">WhatsApp Number *</FormLabel><FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem className="space-y-4"><FormLabel className="text-white mb-3 block font-semibold">WhatsApp Number *</FormLabel><FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-14 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="contactNo" render={({ field }) => (
-                          <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Contact Number *</FormLabel><FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem className="space-y-4"><FormLabel className="text-white mb-3 block font-semibold">Contact Number *</FormLabel><FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-14 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                       </div>
                       <FormField control={form.control} name="email" render={({ field }) => (
-                        <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Email Address *</FormLabel><FormControl><Input type="email" placeholder="you@example.com" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem className="space-y-4"><FormLabel className="text-white mb-3 block font-semibold">Email Address *</FormLabel><FormControl><Input type="email" placeholder="you@example.com" required className="h-14 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
                     </div>
 
@@ -474,12 +463,12 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                         <h3 className="text-xl font-bold tracking-tight">Booking Info</h3>
                         <div className="h-px bg-gray-800 flex-1" />
                       </div>
-                      <div className="grid md:grid-cols-2 gap-8">
+                      <div className="grid md:grid-cols-2 gap-10">
                         <FormField control={form.control} name="passType" render={({ field }) => (
-                          <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Pass Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-12 bg-gray-950 border-gray-800 text-white"><SelectValue /></SelectTrigger></FormControl><SelectContent className="bg-gray-900 border-gray-800 text-white">{tiers.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent></Select></FormItem>
+                          <FormItem className="space-y-4"><FormLabel className="text-white mb-3 block font-semibold">Pass Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-14 bg-gray-950 border-gray-800 text-white rounded-xl"><SelectValue /></SelectTrigger></FormControl><SelectContent className="bg-gray-900 border-gray-800 text-white">{tiers.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent></Select></FormItem>
                         )} />
                         <FormField control={form.control} name="quantity" render={({ field }) => (
-                          <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Number of People</FormLabel><FormControl><Input type="number" min="1" required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} onChange={(e) => {
+                          <FormItem className="space-y-4"><FormLabel className="text-white mb-3 block font-semibold">Number of People</FormLabel><FormControl><Input type="number" min="1" required className="h-14 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-xl" {...field} onChange={(e) => {
                             field.onChange(e);
                           }} /></FormControl><FormDescription className="text-gray-500">5+ for bulk discount</FormDescription><FormMessage /></FormItem>
                         )} />
@@ -502,15 +491,15 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                                   </div>
                                   <span className="font-bold text-white uppercase tracking-widest text-xs">Person {index + 2}</span>
                                 </div>
-                                <div className="grid md:grid-cols-2 gap-8">
+                                <div className="grid md:grid-cols-2 gap-10">
                                   <FormField
                                     control={form.control}
                                     name={`additionalAttendees.${index}.fullName` as any}
                                     render={({ field }) => (
-                                      <FormItem className="space-y-3">
-                                        <FormLabel className="text-white">Full Name *</FormLabel>
+                                      <FormItem className="space-y-4">
+                                        <FormLabel className="text-white mb-3 block font-semibold">Full Name *</FormLabel>
                                         <FormControl>
-                                          <Input placeholder={`Person ${index + 2} Name`} required className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} />
+                                          <Input placeholder={`Person ${index + 2} Name`} required className="h-14 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-xl" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                       </FormItem>
@@ -520,10 +509,10 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                                     control={form.control}
                                     name={`additionalAttendees.${index}.age` as any}
                                     render={({ field }) => (
-                                      <FormItem className="space-y-3">
-                                        <FormLabel className="text-white">Age *</FormLabel>
+                                      <FormItem className="space-y-4">
+                                        <FormLabel className="text-white mb-3 block font-semibold">Age *</FormLabel>
                                         <FormControl>
-                                          <Input type="number" required placeholder="20" className="h-12 bg-gray-950 border-gray-800 text-white focus:border-yellow-500" {...field} />
+                                          <Input type="number" required placeholder="20" className="h-14 bg-gray-950 border-gray-800 text-white focus:border-yellow-500 rounded-xl" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                       </FormItem>
@@ -572,7 +561,7 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                       )}
 
                       <FormField control={form.control} name="address" render={({ field }) => (
-                        <FormItem className="space-y-3"><FormLabel className="text-white mb-2 block">Complete Address</FormLabel><FormControl><Textarea placeholder="Street, City, State, PIN" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500 min-h-[120px] rounded-2xl" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem className="space-y-4"><FormLabel className="text-white mb-3 block font-semibold">Complete Address</FormLabel><FormControl><Textarea placeholder="Street, City, State, PIN" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500 min-h-[120px] rounded-2xl p-4" {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
                       <FormField control={form.control} name="agreed" render={({ field }) => (
                         <FormItem className="flex items-start space-x-3 space-y-0 p-6 bg-yellow-500/5 rounded-2xl border border-yellow-500/10"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-1 border-gray-700 data-[state=checked]:bg-yellow-500" /></FormControl><FormLabel className="text-sm text-gray-400 cursor-pointer leading-relaxed">I agree to the terms and conditions.</FormLabel></FormItem>
@@ -595,10 +584,11 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                   <div className="h-px bg-gray-800" />
                   <div className="flex justify-between text-2xl font-bold text-white"><span>Total</span><span className="text-yellow-500">₹{getPrice()}</span></div>
                   <div className="pt-6 space-y-4">
-                    <div className="flex items-start gap-3 text-xs text-gray-500 leading-relaxed"><CreditCard className="w-4 h-4 shrink-0 text-yellow-500" /> Secure payment via Razorpay. Multiple options available (UPI, Card, NetBanking).</div>
+                    <div className="flex items-start gap-3 text-xs text-gray-500 leading-relaxed"><CreditCard className="w-4 h-4 shrink-0 text-yellow-500" /> Secure payment via Cashfree. Multiple options available (UPI, Card, NetBanking).</div>
                   </div>
                 </div>
               </div>
+
             </div>
           </motion.div>
         )}

@@ -57,13 +57,18 @@ export default function HomePage() {
 
           {/* Nav Links */}
           <nav className="hidden md:flex items-center gap-8">
-            {["About", "Mission", "Impact", "Events"].map((item) => (
+            {[
+              { label: "About", href: "#about" },
+              { label: "Mission", href: "#mission" },
+              { label: "Impact", href: "#impact" },
+              { label: "Events", href: "/events" }
+            ].map((item) => (
               <Link
-                key={item}
-                href={`#${item.toLowerCase()}`}
+                key={item.label}
+                href={item.href}
                 className={`text-sm font-semibold tracking-wide transition-colors hover:text-yellow-400 ${scrolled ? "text-gray-600" : "text-white/80"}`}
               >
-                {item}
+                {item.label}
               </Link>
             ))}
           </nav>
@@ -118,10 +123,11 @@ export default function HomePage() {
               </p>
               <div className="flex items-center gap-4 shrink-0">
                 <Button
+                  asChild
                   size="lg"
                   className="h-14 px-8 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold rounded-xl shadow-xl transition-all hover:scale-105"
                 >
-                  Join The Movement
+                  <Link href="#contact">Join The Movement</Link>
                 </Button>
                 <Button
                   asChild
@@ -129,7 +135,7 @@ export default function HomePage() {
                   variant="outline"
                   className="h-14 px-8 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:text-white rounded-xl font-bold transition-all"
                 >
-                  <Link href="#events">Our Events <ArrowRight className="w-4 h-4 ml-2" /></Link>
+                  <Link href="/events">Our Events <ArrowRight className="w-4 h-4 ml-2" /></Link>
                 </Button>
               </div>
             </div>
@@ -200,6 +206,30 @@ export default function HomePage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Founder Section */}
+            <div className="mt-20 p-8 md:p-12 bg-gray-900 rounded-[3rem] text-white flex flex-col md:flex-row items-center gap-12 border border-white/5 shadow-2xl relative overflow-hidden group">
+              <div className="absolute inset-0 bg-yellow-500/5 blur-[100px] pointer-events-none" />
+              <div className="relative w-48 h-48 rounded-[2.5rem] overflow-hidden border-2 border-yellow-500/20 shrink-0 group-hover:scale-105 transition-transform duration-500">
+                <Image 
+                  src="/founder.png" 
+                  fill 
+                  alt={organizationData.founder_details.name} 
+                  className="object-cover"
+                />
+              </div>
+              <div className="relative text-center md:text-left">
+                <Badge className="bg-yellow-500 text-gray-900 font-black uppercase mb-4">Our Founder</Badge>
+                <h3 className="text-4xl font-black tracking-tighter mb-4">{organizationData.founder_details.name}</h3>
+                <p className="text-gray-400 text-lg leading-relaxed mb-6 max-w-xl">
+                   Driven by a vision of equality and positivity, {organizationData.founder_details.name} founded {organizationData.name} in {organizationData.founded} to bridge the gap between social reform and cultural celebration.
+                </p>
+                <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm font-bold text-gray-500 uppercase tracking-widest">
+                  <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-yellow-500" /> Visionary</span>
+                  <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-yellow-500" /> Philanthropist</span>
+                </div>
               </div>
             </div>
           </div>
@@ -286,7 +316,7 @@ export default function HomePage() {
                   Summer<br /><span className="text-yellow-400">Event.</span>
                 </h2>
               </div>
-              <Link href="#events" className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-yellow-500 transition-colors group">
+              <Link href="/events" className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-yellow-500 transition-colors group">
                 View All Events <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
@@ -420,14 +450,14 @@ export default function HomePage() {
               <div>
                 <h5 className="text-yellow-400 text-xs font-black uppercase tracking-[0.3em] mb-5">Navigate</h5>
                 <nav className="flex flex-col gap-3">
-                  {[
-                    { label: "About", href: "#about" },
-                    { label: "Mission", href: "#mission" },
-                    { label: "Impact", href: "#impact" },
-                    { label: "Kumaon Fest", href: "#events" },
-                  ].map((l) => (
-                    <Link key={l.label} href={l.href} className="text-gray-400 text-sm font-medium hover:text-white transition-colors">{l.label}</Link>
-                  ))}
+                    {[
+                      { label: "About", href: "#about" },
+                      { label: "Mission", href: "#mission" },
+                      { label: "Impact", href: "#impact" },
+                      { label: "Events", href: "/events" },
+                    ].map((l) => (
+                      <Link key={l.label} href={l.href} className="text-gray-400 text-sm font-medium hover:text-white transition-colors">{l.label}</Link>
+                    ))}
                 </nav>
               </div>
               <div>

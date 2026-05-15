@@ -1,7 +1,7 @@
 "use server"
 
 import { supabase } from "@/lib/supabase";
-import Razorpay from "razorpay";
+import { Cashfree, CFEnvironment } from "cashfree-pg";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 
@@ -28,25 +28,49 @@ export interface PaymentConfirmationData {
   signature: string;
 }
 
-export async function createRazorpayOrder(amount: number) {
-  const keyId = process.env.VITE_RAZORPAY_KEY_ID || "";
-  const keySecret = process.env.RAZORPAY_KEY_SECRET || "";
+// Initialize Cashfree
+const cashfreeAppId = process.env.CASHFREE_APP_ID || "";
+const cashfreeSecretKey = process.env.CASHFREE_SECRET_KEY || "";
+const cashfreeEnv = process.env.CASHFREE_ENVIRONMENT === "PRODUCTION"
+  ? CFEnvironment.PRODUCTION
+  : CFEnvironment.SANDBOX;
 
-  if (!keyId || !keySecret) {
-    console.error("Razorpay API keys are missing! Check your .env file.");
+function getCashfreeClient() {
+  if (!cashfreeAppId || !cashfreeSecretKey) {
+    throw new Error("Cashfree API keys are missing! Check your .env file.");
   }
+  return new Cashfree(cashfreeEnv, cashfreeAppId, cashfreeSecretKey);
+}
 
-  const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
+export async function createCashfreeOrder(amount: number, customerDetails: { name: string; email: string; phone: string }) {
+  const cashfree = getCashfreeClient();
+
+  const orderId = `KF_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+  const request = {
+    order_amount: amount,
+    order_currency: "INR",
+    order_id: orderId,
+    customer_details: {
+      customer_id: `cust_${Date.now()}`,
+      customer_name: customerDetails.name,
+      customer_email: customerDetails.email,
+      customer_phone: customerDetails.phone,
+    },
+    order_meta: {
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/kumaon-fest/tickets?order_id={order_id}`,
+    },
+  };
 
   try {
-    const order = await razorpay.orders.create({
-      amount: Math.round(Number(amount) * 100),
-      currency: "INR",
-      receipt: `receipt_${Date.now()}`,
-    });
-    return order;
+    const response = await cashfree.PGCreateOrder(request);
+    return {
+      orderId: response.data.order_id,
+      paymentSessionId: response.data.payment_session_id,
+      orderStatus: response.data.order_status,
+    };
   } catch (error) {
-    console.error("Razorpay Order Error:", error);
+    console.error("Cashfree Order Error:", error);
     throw new Error("Failed to create payment order");
   }
 }
@@ -94,19 +118,24 @@ export async function preRegisterUser(data: RegistrationData) {
 export async function confirmPayment(data: PaymentConfirmationData) {
   console.log("SERVER: confirmPayment hit for registrationId:", data.registrationId);
 
-  // 1. SECURITY: Verify Razorpay Signature
-  const keySecret = process.env.RAZORPAY_KEY_SECRET || "";
-  
-  if (keySecret) {
-    const generated_signature = crypto
-      .createHmac("sha256", keySecret)
-      .update(data.orderId + "|" + data.paymentId)
-      .digest("hex");
-
-    if (generated_signature !== data.signature) {
-      console.error("FRAUD ATTEMPT: Invalid payment signature detected for registrationId:", data.registrationId);
-      throw new Error("Payment verification failed.");
+  // 1. SECURITY: Verify payment with Cashfree API
+  try {
+    const cashfree = getCashfreeClient();
+    const orderResponse = await cashfree.PGOrderFetchPayments(data.orderId);
+    const payments = orderResponse.data;
+    
+    if (!payments || payments.length === 0) {
+      throw new Error("No payments found for this order.");
     }
+
+    const successfulPayment = payments.find((p: any) => p.payment_status === "SUCCESS");
+    if (!successfulPayment) {
+      throw new Error("Payment not completed successfully.");
+    }
+  } catch (err: unknown) {
+    const error = err as Error;
+    console.error("Cashfree verification error:", error.message);
+    throw new Error("Payment verification failed.");
   }
 
   // 2. Fetch primary registration to get Group ID

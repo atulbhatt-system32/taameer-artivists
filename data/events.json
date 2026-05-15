@@ -1,7 +1,7 @@
 {
   "featuredEvent": {
     "id": "kumaon-fest-2024",
-    "title": "Kumaon Fest 2025",
+    "title": "Kumaon Fest 2026",
     "description": "Art, Culture, Literature, Concerts, Exhibition, Folk Art, Music, Food, Games",
     "longDescription": "Kumaon Fest is an annual celebration that brings together the diverse cultural tapestry of the Kumaon region. Organized by Taameer Artivists Foundation, this festival serves as a vibrant platform for artists, musicians, writers, and cultural enthusiasts to showcase and celebrate our rich heritage.",
     "image": "/Fest2025.png",
@@ -11,23 +11,35 @@
     "venue": "Cultural Center, Haldwani",
     "category": "Cultural Festival",
     "status": "upcoming",
-    "pricing": {
-      "singleDay": {
+    "pricing": [
+      {
+        "id": "Student Pass",
+        "name": "Student Pass",
         "price": 299,
-        "label": "Single Day Pass",
-        "description": "Access to all events for one day"
+        "bulkPrice": 249,
+        "description": "Valid Student ID required at gate",
+        "features": ["All sessions access", "Student ID verification", "Food court access"],
+        "popular": false
       },
-      "threeDayPass": {
-        "price": 799,
-        "label": "2-Day Festival Pass",
-        "description": "Complete festival access for all three days"
+      {
+        "id": "Regular Pass",
+        "name": "Regular Pass",
+        "price": 349,
+        "bulkPrice": 299,
+        "description": "General admission for all events",
+        "features": ["All sessions access", "Priority seating", "Food court access"],
+        "popular": true
       },
-      "vipExperience": {
-        "price": 1299,
-        "label": "VIP Experience",
-        "description": "Premium access with special seating and refreshments"
+      {
+        "id": "VIP Pass",
+        "name": "VIP Pass",
+        "price": 999,
+        "bulkPrice": 899,
+        "description": "Front row seating + Backstage access",
+        "features": ["VIP Lounge", "Artist Meet & Greet", "Backstage tour"],
+        "popular": false
       }
-    },
+    ],
     "expectedAttendees": "2000+",
     "highlights": [
       "Traditional Folk Music Concerts",
