@@ -441,7 +441,13 @@ export async function getEventPricing() {
       .order("created_at", { ascending: true });
       
     if (error) throw error;
-    return data;
+    
+    // Map snake_case to camelCase for the frontend
+    return data.map((tier: any) => ({
+      ...tier,
+      earlyBirdPrice: tier.early_bird_price,
+      regularPrice: tier.regular_price
+    }));
   } catch (err) {
     console.warn("Event pricing fetch failed, using local defaults");
     return null;
