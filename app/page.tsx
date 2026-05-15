@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import organizationData from "@/data/organization.json";
 import eventsData from "@/data/events.json";
+import { getEventConfig, getEventPricing } from "@/app/actions/booking";
 
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
@@ -37,6 +38,49 @@ export default function HomePage() {
     { value: impact.events.count, label: impact.events.label },
     { value: impact.peopleReached.count, label: impact.peopleReached.label },
   ];
+
+  const [dbConfig, setDbConfig] = useState<any>(null);
+  const [dbPricing, setDbPricing] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [config, pricing] = await Promise.all([
+          getEventConfig(),
+          getEventPricing()
+        ]);
+        if (config) setDbConfig(config);
+        if (pricing) setDbPricing(pricing);
+      } catch (e) {
+        console.error("Failed to fetch event data", e);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // All data comes from Supabase — no local fallbacks
+  const tiers = dbPricing;
+
+  const isEarlyBird = dbConfig?.early_bird_active === "true" || dbConfig?.early_bird_active === true;
+
+  // Find the tier with the minimum price (guard against empty array while Supabase is loading)
+  const minTier = tiers.length > 0 ? [...tiers].sort((a, b) => {
+    const priceA = isEarlyBird ? (a as any).earlyBirdPrice : (a as any).regularPrice;
+    const priceB = isEarlyBird ? (b as any).earlyBirdPrice : (b as any).regularPrice;
+    return priceA - priceB;
+  })[0] : null;
+
+  const minPrice = minTier ? (isEarlyBird ? (minTier as any).earlyBirdPrice : (minTier as any).regularPrice) : null;
+  const originalPrice = minTier ? (minTier as any).regularPrice : null;
+
+  // Format early bird dates from Supabase
+  const formatEarlyBirdDate = (dateStr: string) => {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  };
+  const earlyBirdStart = formatEarlyBirdDate(dbConfig?.early_bird_start);
+  const earlyBirdEnd = formatEarlyBirdDate(dbConfig?.early_bird_end);
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-gray-900">
@@ -123,10 +167,10 @@ export default function HomePage() {
 
             {/* Sub + CTA row */}
             <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-8">
-              <p className="text-white/90 text-lg max-w-xl leading-relaxed font-semibold drop-shadow-lg">
+              <p className="text-white/90 text-lg max-w-xl leading-relaxed font-semibold drop-shadow-lg line-clamp-3 md:line-clamp-none">
                 {description}
               </p>
-              <div className="flex items-center gap-4 shrink-0">
+              <div className="flex flex-col sm:flex-row w-full sm:w-auto items-stretch sm:items-center gap-4 shrink-0">
                 <Button
                   asChild
                   size="lg"
@@ -140,7 +184,7 @@ export default function HomePage() {
                   variant="outline"
                   className="h-14 px-8 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:text-white rounded-xl font-bold transition-all"
                 >
-                  <Link href="/kumaon-fest/">Our Events <ArrowRight className="w-4 h-4 ml-2" /></Link>
+                  <Link href="/kumaon-fest/">Kumaon Summer Fest <ArrowRight className="w-4 h-4 ml-2" /></Link>
                 </Button>
               </div>
             </div>
@@ -164,7 +208,7 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
               {stats.map((s, i) => (
-                <div key={i} className="px-8 py-4 first:pl-0 last:pr-0 text-center">
+                <div key={i} className="px-8 py-4 md:first:pl-0 md:last:pr-0 text-center md:py-4 py-8">
                   <div className="text-4xl font-black text-yellow-400 tracking-tighter">{s.value}</div>
                   <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">{s.label}</div>
                 </div>
@@ -480,12 +524,23 @@ export default function HomePage() {
         <div className="w-full max-w-lg bg-gray-950/80 backdrop-blur-2xl border border-white/10 rounded-full p-2 pl-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-between gap-4 overflow-hidden">
           <div className="flex flex-col">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-gray-500 text-[10px] line-through font-bold">₹999</span>
-              <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">Early Bird</span>
+              {isEarlyBird ? (
+                <>
+                  <span className="text-gray-500 text-[10px] line-through font-bold">₹{originalPrice}</span>
+                  <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">Early Bird</span>
+                </>
+              ) : (
+                <span className="text-yellow-500 text-[9px] font-black uppercase tracking-[0.15em] bg-yellow-500/10 px-2 py-0.5 rounded-full">Booking Open</span>
+              )}
             </div>
             <div className="text-white text-2xl font-black tracking-tighter leading-none flex items-baseline gap-1">
-              ₹299<span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider ml-0.5">onwards</span>
+              ₹{minPrice}<span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider ml-0.5">onwards</span>
             </div>
+            {isEarlyBird && earlyBirdEnd && (
+              <div className="text-[9px] text-red-400 font-bold mt-0.5 tracking-wide">
+                Ends {earlyBirdEnd}
+              </div>
+            )}
           </div>
           
           <Button asChild className="h-12 md:h-14 px-6 md:px-8 bg-yellow-600 hover:bg-yellow-700 text-white font-black rounded-full text-sm md:text-base shadow-lg shadow-red-600/20 group transition-all active:scale-95 shrink-0">

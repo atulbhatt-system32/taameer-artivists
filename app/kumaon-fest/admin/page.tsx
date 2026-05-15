@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getRegistrations, resendConfirmationEmail, getEventPricing } from "@/app/actions/booking";
+import { getRegistrations, getEventPricing, getEventConfig, resendConfirmationEmail } from "@/app/actions/booking";
 import { Button } from "@/components/ui/button";
 import { 
   Users, 
@@ -25,7 +25,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import eventsData from "@/data/events.json";
+// Event data is fully dynamic from Supabase — no local JSON fallback
 
 // Remove static tiers constant
 // const tiers = eventsData.featuredEvent.pricing;
@@ -47,8 +47,10 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [dbPricing, setDbPricing] = useState<any[]>([]);
+  const [dbConfig, setDbConfig] = useState<any>(null);
   
-  const tiers = dbPricing.length > 0 ? dbPricing : eventsData.featuredEvent.pricing;
+  // All data comes from Supabase — no local fallbacks
+  const tiers = dbPricing;
   const [searchTerm, setSearchTerm] = useState("");
   const [showScanner, setShowScanner] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error" | "info"; message: string } | null>(null);
@@ -91,12 +93,14 @@ export default function AdminPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [regs, pricing] = await Promise.all([
+      const [regs, pricing, config] = await Promise.all([
         getRegistrations(),
-        getEventPricing()
+        getEventPricing(),
+        getEventConfig()
       ]);
       setRegistrations(regs as Registration[]);
       if (pricing) setDbPricing(pricing);
+      if (config) setDbConfig(config);
     } catch (err) {
       console.error(err);
       setNotification({ type: "error", message: "Failed to fetch bookings." });
@@ -253,7 +257,7 @@ export default function AdminPage() {
       const tier = tiers.find(t => t.name === curr.pass_type);
       if (!tier) return acc;
       const qty = curr.quantity || 1;
-      const isEB = eventsData.featuredEvent.earlyBirdActive;
+      const isEB = dbConfig?.early_bird_active === "true" || dbConfig?.early_bird_active === true;
       const unitPrice = isEB ? (tier as any).earlyBirdPrice : (tier as any).regularPrice;
       return acc + (unitPrice || 0) * qty;
     }, 0)

@@ -42,23 +42,27 @@ CREATE TABLE IF NOT EXISTS event_pricing (
   regular_price INTEGER NOT NULL,
   description TEXT,
   features TEXT[],
+  highlight_features TEXT[], -- features to show with ★ icon (premium perks)
   popular BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
 -- INITIAL CONFIG DATA
 INSERT INTO event_config (key, value) 
-VALUES ('early_bird_active', 'true')
+VALUES 
+  ('early_bird_active', 'true'),
+  ('early_bird_start', '2026-05-15T00:00:00'),
+  ('early_bird_end', '2026-05-25T23:59:59')
 ON CONFLICT (key) DO NOTHING;
 
 -- INITIAL PRICING DATA
-INSERT INTO event_pricing (id, name, early_bird_price, regular_price, description, features, popular)
+INSERT INTO event_pricing (id, name, early_bird_price, regular_price, description, features, highlight_features, popular)
 VALUES 
-  ('Student Pass', 'Student Pass', 249, 349, 'Valid Student ID required at gate', ARRAY['All sessions access', 'Student ID verification', 'Food court access'], false),
-  ('Regular Pass', 'Regular Pass', 349, 399, 'General admission for the carnival', ARRAY['All sessions access', 'Priority seating', 'Food court access'], true),
-  ('Premium Pass', 'Premium Pass', 549, 699, 'Closer to the stage access + Goodies', ARRAY['Tote Bag', 'Separate space for the event', 'Artist Meet & Greet'], false),
-  ('Fanpit', 'Fanpit', 1999, 2999, 'Front row experience', ARRAY['A VIP sitting area', 'Tables & chairs to enjoy event', 'Front row access'], false),
-  ('Group of 4', 'Group of 4', 6999, 9999, 'Best value for a group of friends', ARRAY['Entry for 4 people', 'Reserved group area', 'Exclusive Lounge access'], false)
+  ('Student Pass',  'Student Pass',  249,  349,  'Valid Student ID required at gate',           ARRAY['All sessions access', 'Student ID verification', 'Food court access'],                                          NULL,                                                                                    false),
+  ('Regular Pass',  'Regular Pass',  349,  399,  'General admission for the carnival',           ARRAY['All sessions access', 'Priority seating', 'Food court access'],                                                NULL,                                                                                    true),
+  ('Premium Pass',  'Premium Pass',  549,  699,  'Closer to the stage access + Goodies',         ARRAY['Tote Bag', 'Separate space for the event', 'Artist Meet & Greet'],                   ARRAY['Tote Bag', 'Separate space for the event'],                                       false),
+  ('Fanpit',        'Fanpit',        1999, 2999, 'Front row experience',                          ARRAY['A VIP sitting area', 'Tables & chairs to enjoy event', 'Front row access'],        ARRAY['A VIP sitting area', 'Tables & chairs to enjoy event', 'Front row access'],       false),
+  ('Group of 4',    'Group of 4',    6999, 9999, 'Best value for a group of friends',             ARRAY['Entry for 4 people', 'Reserved group area', 'Exclusive Lounge access'],             ARRAY['Reserved group area', 'Exclusive Lounge access'],                                 false)
 ON CONFLICT (id) DO NOTHING;
 
 -- 4. ROW LEVEL SECURITY POLICIES

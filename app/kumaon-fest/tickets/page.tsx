@@ -3,43 +3,145 @@
 import { BookingWizard } from "@/components/booking-wizard";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Clock, ShieldCheck, Ticket, ChevronRight } from "lucide-react";
 
 export default function TicketsPage() {
   return (
     <div className="min-h-screen bg-gray-950 text-white selection:bg-yellow-500/30 selection:text-yellow-500">
-      {/* Header */}
-      <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-gray-950/80 backdrop-blur-xl">
-        <div className="container flex h-20 items-center justify-between px-4 max-w-7xl mx-auto">
-          <Link href="/" className="flex items-center space-x-3 group text-gray-400 hover:text-white transition-colors">
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-bold uppercase tracking-widest">Back to Home</span>
+
+      {/* ── TOPBAR ────────────────────────────────────────────────────── */}
+      <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-gray-950/90 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+          <Link
+            href="/kumaon-fest"
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-xs font-black uppercase tracking-[0.15em]">Back</span>
           </Link>
-          <div className="flex items-center space-x-3">
-            <div className="relative h-12 w-12 drop-shadow-xl">
-              <Image
-                src="/new-images/IMG_6419.PNG"
-                fill
-                alt="Logo"
-                className="object-contain"
-              />
+
+          <div className="flex items-center gap-2.5">
+            <div className="relative h-8 w-8">
+              <Image src="/new-images/IMG_6419.PNG" fill alt="Logo" className="object-contain" />
             </div>
-            <span className="text-xl font-black tracking-tighter">
+            <span className="text-sm font-black tracking-tighter">
               KUMAON <span className="text-yellow-500">FEST</span>
             </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 text-[10px] font-bold text-green-400 uppercase tracking-widest">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Secure Checkout
           </div>
         </div>
       </header>
 
-      <main className="pt-32 pb-20">
-        <div className="container px-4 max-w-7xl mx-auto">
-          <BookingWizard variant="full" />
-        </div>
-      </main>
+      {/* ── MAIN LAYOUT ───────────────────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-4 pt-16 min-h-screen lg:grid lg:grid-cols-[380px_1fr] lg:gap-0">
 
-      <footer className="py-12 border-t border-white/5 bg-gray-950 text-center">
-        <p className="text-xs font-bold text-gray-500 uppercase tracking-[0.2em]">
-          © 2025 Kumaon Fest. All rights reserved.
+        {/* ── LEFT: EVENT INFO PANEL ────────────────────────────────── */}
+        <aside className="lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto py-10 lg:pr-10 border-r border-white/5 flex flex-col gap-6">
+
+          {/* Poster */}
+          <div className="relative rounded-2xl overflow-hidden aspect-[4/5] w-full shadow-2xl shadow-black/60">
+            <Image
+              src="/new-images/img_6431.png"
+              fill
+              alt="Kumaon Fest 2026 Poster"
+              className="object-cover"
+            />
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/20 to-transparent" />
+            {/* Badge on poster */}
+            <div className="absolute top-3 left-3">
+              <span className="bg-yellow-500 text-gray-950 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest shadow-lg">
+                Summer Carnival 2026
+              </span>
+            </div>
+          </div>
+
+          {/* Event Title */}
+          <div>
+            <h1 className="text-2xl font-black tracking-tight text-white leading-tight">
+              The Kumaon Fest<br />
+              <span className="text-yellow-500">Summer Carnival</span>
+            </h1>
+            <p className="text-gray-500 text-xs mt-1.5 leading-relaxed">
+              An unforgettable night of music, art & culture
+            </p>
+          </div>
+
+          {/* Event Details */}
+          <div className="space-y-3">
+            {[
+              { icon: CalendarDays, label: "Date", value: "30 May 2026, Friday" },
+              { icon: Clock,        label: "Time", value: "5:00 PM – 10:00 PM" },
+              { icon: MapPin,       label: "Venue", value: "Kripa Sindhu Banquet, Haldwani" },
+            ].map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center shrink-0">
+                  <Icon className="w-4 h-4 text-yellow-500" />
+                </div>
+                <div>
+                  <div className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">{label}</div>
+                  <div className="text-sm text-white font-semibold">{value}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-white/5" />
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { num: "2000+", label: "Expected" },
+              { num: "10+",   label: "Artists" },
+              { num: "5 hrs", label: "Non-stop" },
+            ].map(({ num, label }) => (
+              <div key={label} className="bg-gray-900/60 border border-gray-800 rounded-xl p-3 text-center">
+                <div className="text-lg font-black text-yellow-500">{num}</div>
+                <div className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">{label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Trust Badges */}
+          <div className="space-y-2 mt-auto">
+            {[
+              { icon: ShieldCheck, text: "100% Secure — Powered by Cashfree" },
+              { icon: Ticket,      text: "E-ticket sent instantly to your email" },
+            ].map(({ icon: Icon, text }) => (
+              <div key={text} className="flex items-center gap-2 text-[10px] text-gray-600 font-semibold">
+                <Icon className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                {text}
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        {/* ── RIGHT: BOOKING WIZARD ────────────────────────────────────── */}
+        <main className="py-10 lg:pl-10">
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-1.5 text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-8">
+            <Link href="/kumaon-fest" className="hover:text-yellow-500 transition-colors">Festival</Link>
+            <ChevronRight className="w-3 h-3" />
+            <span className="text-gray-400">Book Tickets</span>
+          </div>
+
+          {/* Ambient glow */}
+          <div className="relative">
+            <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-yellow-500/5 rounded-full blur-[80px] pointer-events-none" />
+            <BookingWizard variant="full" />
+          </div>
+        </main>
+      </div>
+
+      {/* ── FOOTER ────────────────────────────────────────────────────── */}
+      <footer className="py-8 border-t border-white/5 bg-gray-950 text-center">
+        <p className="text-[10px] font-bold text-gray-700 uppercase tracking-[0.2em]">
+          © {new Date().getFullYear()} Taameer Artivists Foundation · Kumaon Fest. All rights reserved.
         </p>
       </footer>
     </div>

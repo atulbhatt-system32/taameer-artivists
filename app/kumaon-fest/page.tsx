@@ -44,21 +44,29 @@ export default function KumaonFestLandingPage() {
     fetchData();
   }, []);
 
-  const tiers = dbPricing.length > 0 ? dbPricing : eventsData.featuredEvent.pricing;
+  // All data comes from Supabase — no local fallbacks
+  const tiers = dbPricing;
 
-  const isEarlyBird = dbConfig?.early_bird_active !== undefined 
-    ? (dbConfig.early_bird_active === "true" || dbConfig.early_bird_active === true)
-    : eventsData.featuredEvent.earlyBirdActive;
+  const isEarlyBird = dbConfig?.early_bird_active === "true" || dbConfig?.early_bird_active === true;
 
-  // Find the tier with the minimum price
-  const minTier = [...tiers].sort((a, b) => {
+  // Find the tier with the minimum price (guard against empty array while Supabase is loading)
+  const minTier = tiers.length > 0 ? [...tiers].sort((a, b) => {
     const priceA = isEarlyBird ? (a as any).earlyBirdPrice : (a as any).regularPrice;
     const priceB = isEarlyBird ? (b as any).earlyBirdPrice : (b as any).regularPrice;
     return priceA - priceB;
-  })[0];
+  })[0] : null;
 
-  const minPrice = isEarlyBird ? (minTier as any).earlyBirdPrice : (minTier as any).regularPrice;
-  const originalPrice = (minTier as any).regularPrice;
+  const minPrice = minTier ? (isEarlyBird ? (minTier as any).earlyBirdPrice : (minTier as any).regularPrice) : null;
+  const originalPrice = minTier ? (minTier as any).regularPrice : null;
+
+  // Format early bird dates from Supabase
+  const formatEarlyBirdDate = (dateStr: string) => {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  };
+  const earlyBirdStart = formatEarlyBirdDate(dbConfig?.early_bird_start);
+  const earlyBirdEnd = formatEarlyBirdDate(dbConfig?.early_bird_end);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -146,7 +154,7 @@ export default function KumaonFestLandingPage() {
                     {hero.buttons.primary.text} <Ticket className="w-5 h-5 ml-2 group-hover:rotate-12 transition-transform" />
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="h-14 md:h-16 px-8 md:px-10 border-white/10 bg-white/5 hover:bg-white/10 text-white font-black rounded-2xl text-base md:text-lg">
+                <Button asChild size="lg" variant="outline" className="h-14 md:h-16 px-8 md:px-10 border-white/10 bg-white/5 hover:bg-white/10 text-white hover:text-white font-black rounded-2xl text-base md:text-lg">
                    <Link href="#schedule">{hero.buttons.secondary.text}</Link>
                 </Button>
               </div>
@@ -323,6 +331,46 @@ export default function KumaonFestLandingPage() {
           </div>
         </section>
 
+        {/* ── VENUE MAP ────────────────────────────────────────────────── */}
+        <section className="py-28 bg-white text-gray-950">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-14">
+              <span className="text-xs font-black text-yellow-500 tracking-[0.3em] uppercase">Know Before You Go</span>
+              <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-none mt-3">
+                Venue<br /><span className="text-yellow-500">Layout.</span>
+              </h2>
+              <p className="text-gray-500 text-lg font-medium mt-6 max-w-xl mx-auto">
+                Plan your festival experience — from the main stage to food stalls, every zone mapped out for you.
+              </p>
+            </div>
+
+            <div className="relative rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.12)] bg-gray-50">
+              <Image
+                src="/venue-map.jpg"
+                width={1440}
+                height={810}
+                alt="Kumaon Fest 2026 Venue Layout Map"
+                className="w-full h-auto object-contain"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-10">
+              {[
+                { label: "Main Stage", color: "bg-gray-900" },
+                { label: "Fan Pit", color: "bg-yellow-500" },
+                { label: "Guests Area", color: "bg-red-600" },
+                { label: "Premium Access", color: "bg-gray-400" },
+                { label: "Food & POP-up Stalls", color: "bg-orange-400" },
+              ].map((zone) => (
+                <div key={zone.label} className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3">
+                  <div className={`w-3 h-3 rounded-full shrink-0 ${zone.color}`} />
+                  <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">{zone.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ── COMMUNITY ────────────────────────────────────────────────── */}
         <section className="py-28 bg-yellow-500 text-gray-950">
           <div className="max-w-7xl mx-auto px-6">
@@ -405,6 +453,15 @@ export default function KumaonFestLandingPage() {
             <div className="text-white text-2xl font-black tracking-tighter leading-none flex items-baseline gap-1">
               ₹{minPrice}<span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider ml-0.5">onwards</span>
             </div>
+            {isEarlyBird && earlyBirdEnd ? (
+              <div className="text-[9px] text-red-400 font-bold mt-0.5 tracking-wide">
+                🔥 Ends {earlyBirdEnd}
+              </div>
+            ) : (!isEarlyBird && earlyBirdStart && earlyBirdEnd) ? (
+              <div className="text-[9px] text-gray-500 font-bold mt-0.5 tracking-wide">
+                Early Bird: {earlyBirdStart} → {earlyBirdEnd}
+              </div>
+            ) : null}
           </div>
           
           <Button asChild className="h-12 md:h-14 px-6 md:px-8 bg-red-600 hover:bg-red-700 text-white font-black rounded-full text-sm md:text-base shadow-lg shadow-red-600/20 group transition-all active:scale-95 shrink-0">

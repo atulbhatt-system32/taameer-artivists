@@ -446,7 +446,9 @@ export async function getEventPricing() {
     return data.map((tier: any) => ({
       ...tier,
       earlyBirdPrice: tier.early_bird_price,
-      regularPrice: tier.regular_price
+      regularPrice: tier.regular_price,
+      features: Array.isArray(tier.features) ? tier.features : [],
+      highlightFeatures: Array.isArray(tier.highlight_features) ? tier.highlight_features : [],
     }));
   } catch (err) {
     console.warn("Event pricing fetch failed, using local defaults");
