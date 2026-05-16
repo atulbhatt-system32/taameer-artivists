@@ -101,7 +101,8 @@ export async function preRegisterUser(data: RegistrationData) {
     quantity: 1, // Individual ticket
     address: data.address,
     will_play_dandiya: data.willPlayDandiya || "No",
-    instagram_handle: groupId, // Using this as group_id
+    instagram_handle: data.instagramHandle || null,
+    group_id: groupId,
     agreed: data.agreed,
     payment_status: "pending",
   }));
@@ -157,8 +158,8 @@ export async function confirmPayment(data: PaymentConfirmationData) {
     throw new Error("Registration not found.");
   }
 
-  const groupId = primaryReg.instagram_handle;
-  const isGroup = groupId?.startsWith("GROUP_");
+  const groupId = primaryReg.group_id;
+  const isGroup = !!groupId;
 
   // 3. Update status to paid for the whole group
   const { error: updateError } = await supabase
@@ -168,7 +169,7 @@ export async function confirmPayment(data: PaymentConfirmationData) {
       order_id: data.orderId,
       payment_status: "paid",
     })
-    .filter(isGroup ? 'instagram_handle' : 'id', 'eq', isGroup ? groupId : data.registrationId);
+    .filter(isGroup ? 'group_id' : 'id', 'eq', isGroup ? groupId : data.registrationId);
 
   if (updateError) {
     throw new Error("Failed to update payment status.");
@@ -178,7 +179,7 @@ export async function confirmPayment(data: PaymentConfirmationData) {
   const { data: allTickets } = await supabase
     .from("registrations")
     .select("*")
-    .eq(isGroup ? "instagram_handle" : "id", isGroup ? groupId : data.registrationId);
+    .eq(isGroup ? "group_id" : "id", isGroup ? groupId : data.registrationId);
 
   if (!allTickets || allTickets.length === 0) {
     throw new Error("Tickets not found after update.");
@@ -430,14 +431,14 @@ export async function resendConfirmationEmail(id: string) {
     throw new Error("Cannot send confirmation for unpaid registration.");
   }
 
-  const groupId = triggerTicket.instagram_handle;
-  const isGroup = groupId?.startsWith("GROUP_");
+  const groupId = triggerTicket.group_id;
+  const isGroup = !!groupId;
 
   // 2. Fetch all tickets in the group
   const { data: allTickets } = await supabase
     .from("registrations")
     .select("*")
-    .eq(isGroup ? "instagram_handle" : "id", isGroup ? groupId : id);
+    .eq(isGroup ? "group_id" : "id", isGroup ? groupId : id);
 
   if (!allTickets || allTickets.length === 0) {
     throw new Error("Tickets not found.");

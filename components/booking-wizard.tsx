@@ -38,8 +38,8 @@ const formSchema = z.object({
   fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
   age: z.string().min(1, { message: "Age is required." }),
   gender: z.enum(["Female", "Male", "Transgender", "I prefer not to say", "Other"]),
-  whatsappNo: z.string().min(10, { message: "Enter a valid WhatsApp number." }),
-  contactNo: z.string().min(10, { message: "Enter a valid contact number." }),
+  whatsappNo: z.string().length(10, { message: "Enter a valid 10-digit WhatsApp number." }).regex(/^\d+$/, { message: "Only digits allowed." }),
+  contactNo: z.string().length(10, { message: "Enter a valid 10-digit contact number." }).regex(/^\d+$/, { message: "Only digits allowed." }),
   email: z.string().email({ message: "Enter a valid email address." }),
   passType: z.enum(["Student Pass", "Regular Pass", "Premium Pass", "Fanpit", "Group of 4"]),
   quantity: z.string().min(1, { message: "Quantity is required." }).refine((val) => parseInt(val) <= 5, { message: "Maximum 5 people allowed per booking." }),
@@ -446,7 +446,7 @@ export function BookingWizard({
                       <FormItem><FormControl><Input type="email" placeholder="Email *" required className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} /></FormControl></FormItem>
                     )} />
                     <FormField control={form.control} name="whatsappNo" render={({ field }) => (
-                      <FormItem><FormControl><Input placeholder="WhatsApp *" required className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} /></FormControl></FormItem>
+                      <FormItem><FormControl><Input placeholder="WhatsApp *" required maxLength={10} inputMode="numeric" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} onChange={e => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 10))} /></FormControl></FormItem>
                     )} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -481,6 +481,9 @@ export function BookingWizard({
                   </div>
                   <FormField control={form.control} name="address" render={({ field }) => (
                     <FormItem><FormControl><Textarea placeholder="Address" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors min-h-[60px]" {...field} /></FormControl></FormItem>
+                  )} />
+                  <FormField control={form.control} name="instagramHandle" render={({ field }) => (
+                    <FormItem><FormControl><Input placeholder="Instagram Handle" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} /></FormControl></FormItem>
                   )} />
                   <FormField control={form.control} name="agreed" render={({ field }) => (
                     <FormItem className="flex items-start space-x-2 space-y-0">
@@ -846,14 +849,14 @@ export function BookingWizard({
                         <FormField control={form.control} name="whatsappNo" render={({ field }) => (
                           <FormItem className="space-y-2">
                             <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">WhatsApp *</FormLabel>
-                            <FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} /></FormControl>
+                            <FormControl><Input placeholder="98XXXXXXXX" required maxLength={10} inputMode="numeric" className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} onChange={e => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 10))} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                         <FormField control={form.control} name="contactNo" render={({ field }) => (
                           <FormItem className="space-y-2">
                             <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Contact *</FormLabel>
-                            <FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} /></FormControl>
+                            <FormControl><Input placeholder="98XXXXXXXX" required maxLength={10} inputMode="numeric" className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} onChange={e => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 10))} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
@@ -869,6 +872,13 @@ export function BookingWizard({
                         <FormItem className="space-y-2">
                           <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Address</FormLabel>
                           <FormControl><Textarea placeholder="Street, City, State, PIN" className="bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 min-h-[80px] rounded-lg p-4" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="instagramHandle" render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Instagram Handle <span className="text-gray-600 normal-case font-normal">(optional)</span></FormLabel>
+                          <FormControl><Input placeholder="@yourusername" className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
