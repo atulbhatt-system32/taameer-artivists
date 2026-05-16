@@ -449,6 +449,9 @@ export async function getEventPricing() {
       regularPrice: tier.regular_price,
       features: Array.isArray(tier.features) ? tier.features : [],
       highlightFeatures: Array.isArray(tier.highlight_features) ? tier.highlight_features : [],
+      offlineOnly: tier.offline_only === true,
+      enquirePhone: tier.enquire_phone ?? null,
+      enquireText: tier.enquire_text ?? null,
     }));
   } catch (err) {
     console.warn("Event pricing fetch failed, using local defaults");

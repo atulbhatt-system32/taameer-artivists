@@ -81,15 +81,14 @@
     ]
   },
   "community": {
-    "title": "Join the Movement",
-    "description": "Taameer Artivists Foundation is more than just a festival; it's a movement for social reform and cultural preservation.",
+    "title": "Setup Your Stall",
+    "description": "Be a part of the biggest Food Carnival in Haldwani. Showcase your culinary skills or local treats to a 2000+ strong audience.",
     "opportunities": [
-      { "title": "Volunteer", "icon": "Users", "description": "Be a part of the team that makes the magic happen." },
-      { "title": "Artist Stage", "icon": "Music", "description": "Showcase your talent to a 2000+ strong audience." }
+      { "title": "Food Stalls", "icon": "BookOpen", "description": "Book a space for your bakery, cafe, or local food business." },
+      { "title": "Pop-up Shops", "icon": "Palette", "description": "Sell your unique products and reach a massive local crowd." }
     ],
     "buttons": [
-      { "text": "Volunteer Now" },
-      { "text": "Apply as Artist" }
+      { "text": "Book a Stall", "link": "https://wa.me/919761111707?text=Hi,%20I%20am%20interested%20in%20booking%20a%20stall%20at%20Kumaon%20Fest." }
     ],
     "images": [
       { "src": "/new-images/img_6496.png" }

@@ -27,7 +27,7 @@ import eventsData from "@/data/events.json";
 import { getEventConfig, getEventPricing } from "@/app/actions/booking";
 
 export default function KumaonFestLandingPage() {
-  const { hero, about, events, schedule, gallery, community, tickets } = kumaonFestData;
+  const { hero, about, events, gallery, community, tickets } = kumaonFestData;
   const [showSticky, setShowSticky] = useState(false);
   const [dbConfig, setDbConfig] = useState<any>(null);
   const [dbPricing, setDbPricing] = useState<any[]>([]);
@@ -115,7 +115,7 @@ export default function KumaonFestLandingPage() {
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-gray-400">
             <Link href="#about" className="hover:text-yellow-500 transition-colors">About</Link>
-            <Link href="#schedule" className="hover:text-yellow-500 transition-colors">Schedule</Link>
+
             <Link href="/kumaon-fest/gallery/2024" className="hover:text-yellow-500 transition-colors">Gallery</Link>
           </div>
           <Button asChild className="bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-xl px-6 h-11 shadow-lg shadow-yellow-500/20">
@@ -154,9 +154,7 @@ export default function KumaonFestLandingPage() {
                     {hero.buttons.primary.text} <Ticket className="w-5 h-5 ml-2 group-hover:rotate-12 transition-transform" />
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="h-14 md:h-16 px-8 md:px-10 border-white/10 bg-white/5 hover:bg-white/10 text-white hover:text-white font-black rounded-2xl text-base md:text-lg">
-                   <Link href="#schedule">{hero.buttons.secondary.text}</Link>
-                </Button>
+
               </div>
 
               <div className="flex flex-wrap gap-8 items-center pt-8 border-t border-white/5">
@@ -284,52 +282,7 @@ export default function KumaonFestLandingPage() {
           </div>
         </section>
 
-        {/* ── SCHEDULE ─────────────────────────────────────────────────── */}
-        <section id="schedule" className="py-28 bg-gray-900 relative">
-          <div className="max-w-7xl mx-auto px-6">
-             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-20">
-              <div>
-                <span className="text-xs font-black text-yellow-500 tracking-[0.3em] uppercase">{schedule.title}</span>
-                <h2 className="text-5xl md:text-7xl font-black tracking-tight leading-none mt-3">
-                  Festival<br /><span className="text-yellow-500">Timeline.</span>
-                </h2>
-              </div>
-              <p className="text-gray-400 max-w-sm text-base leading-relaxed">
-                {schedule.subtitle}
-              </p>
-            </div>
 
-            <div className="grid lg:grid-cols-2 gap-12">
-              {schedule.days.map((day, i) => (
-                <div key={i} className="bg-gray-950 p-10 rounded-[3rem] border border-white/5 relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/5 blur-[50px] group-hover:bg-yellow-500/10 transition-all" />
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="w-12 h-12 bg-yellow-500 rounded-2xl flex items-center justify-center font-black text-gray-950">
-                      {day.day.split(' ')[1]}
-                    </div>
-                    <div>
-                      <h4 className="text-2xl font-black">{day.theme}</h4>
-                      <p className="text-yellow-500 text-xs font-bold uppercase tracking-widest">{day.date}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-6">
-                    {day.events.map((e, j) => (
-                      <div key={j} className="flex gap-6 pb-6 border-b border-white/5 last:border-0 last:pb-0">
-                        <div className="text-gray-500 text-xs font-bold uppercase tracking-tighter whitespace-nowrap pt-1">
-                          {e.time.split(' - ')[0]}
-                        </div>
-                        <div>
-                          <h5 className="font-black text-white mb-1">{e.time.split(' - ')[1]}</h5>
-                          <p className="text-gray-500 text-xs leading-relaxed">{e.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* ── VENUE MAP ────────────────────────────────────────────────── */}
         <section className="py-28 bg-white text-gray-950">
@@ -393,13 +346,23 @@ export default function KumaonFestLandingPage() {
                     </div>
                   ))}
                 </div>
-                <div className="flex gap-4">
-                  <Button className="h-14 px-8 bg-gray-950 text-white font-black rounded-xl hover:bg-gray-800 transition-all">
-                    {community.buttons[0].text}
-                  </Button>
-                  <Button variant="outline" className="h-14 px-8 border-gray-950/20 text-gray-950 font-black rounded-xl hover:bg-gray-950 hover:text-white transition-all">
-                    {community.buttons[1].text}
-                  </Button>
+                <div className="flex flex-wrap gap-4">
+                  {community.buttons.map((btn, i) => (
+                    <Button 
+                      key={btn.text} 
+                      asChild 
+                      className={`h-14 px-8 font-black rounded-xl transition-all ${
+                        i === 0 
+                          ? "bg-gray-950 text-white hover:bg-gray-800" 
+                          : "border-gray-950/20 text-gray-950 hover:bg-gray-950 hover:text-white"
+                      }`}
+                      variant={i === 0 ? "default" : "outline"}
+                    >
+                      <Link href={(btn as any).link || "#"}>
+                        {btn.text}
+                      </Link>
+                    </Button>
+                  ))}
                 </div>
               </div>
               <div className="relative aspect-video lg:aspect-square rounded-[3rem] overflow-hidden shadow-2xl rotate-2">

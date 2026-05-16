@@ -160,11 +160,21 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
 
   const selectPass = (type: string) => {
     form.setValue("passType", type as any);
+    form.setValue("quantity", type === "Group of 4" ? "4" : "1");
     setStep(1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const selectedPass = form.watch("passType");
+  const isGroupOf4 = selectedPass === "Group of 4";
+
+  useEffect(() => {
+    if (isGroupOf4) {
+      form.setValue("quantity", "4");
+    } else {
+      form.setValue("quantity", "1");
+    }
+  }, [isGroupOf4, form]);
 
   const getPrice = () => {
     const pass = tiers.find(t => t.id === (selectedPass as any));
@@ -426,11 +436,61 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
 
             {/* Compact Pass List */}
             <div className="space-y-2">
-              {tiers.map((tier) => {
+              {[...tiers]
+                .sort((a, b) => {
+                  const aOffline = (a as any).offlineOnly === true;
+                  const bOffline = (b as any).offlineOnly === true;
+                  if (aOffline && !bOffline) return 1;
+                  if (!aOffline && bOffline) return -1;
+                  return (a as any).regularPrice - (b as any).regularPrice;
+                })
+                .map((tier) => {
                 const price = isEarlyBird ? (tier as any).earlyBirdPrice : (tier as any).regularPrice;
                 const regularPrice = (tier as any).regularPrice;
-                const highlightSet: string[] = (tier as any).highlightFeatures ?? [];
+                const highlightSet: string[] = (tier as any).highlightFeatures ?? (tier as any).highlight_features ?? [];
                 const features: string[] = (tier as any).features ?? [];
+                const isOffline = (tier as any).offlineOnly === true;
+                const enquirePhone: string | null = (tier as any).enquirePhone ?? null;
+                const enquireText: string | null = (tier as any).enquireText ?? null;
+
+                if (isOffline) {
+                  return (
+                    <div key={tier.id} className="relative rounded-2xl border border-dashed border-gray-700 bg-gray-900/20 opacity-80">
+                      <div className="px-5 py-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-black text-gray-300 text-sm">{tier.name}</span>
+                              <Badge className="text-[9px] bg-orange-500/20 text-orange-400 border-orange-500/30 h-4 px-1.5 font-bold">OFFLINE ONLY</Badge>
+                            </div>
+                            <p className="text-[10px] text-gray-500 mb-2 leading-relaxed">{tier.description}</p>
+                            <div className="flex flex-wrap gap-1.5 mb-3">
+                              {features.slice(0, 4).map((f: string) => (
+                                <span key={f} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-800 text-gray-500">{f}</span>
+                              ))}
+                            </div>
+                            {enquireText && (
+                              <p className="text-[11px] text-orange-400/80 font-medium leading-relaxed">{enquireText}</p>
+                            )}
+                          </div>
+                          <div className="shrink-0">
+                            {enquirePhone ? (
+                              <Button
+                                onClick={() => window.open(`https://wa.me/91${enquirePhone}`, "_blank")}
+                                className="h-9 px-5 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl text-xs shadow-lg shadow-green-900/30"
+                              >
+                                Enquire
+                              </Button>
+                            ) : (
+                              <span className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">Not Available Online</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     key={tier.id}
@@ -447,41 +507,28 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                       </span>
                     )}
                     <div className="flex items-center justify-between gap-4 px-5 py-4">
-                      {/* Left: Name + Features */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1.5">
+                        <div className="flex items-center gap-2 mb-1">
                           <span className="font-black text-white text-sm">{tier.name}</span>
                           {isEarlyBird && <Badge variant="outline" className="text-[9px] border-yellow-500/40 text-yellow-500 h-4 px-1.5 font-bold">EARLY BIRD</Badge>}
                         </div>
+                        <p className="text-[10px] text-gray-500 mb-2 leading-relaxed font-medium">{tier.description}</p>
                         <div className="flex flex-wrap gap-1.5">
                           {features.slice(0, 3).map((f: string) => {
                             const isHighlight = highlightSet.includes(f);
                             return (
-                              <span
-                                key={f}
-                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                                  isHighlight
-                                    ? "bg-yellow-500/15 text-yellow-300 border border-yellow-500/20"
-                                    : "bg-gray-800 text-gray-400"
-                                }`}
-                              >
+                              <span key={f} className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isHighlight ? "bg-yellow-500/15 text-yellow-300 border border-yellow-500/20" : "bg-gray-800 text-gray-400"}`}>
                                 {isHighlight && "★ "}{f}
                               </span>
                             );
                           })}
-                          {features.length > 3 && (
-                            <span className="text-[10px] text-gray-600 font-semibold px-2 py-0.5">+{features.length - 3} more</span>
-                          )}
+                          {features.length > 3 && <span className="text-[10px] text-gray-600 font-semibold px-2 py-0.5">+{features.length - 3} more</span>}
                         </div>
                       </div>
-
-                      {/* Right: Price + CTA */}
                       <div className="flex items-center gap-4 shrink-0">
                         <div className="text-right">
                           <div className="text-xl font-black text-white tracking-tighter">₹{price}</div>
-                          {isEarlyBird && regularPrice && (
-                            <div className="text-[10px] text-gray-500 line-through">₹{regularPrice}</div>
-                          )}
+                          {isEarlyBird && regularPrice && <div className="text-[10px] text-gray-500 line-through">₹{regularPrice}</div>}
                         </div>
                         <Button
                           onClick={(e) => { e.stopPropagation(); selectPass(tier.id); }}
@@ -609,45 +656,61 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
                         <h3 className="text-xl font-bold tracking-tight">Booking Info</h3>
                         <div className="h-px bg-gray-800 flex-1" />
                       </div>
-                      <div className="grid md:grid-cols-2 gap-8">
+                      <div className={`grid gap-8 ${isGroupOf4 ? "md:grid-cols-1" : "md:grid-cols-2"}`}>
                         <FormField control={form.control} name="passType" render={({ field }) => (
                           <FormItem className="space-y-3"><FormLabel className="text-white font-semibold">Pass Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-11 bg-gray-950 border-gray-800 text-white text-sm rounded-lg"><SelectValue /></SelectTrigger></FormControl><SelectContent className="bg-gray-900 border-gray-800 text-white">{tiers.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent></Select></FormItem>
                         )} />
-                        <FormField control={form.control} name="quantity" render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel className="text-white font-semibold">Number of People</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="1"
-                                max="5"
-                                required
-                                className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4"
-                                {...field}
-                                onChange={(e) => {
-                                  const val = parseInt(e.target.value);
-                                  if (val > 5) {
-                                    field.onChange("5");
-                                  } else if (val < 1) {
-                                    field.onChange("1");
-                                  } else {
-                                    field.onChange(e.target.value);
-                                  }
-                                }}
-                              />
-                            </FormControl>
-                            <FormDescription className="text-xs text-gray-500">Max 5 people. Select 5 for bulk discount.</FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
+                        {!isGroupOf4 && (
+                          <FormField control={form.control} name="quantity" render={({ field }) => {
+                            const qty = parseInt(field.value || "1");
+                            const dec = () => qty > 1 && field.onChange(String(qty - 1));
+                            const inc = () => qty < 5 && field.onChange(String(qty + 1));
+                            return (
+                              <FormItem className="space-y-3">
+                                <FormLabel className="text-white font-semibold">Number of People</FormLabel>
+                                <FormControl>
+                                  <div className="flex items-center gap-3">
+                                    <button
+                                      type="button"
+                                      onClick={dec}
+                                      disabled={qty <= 1}
+                                      className="w-11 h-11 rounded-lg bg-gray-900 border border-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    >−</button>
+                                    <div className="flex-1 h-11 bg-gray-950 border border-gray-800 rounded-lg flex items-center justify-center text-white font-black text-lg tracking-tight">
+                                      {qty}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={inc}
+                                      disabled={qty >= 5}
+                                      className="w-11 h-11 rounded-lg bg-gray-900 border border-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    >+</button>
+                                  </div>
+                                </FormControl>
+                                <FormDescription className="text-xs text-gray-500">Max 5 per booking.</FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            );
+                          }} />
+                        )}
                       </div>
 
-                      {/* Additional Attendees */}
+                      {/* Group of 4 banner */}
+                      {isGroupOf4 && (
+                        <div className="flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+                          <Users className="w-5 h-5 text-yellow-500 shrink-0" />
+                          <p className="text-yellow-400 text-sm font-semibold">Group of 4 selected — please fill in details for all 4 members below.</p>
+                        </div>
+                      )}
+
+                      {/* Additional Attendees / Group Members */}
                       {fields.length > 0 && (
                         <div className="space-y-8 pt-4">
                           <div className="flex items-center gap-4 text-yellow-500">
                             <Users className="w-6 h-6" />
-                            <h3 className="text-xl font-bold tracking-tight">Other Persons Details</h3>
+                            <h3 className="text-xl font-bold tracking-tight">
+                              {isGroupOf4 ? "Group Members" : "Other Persons Details"}
+                            </h3>
                             <div className="h-px bg-gray-800 flex-1" />
                           </div>
                           <div className="space-y-10">
