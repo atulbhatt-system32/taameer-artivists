@@ -574,6 +574,7 @@ export function BookingWizard({
                 const isOffline = (tier as any).offlineOnly === true;
                 const enquirePhone: string | null = (tier as any).enquirePhone ?? null;
                 const enquireText: string | null = (tier as any).enquireText ?? null;
+                const bookingFormLink: string | null = (tier as any).bookingFormLink ?? null;
 
                 if (isOffline) {
                   return (
@@ -596,7 +597,14 @@ export function BookingWizard({
                             )}
                           </div>
                           <div className="shrink-0">
-                            {enquirePhone ? (
+                            {bookingFormLink ? (
+                              <Button
+                                onClick={() => window.open(bookingFormLink, "_blank")}
+                                className="h-9 px-5 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl text-xs shadow-lg shadow-green-900/30"
+                              >
+                              Book Now
+                              </Button>
+                            ) : enquirePhone ? (
                               <Button
                                 onClick={() => window.open(`https://wa.me/91${enquirePhone}`, "_blank")}
                                 className="h-9 px-5 bg-green-600 hover:bg-green-500 text-white font-black rounded-xl text-xs shadow-lg shadow-green-900/30"

@@ -87,7 +87,7 @@ export default function TicketsPage() {
           {/* Poster */}
           <div className="relative rounded-2xl overflow-hidden aspect-[4/5] w-full shadow-2xl shadow-black/60">
             <Image
-              src="/new-images/img_6431.png"
+              src="/new-images/uniyal.png"
               fill
               alt="Kumaon Fest 2026 Poster"
               className="object-cover"

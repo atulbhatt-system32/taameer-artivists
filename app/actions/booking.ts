@@ -633,6 +633,7 @@ export async function getEventPricing() {
       offlineOnly: tier.offline_only === true,
       enquirePhone: tier.enquire_phone ?? null,
       enquireText: tier.enquire_text ?? null,
+      bookingFormLink: tier.booking_form_link ?? null,
     }));
   } catch (err) {
     console.warn("Event pricing fetch failed, using local defaults");
