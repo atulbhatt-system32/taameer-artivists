@@ -17,6 +17,7 @@ interface Registration {
   email: string;
   pass_type: string;
   quantity: number;
+  payment_status: string;
   checked_in_at: string | null;
   additional_attendees?: { fullName: string; age: string; gender: string }[];
 }
@@ -166,6 +167,23 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
         <p className="text-gray-400 text-center text-sm leading-relaxed mb-8">This ticket is invalid or has been revoked.</p>
         <Link href="/kumaon-fest/tickets">
           <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black px-8 h-12 rounded-xl">Book New Ticket</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  if (registration.payment_status !== "paid") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 p-6 text-white">
+        <div className="w-20 h-20 bg-yellow-500/10 rounded-full flex items-center justify-center mb-6 border border-yellow-500/20">
+          <XCircle className="w-10 h-10 text-yellow-500" />
+        </div>
+        <h1 className="text-3xl font-black mb-2 text-center tracking-tighter">Payment Incomplete</h1>
+        <p className="text-gray-400 text-center text-sm leading-relaxed mb-8">
+          Your booking is not confirmed. Please complete payment to get your ticket.
+        </p>
+        <Link href="/kumaon-fest/tickets">
+          <Button className="bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black px-8 h-12 rounded-xl">Complete Booking</Button>
         </Link>
       </div>
     );
