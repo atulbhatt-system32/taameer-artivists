@@ -127,9 +127,9 @@ export default function KumaonFestLandingPage() {
       <main>
         {/* ── HERO ─────────────────────────────────────────────────────── */}
         <section className="relative pt-40 pb-20 overflow-hidden">
-          {/* Background Gradients */}
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.1),transparent_70%)] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-1/2 h-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.05),transparent_70%)] pointer-events-none" />
+          {/* Background Gradients — full-width so no seam on mobile */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(234,179,8,0.12),transparent_60%)] pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(59,130,246,0.06),transparent_60%)] pointer-events-none" />
 
           <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
             <motion.div
@@ -271,11 +271,13 @@ export default function KumaonFestLandingPage() {
           
           <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {events.highlights.map((h, i) => (
-              <div key={i} className="bg-white/5 border border-white/10 p-8 rounded-[2rem] hover:bg-yellow-500 hover:border-yellow-500 transition-all group cursor-default">
-                <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-950 transition-colors">
-                  <div className="text-yellow-500 group-hover:text-yellow-500">{getIcon(h.icon)}</div>
+              <div key={i} className="bg-white/5 border border-white/10 p-6 rounded-[2rem] hover:bg-yellow-500 hover:border-yellow-500 transition-all group cursor-default">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-gray-950 transition-colors shrink-0">
+                    <div className="text-yellow-500">{getIcon(h.icon)}</div>
+                  </div>
+                  <h3 className="text-xl font-black group-hover:text-gray-950 transition-colors leading-tight">{h.title}</h3>
                 </div>
-                <h3 className="text-xl font-black mb-3 group-hover:text-gray-950 transition-colors">{h.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed group-hover:text-gray-950/80 transition-colors">{h.description}</p>
               </div>
             ))}

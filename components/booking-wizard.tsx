@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -16,7 +15,6 @@ import {
 } from "@/components/ui/form";
 import { useFieldArray } from "react-hook-form";
 import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -63,9 +61,19 @@ declare global {
   }
 }
 
-export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "full" }) {
-  const [step, setStep] = useState(0); 
-  const [dbConfig, setDbConfig] = useState<any>(null);
+export function BookingWizard({ 
+  variant = "compact",
+  onStepChange
+}: { 
+  variant?: "compact" | "full";
+  onStepChange?: (step: number) => void;
+}) {
+  const [step, setStepInternal] = useState(0); 
+
+  const setStep = (newStep: number) => {
+    setStepInternal(newStep);
+    onStepChange?.(newStep);
+  };  const [dbConfig, setDbConfig] = useState<any>(null);
   const [dbPricing, setDbPricing] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error" | "warning"; message: string } | null>(null);
@@ -162,7 +170,6 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
     form.setValue("passType", type as any);
     form.setValue("quantity", type === "Group of 4" ? "4" : "1");
     setStep(1);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const selectedPass = form.watch("passType");
@@ -555,256 +562,209 @@ export function BookingWizard({ variant = "compact" }: { variant?: "compact" | "
         )}
 
         {step === 1 && (
-          <motion.div key="full-form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="grid lg:grid-cols-3 gap-12">
-            <div className="lg:col-span-2 space-y-8">
+          <motion.div key="full-form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
               <button onClick={() => setStep(0)} className="flex items-center gap-2 text-gray-400 hover:text-yellow-500 transition-colors font-bold uppercase text-xs tracking-widest">
-                <ChevronLeft className="w-4 h-4" /> Go Back
+                <ChevronLeft className="w-4 h-4" /> Change Pass
               </button>
-              
-              <div className="bg-gray-900/50 border border-gray-800 p-5 md:p-12 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl">
-                <div className="mb-8 md:mb-10 text-center md:text-left">
-                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Registration Details</h2>
-                  <p className="text-sm text-gray-400">Booking <span className="text-yellow-500 font-bold">{selectedPass}</span></p>
-                </div>
 
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
-                    <div className="space-y-8">
-                      <div className="flex items-center gap-4 text-yellow-500">
-                        <Users className="w-6 h-6" />
-                        <h3 className="text-xl font-bold tracking-tight">Personal Information</h3>
-                        <div className="h-px bg-gray-800 flex-1" />
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+
+                  {/* ── PASS TYPE ──────────────────────────────────────────── */}
+                  <div className="bg-gray-900/60 border border-gray-800 rounded-2xl p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2 text-yellow-500">
+                        <Ticket className="w-4 h-4" />
+                        <span className="text-sm font-bold uppercase tracking-wider">Pass Type</span>
                       </div>
-                      <div className="grid md:grid-cols-2 gap-8">
+                      <span className="text-xs text-gray-500 font-semibold">{selectedQuantity} Attendee{selectedQuantity > 1 ? "s" : ""}</span>
+                    </div>
+                    <div className={`grid gap-4 ${isGroupOf4 ? "grid-cols-1" : "grid-cols-2"}`}>
+                      <FormField control={form.control} name="passType" render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Selected Pass</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger className="h-11 bg-gray-950 border-gray-800 text-white text-sm rounded-lg"><SelectValue /></SelectTrigger></FormControl>
+                            <SelectContent className="bg-gray-900 border-gray-800 text-white">{tiers.filter(t => !(t as any).offlineOnly).map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </FormItem>
+                      )} />
+                      {!isGroupOf4 && (
+                        <FormField control={form.control} name="quantity" render={({ field }) => {
+                          const qty = parseInt(field.value || "1");
+                          return (
+                            <FormItem className="space-y-2">
+                              <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">No. of Attendees (max 5)</FormLabel>
+                              <div className="flex items-center gap-2 h-11">
+                                <button type="button" onClick={() => qty > 1 && field.onChange(String(qty - 1))} disabled={qty <= 1}
+                                  className="w-11 h-11 rounded-lg bg-gray-950 border border-gray-800 text-white text-lg font-bold flex items-center justify-center hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shrink-0">−</button>
+                                <div className="flex-1 h-11 bg-gray-950 border border-gray-800 rounded-lg flex items-center justify-center text-white font-black text-base">{qty}</div>
+                                <button type="button" onClick={() => qty < 5 && field.onChange(String(qty + 1))} disabled={qty >= 5}
+                                  className="w-11 h-11 rounded-lg bg-gray-950 border border-gray-800 text-white text-lg font-bold flex items-center justify-center hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shrink-0">+</button>
+                              </div>
+                            </FormItem>
+                          );
+                        }} />
+                      )}
+                    </div>
+                    {isGroupOf4 && (
+                      <div className="mt-3 flex items-center gap-2 text-yellow-400 text-xs font-semibold">
+                        <Users className="w-3.5 h-3.5" /> Fill details for all 4 group members below
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ── PASSENGER 1 (YOU) ──────────────────────────────────── */}
+                  <div className="bg-gray-900/60 border border-gray-800 rounded-2xl overflow-hidden">
+                    <div className="flex items-center gap-3 px-5 py-3 bg-yellow-500/10 border-b border-yellow-500/20">
+                      <div className="w-7 h-7 rounded-full bg-yellow-500 text-gray-950 flex items-center justify-center font-black text-xs shrink-0">1</div>
+                      <span className="text-yellow-400 text-sm font-bold">Attendee 1 <span className="text-yellow-600 font-normal">(You)</span></span>
+                    </div>
+                    <div className="p-5 space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <FormField control={form.control} name="fullName" render={({ field }) => (
-                          <FormItem className="space-y-3"><FormLabel className="text-white font-semibold">Full Name *</FormLabel><FormControl><Input placeholder="John Doe" required className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <FormField control={form.control} name="age" render={({ field }) => (
-                          <FormItem className="space-y-3"><FormLabel className="text-white font-semibold">Age *</FormLabel><FormControl><Input type="number" required placeholder="20" className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="gender"
-                        render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel className="text-white font-semibold">Gender</FormLabel>
-                            <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                className="flex flex-wrap gap-6"
-                              >
-                                {["Female", "Male", "Transgender", "I prefer not to say", "Other"].map((opt) => {
-                                  const id = `gender-${opt.toLowerCase().replace(/\s+/g, "-")}`;
-                                  return (
-                                    <FormItem key={opt} className="flex items-center space-x-2 space-y-0">
-                                      <FormControl>
-                                        <RadioGroupItem
-                                          value={opt}
-                                          id={id}
-                                          className="border-gray-700 text-yellow-500"
-                                        />
-                                      </FormControl>
-                                      <FormLabel htmlFor={id} className="font-normal cursor-pointer text-gray-300">
-                                        {opt}
-                                      </FormLabel>
-                                    </FormItem>
-                                  );
-                                })}
-                              </RadioGroup>
-                            </FormControl>
+                          <FormItem className="space-y-2">
+                            <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Full Name *</FormLabel>
+                            <FormControl><Input placeholder="John Doe" required className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
-                        )}
-                      />
+                        )} />
+                        <FormField control={form.control} name="age" render={({ field }) => (
+                          <FormItem className="space-y-2">
+                            <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Age *</FormLabel>
+                            <FormControl><Input type="number" required placeholder="20" className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+                      <FormField control={form.control} name="gender" render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Gender</FormLabel>
+                          <div className="flex flex-wrap gap-2">
+                            {["Female", "Male", "Transgender", "I prefer not to say", "Other"].map(opt => (
+                              <button key={opt} type="button" onClick={() => field.onChange(opt)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${field.value === opt ? "bg-yellow-500 border-yellow-500 text-gray-950" : "bg-gray-950 border-gray-800 text-gray-400 hover:border-gray-600 hover:text-white"}`}>
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
+                  </div>
 
-                      <div className="grid md:grid-cols-2 gap-8">
+                  {/* ── ADDITIONAL PASSENGERS ──────────────────────────────── */}
+                  {fields.map((fieldItem, index) => (
+                    <div key={fieldItem.id} className="bg-gray-900/60 border border-gray-800 rounded-2xl overflow-hidden">
+                      <div className="flex items-center justify-between px-5 py-3 bg-white/5 border-b border-white/5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-7 h-7 rounded-full bg-gray-700 text-white flex items-center justify-center font-black text-xs shrink-0">{index + 2}</div>
+                          <span className="text-gray-300 text-sm font-bold">Attendee {index + 2}</span>
+                        </div>
+                        {!isGroupOf4 && (
+                          <button type="button" onClick={() => form.setValue("quantity", String(selectedQuantity - 1))}
+                            className="text-xs text-red-400 hover:text-red-300 font-semibold transition-colors px-2 py-1 rounded-lg hover:bg-red-500/10">
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      <div className="p-5 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField control={form.control} name={`additionalAttendees.${index}.fullName` as any} render={({ field }) => (
+                            <FormItem className="space-y-2">
+                              <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Full Name *</FormLabel>
+                              <FormControl><Input placeholder={`Attendee ${index + 2} name`} required className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name={`additionalAttendees.${index}.age` as any} render={({ field }) => (
+                            <FormItem className="space-y-2">
+                              <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Age *</FormLabel>
+                              <FormControl><Input type="number" required placeholder="20" className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+                        <FormField control={form.control} name={`additionalAttendees.${index}.gender` as any} render={({ field }) => (
+                          <FormItem className="space-y-2">
+                            <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Gender</FormLabel>
+                            <div className="flex flex-wrap gap-2">
+                              {["Female", "Male", "Transgender", "I prefer not to say", "Other"].map(opt => (
+                                <button key={opt} type="button" onClick={() => field.onChange(opt)}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${field.value === opt ? "bg-yellow-500 border-yellow-500 text-gray-950" : "bg-gray-950 border-gray-800 text-gray-400 hover:border-gray-600 hover:text-white"}`}>
+                                  {opt}
+                                </button>
+                              ))}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Add Attendee button */}
+                  {!isGroupOf4 && selectedQuantity < 5 && (
+                    <button type="button" onClick={() => form.setValue("quantity", String(selectedQuantity + 1))}
+                      className="w-full h-11 border border-dashed border-gray-700 rounded-2xl text-gray-400 hover:text-yellow-500 hover:border-yellow-500/50 transition-all text-sm font-semibold flex items-center justify-center gap-2">
+                      <span className="text-lg leading-none">+</span> Add Attendee <span className="text-gray-600">({selectedQuantity}/5)</span>
+                    </button>
+                  )}
+
+                  {/* ── CONTACT DETAILS ────────────────────────────────────── */}
+                  <div className="bg-gray-900/60 border border-gray-800 rounded-2xl overflow-hidden">
+                    <div className="flex items-center gap-2 px-5 py-3 bg-white/5 border-b border-white/5">
+                      <span className="text-gray-300 text-sm font-bold uppercase tracking-wider">Contact Details</span>
+                    </div>
+                    <div className="p-5 space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <FormField control={form.control} name="whatsappNo" render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel className="text-white font-semibold">WhatsApp Number *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="+91 XXXXX XXXXX" required className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} />
-                            </FormControl>
+                          <FormItem className="space-y-2">
+                            <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">WhatsApp *</FormLabel>
+                            <FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                         <FormField control={form.control} name="contactNo" render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel className="text-white font-semibold">Contact Number *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="+91 XXXXX XXXXX" required className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} />
-                            </FormControl>
+                          <FormItem className="space-y-2">
+                            <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Contact *</FormLabel>
+                            <FormControl><Input placeholder="+91 XXXXX XXXXX" required className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                       </div>
                       <FormField control={form.control} name="email" render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormLabel className="text-white font-semibold">Email Address *</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder="you@example.com" required className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} />
-                          </FormControl>
+                        <FormItem className="space-y-2">
+                          <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Email Address *</FormLabel>
+                          <FormControl><Input type="email" placeholder="you@example.com" required className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="address" render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Address</FormLabel>
+                          <FormControl><Textarea placeholder="Street, City, State, PIN" className="bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 min-h-[80px] rounded-lg p-4" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                     </div>
+                  </div>
 
-                    <div className="space-y-8">
-                      <div className="flex items-center gap-4 text-yellow-500">
-                        <Ticket className="w-6 h-6" />
-                        <h3 className="text-xl font-bold tracking-tight">Booking Info</h3>
-                        <div className="h-px bg-gray-800 flex-1" />
-                      </div>
-                      <div className={`grid gap-8 ${isGroupOf4 ? "md:grid-cols-1" : "md:grid-cols-2"}`}>
-                        <FormField control={form.control} name="passType" render={({ field }) => (
-                          <FormItem className="space-y-3"><FormLabel className="text-white font-semibold">Pass Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger className="h-11 bg-gray-950 border-gray-800 text-white text-sm rounded-lg"><SelectValue /></SelectTrigger></FormControl><SelectContent className="bg-gray-900 border-gray-800 text-white">{tiers.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent></Select></FormItem>
-                        )} />
-                        {!isGroupOf4 && (
-                          <FormField control={form.control} name="quantity" render={({ field }) => {
-                            const qty = parseInt(field.value || "1");
-                            const dec = () => qty > 1 && field.onChange(String(qty - 1));
-                            const inc = () => qty < 5 && field.onChange(String(qty + 1));
-                            return (
-                              <FormItem className="space-y-3">
-                                <FormLabel className="text-white font-semibold">Number of People</FormLabel>
-                                <FormControl>
-                                  <div className="flex items-center gap-3">
-                                    <button
-                                      type="button"
-                                      onClick={dec}
-                                      disabled={qty <= 1}
-                                      className="w-11 h-11 rounded-lg bg-gray-900 border border-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                    >−</button>
-                                    <div className="flex-1 h-11 bg-gray-950 border border-gray-800 rounded-lg flex items-center justify-center text-white font-black text-lg tracking-tight">
-                                      {qty}
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={inc}
-                                      disabled={qty >= 5}
-                                      className="w-11 h-11 rounded-lg bg-gray-900 border border-gray-800 text-white text-xl font-bold flex items-center justify-center hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                    >+</button>
-                                  </div>
-                                </FormControl>
-                                <FormDescription className="text-xs text-gray-500">Max 5 per booking.</FormDescription>
-                                <FormMessage />
-                              </FormItem>
-                            );
-                          }} />
-                        )}
-                      </div>
+                  {/* ── TERMS + SUBMIT ─────────────────────────────────────── */}
+                  <FormField control={form.control} name="agreed" render={({ field }) => (
+                    <FormItem className="flex items-start space-x-3 space-y-0 p-4 bg-yellow-500/5 rounded-xl border border-yellow-500/10">
+                      <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-0.5 border-gray-700 data-[state=checked]:bg-yellow-500" /></FormControl>
+                      <FormLabel className="text-sm text-gray-400 cursor-pointer leading-relaxed">I agree to the terms and conditions.</FormLabel>
+                    </FormItem>
+                  )} />
 
-                      {/* Group of 4 banner */}
-                      {isGroupOf4 && (
-                        <div className="flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
-                          <Users className="w-5 h-5 text-yellow-500 shrink-0" />
-                          <p className="text-yellow-400 text-sm font-semibold">Group of 4 selected — please fill in details for all 4 members below.</p>
-                        </div>
-                      )}
-
-                      {/* Additional Attendees / Group Members */}
-                      {fields.length > 0 && (
-                        <div className="space-y-8 pt-4">
-                          <div className="flex items-center gap-4 text-yellow-500">
-                            <Users className="w-6 h-6" />
-                            <h3 className="text-xl font-bold tracking-tight">
-                              {isGroupOf4 ? "Group Members" : "Other Persons Details"}
-                            </h3>
-                            <div className="h-px bg-gray-800 flex-1" />
-                          </div>
-                          <div className="space-y-10">
-                            {fields.map((field, index) => (
-                              <div key={field.id} className="p-4 md:p-6 bg-white/5 rounded-[1.5rem] md:rounded-[2rem] border border-white/5 space-y-4 md:space-y-6">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-yellow-500 text-gray-950 flex items-center justify-center font-bold text-xs md:text-sm">
-                                    {index + 2}
-                                  </div>
-                                  <span className="font-bold text-white uppercase tracking-widest text-[10px] md:text-xs">Person {index + 2}</span>
-                                </div>
-                                <div className="grid md:grid-cols-2 gap-8">
-                                  <FormField
-                                    control={form.control}
-                                    name={`additionalAttendees.${index}.fullName` as any}
-                                    render={({ field }) => (
-                                      <FormItem className="space-y-3">
-                                        <FormLabel className="text-white font-semibold">Full Name *</FormLabel>
-                                        <FormControl>
-                                          <Input placeholder={`Person ${index + 2} Name`} required className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={form.control}
-                                    name={`additionalAttendees.${index}.age` as any}
-                                    render={({ field }) => (
-                                      <FormItem className="space-y-3">
-                                        <FormLabel className="text-white font-semibold">Age *</FormLabel>
-                                        <FormControl>
-                                          <Input type="number" required placeholder="20" className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
-                                <FormField
-                                  control={form.control}
-                                  name={`additionalAttendees.${index}.gender` as any}
-                                  render={({ field }) => (
-                                    <FormItem className="space-y-3">
-                                      <FormLabel className="text-white font-semibold">Gender</FormLabel>
-                                      <FormControl>
-                                        <RadioGroup
-                                          onValueChange={field.onChange}
-                                          value={field.value}
-                                          className="flex flex-wrap gap-6"
-                                        >
-                                          {["Female", "Male", "Transgender", "I prefer not to say", "Other"].map((opt) => {
-                                            const id = `gender-${index}-${opt.toLowerCase().replace(/\s+/g, "-")}`;
-                                            return (
-                                              <FormItem key={opt} className="flex items-center space-x-2 space-y-0">
-                                                <FormControl>
-                                                  <RadioGroupItem
-                                                    value={opt}
-                                                    id={id}
-                                                    className="border-gray-700 text-yellow-500"
-                                                  />
-                                                </FormControl>
-                                                <FormLabel htmlFor={id} className="font-normal cursor-pointer text-gray-300">
-                                                  {opt}
-                                                </FormLabel>
-                                              </FormItem>
-                                            );
-                                          })}
-                                        </RadioGroup>
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      <FormField control={form.control} name="address" render={({ field }) => (
-                        <FormItem className="space-y-3"><FormLabel className="text-white font-semibold">Complete Address</FormLabel><FormControl><Textarea placeholder="Street, City, State, PIN" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500 min-h-[120px] rounded-xl p-4" {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <FormField control={form.control} name="agreed" render={({ field }) => (
-                        <FormItem className="flex items-start space-x-3 space-y-0 p-5 bg-yellow-500/5 rounded-xl border border-yellow-500/10"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-0.5 border-gray-700 data-[state=checked]:bg-yellow-500" /></FormControl><FormLabel className="text-sm text-gray-400 cursor-pointer leading-relaxed">I agree to the terms and conditions.</FormLabel></FormItem>
-                      )} />
-                    </div>
-
-                    <Button type="submit" disabled={isSubmitting} className="w-full h-16 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-xl rounded-2xl shadow-2xl transition-all active:scale-[0.98]">
-                      {isSubmitting ? "Processing Payment..." : `Proceed to Pay ₹${getPrice()}`}
-                    </Button>
-                  </form>
-                </Form>
-              </div>
+                  <Button type="submit" disabled={isSubmitting} className="w-full h-14 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-lg rounded-2xl shadow-2xl transition-all active:scale-[0.98]">
+                    {isSubmitting ? "Processing Payment..." : `Proceed to Pay ₹${getPrice()}`}
+                  </Button>
+                </form>
+              </Form>
             </div>
 
             <div className="sticky top-8 space-y-8">
