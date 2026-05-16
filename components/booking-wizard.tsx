@@ -78,6 +78,110 @@ export function BookingWizard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error" | "warning"; message: string } | null>(null);
   const [registrationId, setRegistrationId] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const downloadTicket = async () => {
+    if (!registrationId) return;
+    setIsDownloading(true);
+    try {
+      const QRCode = await import("qrcode");
+      const verifyUrl = `${window.location.origin}/kumaon-fest/verify/${registrationId}`;
+      const qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 300, margin: 2, color: { dark: "#000000", light: "#ffffff" } });
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 600;
+      canvas.height = 860;
+      const ctx = canvas.getContext("2d")!;
+
+      // Background
+      ctx.fillStyle = "#111827";
+      ctx.roundRect(0, 0, 600, 860, 24);
+      ctx.fill();
+
+      // Yellow header band
+      ctx.fillStyle = "#EAB308";
+      ctx.roundRect(0, 0, 600, 160, [24, 24, 0, 0]);
+      ctx.fill();
+
+      // Header text
+      ctx.fillStyle = "#000000";
+      ctx.font = "bold 42px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("KUMAON FEST 2026", 300, 70);
+      ctx.font = "bold 18px sans-serif";
+      ctx.fillText("SUMMER CARNIVAL · OFFICIAL ENTRY PASS", 300, 108);
+      ctx.font = "14px sans-serif";
+      ctx.fillText("30 May 2026  ·  Kripa Sindhu Lawn, Haldwani", 300, 140);
+
+      // Dashed divider
+      ctx.setLineDash([12, 8]);
+      ctx.strokeStyle = "#374151";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(40, 180);
+      ctx.lineTo(560, 180);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Attendee name
+      const name = form.getValues("email") ? form.getValues("fullName") || "Attendee" : "Attendee";
+      ctx.fillStyle = "#9CA3AF";
+      ctx.font = "bold 11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("ATTENDEE", 300, 215);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "bold 28px sans-serif";
+      ctx.fillText(name, 300, 248);
+
+      // QR code
+      const qrImg = new Image();
+      await new Promise<void>((resolve) => {
+        qrImg.onload = () => resolve();
+        qrImg.src = qrDataUrl;
+      });
+      ctx.fillStyle = "#FFFFFF";
+      ctx.roundRect(175, 270, 250, 250, 16);
+      ctx.fill();
+      ctx.drawImage(qrImg, 185, 280, 230, 230);
+
+      // Ticket ID
+      ctx.fillStyle = "#6B7280";
+      ctx.font = "11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`TICKET ID: ${registrationId}`, 300, 550);
+
+      // Bottom dashed divider
+      ctx.setLineDash([12, 8]);
+      ctx.strokeStyle = "#374151";
+      ctx.beginPath();
+      ctx.moveTo(40, 575);
+      ctx.lineTo(560, 575);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Instructions
+      ctx.fillStyle = "#9CA3AF";
+      ctx.font = "13px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Present this QR code at the gate for entry", 300, 615);
+      ctx.fillText("Carry a valid ID for age verification", 300, 640);
+
+      // Footer
+      ctx.fillStyle = "#374151";
+      ctx.font = "11px sans-serif";
+      ctx.fillText("taameerartivists.org  ·  © 2026 Taameer Artivists Foundation", 300, 820);
+
+      // Trigger download
+      const link = document.createElement("a");
+      link.download = `kumaon-fest-ticket-${registrationId.slice(0, 8)}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (e) {
+      console.error("Download failed", e);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   // All data comes from Supabase — no local fallbacks
   const tiers = dbPricing;
@@ -393,8 +497,12 @@ export function BookingWizard({
               <div className="space-y-2">
                 <h3 className="text-2xl font-bold text-white">Success!</h3>
                 <p className="text-xs text-gray-400 max-w-[200px] mx-auto">Your ticket has been sent to your email.</p>
+                <p className="text-xs text-yellow-500/80 max-w-[220px] mx-auto">📬 Can&apos;t find it? Check your spam / junk folder.</p>
               </div>
-              <Button onClick={() => window.location.href = `/kumaon-fest/verify/${registrationId}`} className="w-full h-12 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold transition-all active:scale-95">View Ticket</Button>
+              <div className="flex flex-col gap-2 w-full">
+                <Button onClick={downloadTicket} disabled={isDownloading} className="w-full h-12 bg-yellow-500 hover:bg-yellow-600 text-gray-950 rounded-xl font-black transition-all active:scale-95">{isDownloading ? "Generating..." : "⬇ Download Ticket"}</Button>
+                <Button onClick={() => window.location.href = `/kumaon-fest/verify/${registrationId}`} className="w-full h-12 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold transition-all active:scale-95">View Ticket</Button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -808,8 +916,10 @@ export function BookingWizard({
             <div className="space-y-2">
               <h2 className="text-5xl font-black text-white italic tracking-tighter">BOOM! YOU&apos;RE IN.</h2>
               <p className="text-gray-400 text-xl">Your ticket for Kumaon Fest 2026 has been sent to <span className="text-white font-bold">{form.getValues("email")}</span></p>
+              <p className="text-yellow-500/80 text-sm font-medium">📬 Can&apos;t find it? Check your spam / junk folder.</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button onClick={downloadTicket} disabled={isDownloading} className="h-14 px-10 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-2xl text-lg">{isDownloading ? "Generating..." : "⬇ Download Ticket"}</Button>
               <Button onClick={() => window.location.href = `/kumaon-fest/verify/${registrationId}`} className="h-14 px-10 bg-white hover:bg-gray-100 text-gray-950 font-black rounded-2xl text-lg">View Digital Ticket</Button>
               <Button onClick={() => window.location.href = "/"} className="h-14 px-10 border border-gray-800 bg-transparent text-white hover:bg-gray-800 rounded-2xl font-bold transition-all">Back to Home</Button>
             </div>

@@ -307,6 +307,20 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
               </div>
             )}
             
+            {!isAdmin && (
+              <div className="space-y-3 pt-2 print:hidden">
+                <Button
+                  onClick={() => window.print()}
+                  className="w-full h-14 rounded-2xl font-black bg-yellow-500 hover:bg-yellow-600 text-gray-950 text-base shadow-lg shadow-yellow-500/20"
+                >
+                  ⬇ Download / Save as PDF
+                </Button>
+                <p className="text-center text-[10px] text-gray-600 font-medium">
+                  Use &quot;Save as PDF&quot; in the print dialog to download your ticket.
+                </p>
+              </div>
+            )}
+
             <div className="text-center opacity-30">
                <p className="text-[9px] font-black uppercase tracking-widest">Ticket ID: {registration.id}</p>
             </div>
