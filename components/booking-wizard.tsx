@@ -324,7 +324,7 @@ export function BookingWizard({
         return;
       }
 
-      const cashfree = window.Cashfree({ mode: "sandbox" }); // Change to "production" for live
+      const cashfree = window.Cashfree({ mode: process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === "PRODUCTION" ? "production" : "sandbox" });
 
       cashfree.checkout({
         paymentSessionId: order.paymentSessionId,
