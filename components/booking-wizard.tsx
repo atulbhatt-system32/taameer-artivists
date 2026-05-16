@@ -152,8 +152,8 @@ export function BookingWizard({
   const selectedQuantity = parseInt(form.watch("quantity") || "1");
 
   useEffect(() => {
-    const currentCount = fields.length;
     const targetCount = Math.max(0, selectedQuantity - 1);
+    const currentCount = fields.length;
 
     if (targetCount > currentCount) {
       for (let i = currentCount; i < targetCount; i++) {
@@ -164,7 +164,7 @@ export function BookingWizard({
         remove(i);
       }
     }
-  }, [selectedQuantity, append, remove, fields.length]);
+  }, [selectedQuantity, append, remove]);
 
   const selectPass = (type: string) => {
     form.setValue("passType", type as any);

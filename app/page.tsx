@@ -536,14 +536,18 @@ export default function HomePage() {
             <div className="text-white text-2xl font-black tracking-tighter leading-none flex items-baseline gap-1">
               ₹{minPrice}<span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider ml-0.5">onwards</span>
             </div>
-            {isEarlyBird && earlyBirdEnd && (
+            {isEarlyBird && earlyBirdEnd ? (
               <div className="text-[9px] text-red-400 font-bold mt-0.5 tracking-wide">
-                Ends {earlyBirdEnd}
+                🔥 Ends {earlyBirdEnd}
               </div>
-            )}
+            ) : (!isEarlyBird && earlyBirdStart && earlyBirdEnd) ? (
+              <div className="text-[9px] text-gray-500 font-bold mt-0.5 tracking-wide">
+                Early Bird: {earlyBirdStart} → {earlyBirdEnd}
+              </div>
+            ) : null}
           </div>
           
-          <Button asChild className="h-12 md:h-14 px-6 md:px-8 bg-yellow-600 hover:bg-yellow-700 text-white font-black rounded-full text-sm md:text-base shadow-lg shadow-red-600/20 group transition-all active:scale-95 shrink-0">
+          <Button asChild className="h-12 md:h-14 px-6 md:px-8 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-full text-sm md:text-base shadow-lg shadow-yellow-500/20 group transition-all active:scale-95 shrink-0">
             <Link href="/kumaon-fest/tickets" className="flex items-center gap-2">
               <span>Book Now</span> 
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

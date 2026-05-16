@@ -127,11 +127,21 @@ export default function KumaonFestLandingPage() {
       <main>
         {/* ── HERO ─────────────────────────────────────────────────────── */}
         <section className="relative pt-40 pb-20 overflow-hidden">
-          {/* Background Gradients — full-width so no seam on mobile */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(234,179,8,0.12),transparent_60%)] pointer-events-none" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(59,130,246,0.06),transparent_60%)] pointer-events-none" />
+          {/* Background crowd photo */}
+          <div className="absolute inset-0">
+            <Image
+              src="/new-images/IMG_6620.JPEG"
+              fill
+              alt=""
+              className="object-cover object-center"
+              priority
+            />
+            <div className="absolute inset-0 bg-gray-950/75" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(234,179,8,0.10),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,0,0,0.4),transparent_60%)]" />
+          </div>
 
-          <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+          <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -375,19 +385,21 @@ export default function KumaonFestLandingPage() {
         </section>
 
         {/* ── TICKETS CTA ─────────────────────────────────────────────── */}
-        <section className="py-32 bg-red-600 relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_70%)]" />
+        <section className="py-32 bg-gray-950 relative overflow-hidden border-y border-white/5">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.08),transparent_70%)]" />
           <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
-            <Sparkles className="w-12 h-12 text-white mx-auto mb-8 animate-bounce" />
-            <h2 className="text-6xl md:text-7xl font-black tracking-tighter mb-6 text-white leading-none">
+            <Sparkles className="w-12 h-12 text-yellow-500 mx-auto mb-8 animate-pulse" />
+            <h2 className="text-6xl md:text-7xl font-black tracking-tighter mb-6 text-white leading-none uppercase">
               {tickets.title}
             </h2>
-            <p className="text-white/80 text-xl mb-12 max-w-xl mx-auto font-medium">
+            <p className="text-gray-400 text-xl mb-12 max-w-xl mx-auto font-medium">
               {tickets.subtitle}
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button asChild size="lg" className="h-16 md:h-20 px-10 md:px-12 bg-white hover:bg-gray-50 text-red-600 font-black rounded-2xl text-xl md:text-2xl shadow-2xl transition-all hover:scale-105 active:scale-95">
-                <Link href="/kumaon-fest/tickets">Reserve My Spot <ArrowRight className="ml-2 w-6 h-6 md:w-7 md:h-7" /></Link>
+              <Button asChild size="lg" className="h-16 md:h-20 px-10 md:px-12 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-2xl text-xl md:text-2xl shadow-[0_20px_50px_rgba(234,179,8,0.3)] transition-all hover:scale-105 active:scale-95">
+                <Link href="/kumaon-fest/tickets" className="flex items-center gap-3">
+                  Book Now <ArrowRight className="w-6 h-6 md:w-7 md:h-7" />
+                </Link>
               </Button>
             </div>
           </div>
@@ -429,9 +441,9 @@ export default function KumaonFestLandingPage() {
             ) : null}
           </div>
           
-          <Button asChild className="h-12 md:h-14 px-6 md:px-8 bg-red-600 hover:bg-red-700 text-white font-black rounded-full text-sm md:text-base shadow-lg shadow-red-600/20 group transition-all active:scale-95 shrink-0">
+          <Button asChild className="h-12 md:h-14 px-6 md:px-8 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-full text-sm md:text-base shadow-lg shadow-yellow-500/20 group transition-all active:scale-95 shrink-0">
             <Link href="/kumaon-fest/tickets" className="flex items-center gap-2">
-              <span>Reserve Now</span> 
+              <span>Book Now</span> 
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </Button>

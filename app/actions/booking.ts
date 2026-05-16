@@ -1,7 +1,6 @@
 "use server"
 
 import { supabase } from "@/lib/supabase";
-import { Cashfree, CFEnvironment } from "cashfree-pg";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 import { unstable_noStore as noStore } from "next/cache";
@@ -32,19 +31,20 @@ export interface PaymentConfirmationData {
 // Initialize Cashfree
 const cashfreeAppId = process.env.CASHFREE_APP_ID || "";
 const cashfreeSecretKey = process.env.CASHFREE_SECRET_KEY || "";
-const cashfreeEnv = process.env.CASHFREE_ENVIRONMENT === "PRODUCTION"
-  ? CFEnvironment.PRODUCTION
-  : CFEnvironment.SANDBOX;
 
-function getCashfreeClient() {
+async function getCashfreeClient() {
   if (!cashfreeAppId || !cashfreeSecretKey) {
     throw new Error("Cashfree API keys are missing! Check your .env file.");
   }
-  return new Cashfree(cashfreeEnv, cashfreeAppId, cashfreeSecretKey);
+  const { Cashfree, CFEnvironment } = await import("cashfree-pg");
+  const env = process.env.CASHFREE_ENVIRONMENT === "PRODUCTION"
+    ? CFEnvironment.PRODUCTION
+    : CFEnvironment.SANDBOX;
+  return new Cashfree(env, cashfreeAppId, cashfreeSecretKey);
 }
 
 export async function createCashfreeOrder(amount: number, customerDetails: { name: string; email: string; phone: string }) {
-  const cashfree = getCashfreeClient();
+  const cashfree = await getCashfreeClient();
 
   const orderId = `KF_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -121,7 +121,7 @@ export async function confirmPayment(data: PaymentConfirmationData) {
 
   // 1. SECURITY: Verify payment with Cashfree API
   try {
-    const cashfree = getCashfreeClient();
+    const cashfree = await getCashfreeClient();
     const orderResponse = await cashfree.PGOrderFetchPayments(data.orderId);
     const payments = orderResponse.data;
     
@@ -246,6 +246,20 @@ export async function confirmPayment(data: PaymentConfirmationData) {
                     Tip: You can forward this email to other attendees or save the screenshots of individual QR codes.
                   </p>
                 </div>
+
+                <div style="text-align: center; margin-top: 30px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+                  <p style="color: #94a3b8; font-size: 11px; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                    30 May 2026 &middot; <a href="https://www.google.com/maps/search/?api=1&query=Kripa+Sindhu+Banquet+Haldwani" style="color: #EAB308; text-decoration: none;">Haldwani, Uttarakhand</a>
+                  </p>
+                  <div style="margin-bottom: 16px;">
+                    <a href="https://www.google.com/maps/search/?api=1&query=Kripa+Sindhu+Banquet+Haldwani" style="display: inline-block; color: #64748b; font-size: 12px; font-weight: 700; text-decoration: none; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 99px;">
+                      📍 Kripa Sindhu Banquet, Haldwani — View on Map
+                    </a>
+                  </div>
+                  <p style="color: #cbd5e1; font-size: 10px; margin: 0; font-weight: 500;">
+                    © 2026 Taameer Artivists Foundation.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -336,29 +350,35 @@ export async function resendConfirmationEmail(id: string) {
   // Generate individual ticket sections
   const ticketSections = allTickets.map(ticket => {
     const verifyUrl = `${domain}/kumaon-fest/verify/${ticket.id}`;
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verifyUrl)}`;
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(verifyUrl)}`;
     
     return `
-      <div style="background-color: #f8fafc; border: 2px dashed #e2e8f0; border-radius: 20px; padding: 25px; margin-bottom: 35px; page-break-inside: avoid;">
-        <table style="width: 100%; border-collapse: collapse;">
+      <div style="background-color: #111827; border: 1px solid #1f2937; border-radius: 28px; padding: 32px; margin-bottom: 30px; border-left: 4px solid #EAB308;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td style="padding-bottom: 15px;">
-              <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block;">Attendee</span>
-              <strong style="font-size: 18px; color: #1e293b;">${ticket.full_name}</strong>
+            <td align="left" style="padding-bottom: 20px;">
+              <span style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 4px;">Attendee Name</span>
+              <span style="font-size: 18px; font-weight: 800; color: #ffffff;">${ticket.full_name}</span>
             </td>
-            <td style="padding-bottom: 15px; text-align: right;">
-              <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block;">Pass Type</span>
-              <strong style="font-size: 14px; color: #1e293b;">${ticket.pass_type}</strong>
+            <td align="right" style="padding-bottom: 20px;">
+              <span style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 4px;">Pass Type</span>
+              <span style="background-color: rgba(234, 179, 8, 0.1); color: #EAB308; font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 10px; border: 1px solid rgba(234, 179, 8, 0.2);">${ticket.pass_type}</span>
             </td>
           </tr>
         </table>
-        <div style="text-align: center; margin: 20px 0;">
-          <img src="${qrCodeUrl}" alt="Ticket QR Code" style="display: block; width: 180px; height: 180px; margin: 0 auto;" />
-          <p style="font-size: 10px; color: #94a3b8; margin-top: 10px; font-family: monospace;">TICKET ID: ${ticket.id}</p>
+        
+        <div style="background-color: #ffffff; border-radius: 20px; padding: 25px; text-align: center; margin: 15px 0 25px 0;">
+          <img src="${qrCodeUrl}" alt="Ticket QR Code" width="200" height="200" style="display: block; margin: 0 auto; border: 0;" />
+          <p style="font-size: 10px; color: #94a3b8; margin: 15px 0 0 0; font-family: 'Courier New', Courier, monospace; font-weight: 700;">TICKET ID: ${ticket.id}</p>
         </div>
-        <div style="text-align: center;">
-          <a href="${verifyUrl}" style="display: inline-block; background-color: #EAB308; color: #000000; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 700; text-decoration: none;">View Digital Ticket</a>
-        </div>
+
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td align="center">
+              <a href="${verifyUrl}" style="display: inline-block; background-color: #EAB308; color: #020617; padding: 14px 32px; border-radius: 14px; font-size: 14px; font-weight: 900; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(234, 179, 8, 0.2);">View Full Ticket</a>
+            </td>
+          </tr>
+        </table>
       </div>
     `;
   }).join("");
@@ -367,30 +387,81 @@ export async function resendConfirmationEmail(id: string) {
     await transporter.sendMail({
       from: `"The Kumaon Fest" <${smtpUser}>`,
       to: triggerTicket.email,
-      subject: `Booking Confirmation (${allTickets.length} Tickets) - The Kumaon Fest`,
+      subject: `Booking Confirmed! (${allTickets.length} Tickets) - The Kumaon Fest 2026`,
       html: `
-        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f7f9; padding: 40px 20px;">
-          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #e1e8ed;">
-            <div style="background: linear-gradient(135deg, #EAB308, #CA8A04); padding: 40px 20px; text-align: center; color: #000000;">
-              <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">The Kumaon Fest 2026</h1>
-              <p style="margin: 10px 0 0; opacity: 0.9; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 2px;">Your Entry Passes Are Ready</p>
-            </div>
-            <div style="padding: 40px; color: #1f2937;">
-              <p style="font-size: 18px; margin-bottom: 20px;">Hi <strong>${triggerTicket.full_name}</strong>,</p>
-              <p style="font-size: 16px; line-height: 1.6; color: #4b5563; margin-bottom: 30px;">
-                As requested, here are your booking details for <strong>The Kumaon Fest 2026</strong>. Each attendee must present their own QR code at the gate.
-              </p>
-              
-              ${ticketSections}
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Your Booking is Confirmed</title>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc; min-height: 100vh; padding: 40px 10px;">
+            <tr>
+              <td align="center">
+                <table width="100%" maxWidth="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 32px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+                  <!-- Header -->
+                  <tr>
+                    <td align="center" style="background-color: #EAB308; padding: 50px 40px;">
+                      <img src="https://czhimmclvuvbamybpgmy.supabase.co/storage/v1/object/public/event-assets/logo.png" width="80" height="80" alt="Kumaon Fest Logo" style="display: block; margin-bottom: 24px; border: 0;" />
+                      <h1 style="color: #000000; font-size: 32px; font-weight: 900; letter-spacing: -0.04em; margin: 0; text-transform: uppercase; line-height: 1;">
+                        KUMAON <span style="color: #000000; opacity: 0.7;">FEST</span>
+                      </h1>
+                      <p style="color: #000000; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; margin: 12px 0 0 0; opacity: 0.8;">Summer Carnival 2026</p>
+                    </td>
+                  </tr>
 
-              <div style="text-align: center; margin-top: 20px; padding: 20px; background-color: #fffbeb; border-radius: 16px; border: 1px solid #fef3c7;">
-                <p style="margin: 0; font-size: 13px; color: #92400e; font-weight: 600;">
-                  Tip: You can forward this email to other attendees or save the screenshots of individual QR codes.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+                  <!-- Main Content -->
+                  <tr>
+                    <td style="padding: 45px;">
+                      <h2 style="color: #0f172a; font-size: 24px; font-weight: 800; margin: 0 0 15px 0;">Hi ${triggerTicket.full_name},</h2>
+                      <p style="color: #64748b; font-size: 16px; line-height: 1.6; margin: 0 0 35px 0;">
+                        Your entry passes are ready! We&apos;ve confirmed your booking for <strong>${allTickets.length} attendees</strong>. Please present these QR codes at the gate for entry.
+                      </p>
+                      
+                      ${ticketSections}
+
+                      <!-- Important Notes -->
+                      <div style="background-color: #fffbeb; border: 2px dashed #fef3c7; border-radius: 24px; padding: 24px;">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                          <tr>
+                            <td align="left">
+                              <h3 style="color: #92400e; font-size: 14px; font-weight: 800; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 1px;">Entry Protocol</h3>
+                              <p style="color: #b45309; font-size: 13px; line-height: 1.5; margin: 0;">
+                                • Screenshots are allowed for offline use.<br />
+                                • Each QR is unique to an attendee.<br />
+                                • Carry a valid ID for age verification at the gate.
+                              </p>
+                            </td>
+                          </tr>
+                        </table>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Footer -->
+                  <tr>
+                    <td align="center" style="padding: 0 45px 45px 45px;">
+                      <p style="color: #94a3b8; font-size: 11px; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                        30 May 2026 · <a href="https://www.google.com/maps/search/?api=1&query=Kripa+Sindhu+Banquet+Haldwani" style="color: #EAB308; text-decoration: none;">Haldwani, Uttarakhand</a>
+                      </p>
+                      <div style="margin-bottom: 20px;">
+                        <a href="https://www.google.com/maps/search/?api=1&query=Kripa+Sindhu+Banquet+Haldwani" style="display: inline-flex; align-items: center; color: #64748b; font-size: 12px; font-weight: 700; text-decoration: none; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 99px;">
+                          📍 View Location on Map
+                        </a>
+                      </div>
+                      <p style="color: #cbd5e1; font-size: 10px; margin: 0; font-weight: 500;">
+                        © 2026 Taameer Artivists Foundation.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
       `,
     });
     return { success: true };
