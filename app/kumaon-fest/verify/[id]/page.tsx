@@ -8,6 +8,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Html5Qrcode } from "html5-qrcode";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { sendCheckInEmail } from "@/app/actions/booking";
 
 interface Registration {
   id: string;
@@ -138,6 +139,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
         .eq("id", id)
         .single();
       setRegistration(data as Registration);
+      sendCheckInEmail(id);
     }
     setCheckInLoading(false);
   };

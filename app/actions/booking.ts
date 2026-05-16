@@ -274,6 +274,108 @@ export async function confirmPayment(data: PaymentConfirmationData) {
   return { success: true, emailError };
 }
 
+export async function sendCheckInEmail(id: string) {
+  const { data: ticket, error } = await supabase
+    .from("registrations")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !ticket) return { success: false };
+
+  const smtpUser = process.env.GOOGLE_SMTP_USER;
+  const smtpPass = process.env.GOOGLE_SMTP_PASS;
+  if (!smtpUser || !smtpPass) return { success: false };
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: smtpUser, pass: smtpPass },
+  });
+
+  const checkedInAt = ticket.checked_in_at
+    ? new Date(ticket.checked_in_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })
+    : "";
+
+  try {
+    await transporter.sendMail({
+      from: `"The Kumaon Fest" <${smtpUser}>`,
+      to: ticket.email,
+      subject: `You're Checked In! 🎉 — Kumaon Fest 2026`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+        <body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8fafc;padding:40px 10px;">
+            <tr><td align="center">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;background-color:#ffffff;border-radius:28px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.06);border:1px solid #e2e8f0;">
+
+                <!-- Header -->
+                <tr>
+                  <td align="center" style="background-color:#16a34a;padding:44px 40px 36px;">
+                    <div style="width:72px;height:72px;background-color:#ffffff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;">
+                      <span style="font-size:36px;">✅</span>
+                    </div>
+                    <h1 style="color:#ffffff;font-size:28px;font-weight:900;letter-spacing:-0.04em;margin:0;line-height:1.1;">You're Checked In!</h1>
+                    <p style="color:#bbf7d0;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:2px;margin:10px 0 0;">Kumaon Fest 2026 · Summer Carnival</p>
+                  </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                  <td style="padding:40px;">
+                    <p style="font-size:18px;font-weight:700;color:#0f172a;margin:0 0 8px;">Hi ${ticket.full_name},</p>
+                    <p style="font-size:15px;color:#64748b;line-height:1.6;margin:0 0 32px;">Your entry has been verified by our team. Welcome to the biggest night in Haldwani — enjoy every moment! 🎶</p>
+
+                    <!-- Entry card -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;margin-bottom:28px;">
+                      <tr>
+                        <td style="padding:24px 28px;">
+                          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td style="padding-bottom:16px;border-bottom:1px solid #e2e8f0;">
+                                <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:4px;">Pass Type</span>
+                                <span style="font-size:17px;font-weight:800;color:#0f172a;">${ticket.pass_type}</span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding-top:16px;">
+                                <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:4px;">Entry Time</span>
+                                <span style="font-size:17px;font-weight:800;color:#16a34a;">${checkedInAt} · 30 May 2026</span>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Venue note -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fefce8;border:1px solid #fef9c3;border-radius:16px;margin-bottom:32px;">
+                      <tr>
+                        <td style="padding:18px 22px;">
+                          <p style="margin:0;font-size:13px;color:#854d0e;font-weight:600;">📍 Kripa Sindhu Lawn, Haldwani &nbsp;·&nbsp; Gates open 5:00 PM onwards</p>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <p style="font-size:13px;color:#94a3b8;text-align:center;margin:0;">
+                      © 2026 Taameer Artivists Foundation
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td></tr>
+          </table>
+        </body>
+        </html>
+      `,
+    });
+    return { success: true };
+  } catch {
+    return { success: false };
+  }
+}
+
 export async function getRegistrations() {
   const { data, error } = await supabase
     .from("registrations")

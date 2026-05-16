@@ -250,17 +250,25 @@ export default function AdminPage() {
     };
   }, [showScanner]);
 
-   const stats = {
-    total: registrations.filter(r => r.payment_status === 'paid').length,
-    pax: registrations.filter(r => r.payment_status === 'paid').reduce((acc, curr) => acc + (curr.quantity || 0), 0),
-    revenue: registrations.filter(r => r.payment_status === 'paid').reduce((acc, curr) => {
-      const tier = tiers.find(t => t.name === curr.pass_type);
+  const paidRegs = registrations.filter(r => r.payment_status === 'paid');
+
+  // Determine early bird window from config so we can check each booking's date
+  const ebStart = dbConfig?.early_bird_start ? new Date(dbConfig.early_bird_start) : null;
+  const ebEnd   = dbConfig?.early_bird_end   ? new Date(dbConfig.early_bird_end)   : null;
+
+  const stats = {
+    total: paidRegs.length,
+    pax: paidRegs.reduce((acc, curr) => acc + (curr.quantity || 0), 0),
+    revenue: paidRegs.reduce((acc, curr) => {
+      const tier = tiers.find((t: any) => t.name === curr.pass_type);
       if (!tier) return acc;
       const qty = curr.quantity || 1;
-      const isEB = dbConfig?.early_bird_active === "true" || dbConfig?.early_bird_active === true;
-      const unitPrice = isEB ? (tier as any).earlyBirdPrice : (tier as any).regularPrice;
+      // Use booking date vs early-bird window to determine actual price paid
+      const bookingDate = new Date(curr.created_at);
+      const wasEarlyBird = ebStart && ebEnd && bookingDate >= ebStart && bookingDate <= ebEnd;
+      const unitPrice = wasEarlyBird ? (tier as any).earlyBirdPrice : (tier as any).regularPrice;
       return acc + (unitPrice || 0) * qty;
-    }, 0)
+    }, 0),
   };
 
   const filtered = registrations.filter(reg => {
@@ -329,219 +337,221 @@ export default function AdminPage() {
     );
   }
 
+  const checkedInCount = registrations.filter(r => r.payment_status === "paid" && r.checked_in_at).length;
+
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6 md:p-12">
-      <div className="max-w-7xl mx-auto space-y-10">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          <div>
-            <h1 className="text-5xl font-black tracking-tighter">Admin <span className="text-yellow-500">Panel</span></h1>
-            <p className="text-gray-500 font-bold uppercase text-xs tracking-widest mt-2">Kumaon Fest 2026 Bookings</p>
-          </div>
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-end gap-3 w-full md:w-auto">
-            <Button onClick={() => setShowScanner(true)} className="col-span-2 sm:col-span-1 h-12 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold"><Camera className="w-4 h-4 mr-2" /> Scan Ticket</Button>
-            <Button onClick={handleExportCSV} className="h-12 rounded-xl bg-gray-950 border border-gray-800 text-white hover:bg-gray-800 transition-colors"><Download className="w-4 h-4 mr-2" /> Export</Button>
-            <Button onClick={fetchData} className="h-12 rounded-xl bg-gray-950 border border-gray-800 text-white hover:text-yellow-500 transition-colors"><RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} /> Refresh</Button>
-            <Button onClick={handleLogout} variant="ghost" className="col-span-2 sm:col-span-1 h-12 rounded-xl border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-widest hover:bg-red-500/10">Logout</Button>
-          </div>
+    <div className="min-h-screen bg-gray-950 text-white">
+
+      {/* ── STICKY HEADER ── */}
+      <header className="sticky top-0 z-40 bg-gray-950/90 backdrop-blur-xl border-b border-white/5 px-4 py-3 flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-black tracking-tight leading-none">Admin <span className="text-yellow-500">Panel</span></h1>
+          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Kumaon Fest 2026</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button onClick={fetchData} size="icon" className="h-9 w-9 rounded-xl bg-gray-900 border border-gray-800 text-gray-400 hover:text-yellow-500">
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
+          <Button onClick={handleExportCSV} size="icon" className="h-9 w-9 rounded-xl bg-gray-900 border border-gray-800 text-gray-400 hover:text-yellow-500">
+            <Download className="w-4 h-4" />
+          </Button>
+          <Button onClick={() => setShowScanner(true)} className="h-9 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-sm">
+            <Camera className="w-4 h-4 mr-1.5" /> Scan
+          </Button>
+          <Button onClick={handleLogout} size="icon" variant="ghost" className="h-9 w-9 rounded-xl text-red-500/60 hover:text-red-500 hover:bg-red-500/10">
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      </header>
+
+      <div className="max-w-4xl mx-auto px-4 py-5 space-y-4">
+
+        {/* ── NOTIFICATION ── */}
+        <AnimatePresence>
+          {notification && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className={`flex items-center gap-3 p-4 rounded-2xl border text-sm font-bold ${
+                notification.type === "success"
+                  ? "bg-green-500/10 border-green-500/20 text-green-400"
+                  : notification.type === "info"
+                  ? "bg-blue-500/10 border-blue-500/20 text-blue-400"
+                  : "bg-red-500/10 border-red-500/20 text-red-400"
+              }`}
+            >
+              {notification.type === "success" ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
+              <span className="flex-1">{notification.message}</span>
+              <button onClick={() => setNotification(null)}><X className="w-4 h-4 opacity-50" /></button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── STAT CARDS ── */}
+        <div className="grid grid-cols-1 gap-3">
+          <StatCard label="Paid Bookings"   value={stats.total}           icon={Ticket}       color="bg-yellow-500/10 text-yellow-500" />
+          <StatCard label="Confirmed Pax"   value={stats.pax}             icon={Users}        color="bg-blue-500/10 text-blue-400" />
+          <StatCard label="Checked In"      value={checkedInCount}        icon={CheckCircle2} color="bg-green-500/10 text-green-400" />
+          <StatCard label="Net Revenue"     value={`₹${stats.revenue.toLocaleString("en-IN")}`} icon={IndianRupee} color="bg-emerald-500/10 text-emerald-400" />
         </div>
 
-        {notification && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`p-5 rounded-2xl flex items-center gap-4 border ${notification.type === "success" ? "bg-green-500/10 border-green-500/20 text-green-400" : "bg-red-500/10 border-red-500/20 text-red-400"}`}
-          >
-            {notification.type === "success" ? <CheckCircle2 className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
-            <p className="font-bold">{notification.message}</p>
-            <button onClick={() => setNotification(null)} className="ml-auto opacity-50"><X className="w-5 h-5" /></button>
-          </motion.div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatCard label="Paid Bookings" value={stats.total} icon={Ticket} color="text-yellow-500" />
-          <StatCard label="Confirmed Pax" value={stats.pax} icon={Users} color="text-blue-500" />
-          <StatCard label="Net Revenue" value={`₹${stats.revenue}`} icon={IndianRupee} color="text-green-500" />
+        {/* ── SEARCH + FILTER ── */}
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Input
+              placeholder="Search name, email or payment ID..."
+              className="pl-11 h-12 rounded-2xl bg-gray-900 border-gray-800 focus:border-yellow-500 text-white text-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {["All", ...tiers.map((t: any) => t.name)].map((pass) => (
+              <button
+                key={pass}
+                onClick={() => setFilterPass(pass)}
+                className={`h-9 px-4 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all shrink-0 ${
+                  filterPass === pass
+                    ? "bg-yellow-500 text-gray-950"
+                    : "bg-gray-900 border border-gray-800 text-gray-400"
+                }`}
+              >
+                {pass}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-gray-600 font-bold">{filtered.length} result{filtered.length !== 1 ? "s" : ""}</p>
         </div>
 
-        <div className="bg-gray-900 rounded-[2.5rem] border border-gray-800 shadow-2xl overflow-hidden">
-          <div className="p-8 border-b border-gray-800 flex flex-col md:flex-row md:items-center gap-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-              <Input 
-                placeholder="Search attendee, email or payment id..." 
-                className="pl-12 h-14 rounded-2xl bg-gray-950 border-gray-800 focus:border-yellow-500 text-white"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
-              {["All", ...tiers.map(t => t.name)].map((pass) => (
-                <Button
-                  key={pass}
-                  onClick={() => setFilterPass(pass)}
-                  className={`h-12 rounded-xl font-bold border-gray-800 whitespace-nowrap transition-all ${
-                    filterPass === pass 
-                      ? "bg-yellow-500 text-gray-950" 
-                      : "bg-gray-950 text-white border border-gray-800 hover:bg-gray-800"
-                  }`}
-                >
-                  {pass}
-                </Button>
-              ))}
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            {/* Desktop Table View */}
-            <table className="hidden md:table w-full text-left">
-              <thead>
-                <tr className="bg-gray-950/50 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
-                  <th className="p-4 md:p-8">Attendee</th>
-                  <th className="p-4 md:p-8">Pass Details</th>
-                  <th className="p-4 md:p-8">Payment ID</th>
-                  <th className="p-4 md:p-8 text-center">Status</th>
-                  <th className="p-4 md:p-8 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-800">
-                {filtered.map(reg => (
-                  <tr 
-                    key={reg.id} 
-                    className="hover:bg-gray-800/30 transition-colors cursor-pointer group"
-                    onClick={() => window.location.href = `/kumaon-fest/verify/${reg.id}`}
-                  >
-                    <td className="p-4 md:p-8">
-                      <div className="font-bold text-base md:text-lg">{reg.full_name}</div>
-                      <div className="text-xs text-gray-500">{reg.email}</div>
-                      {reg.additional_attendees && reg.additional_attendees.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Plus:</div>
-                          {reg.additional_attendees.map((a, i) => (
-                            <div key={i} className="text-[10px] text-gray-500 bg-white/5 px-2 py-0.5 rounded border border-white/5 inline-block mr-1">
-                              {a.fullName}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-                    <td className="p-4 md:p-8">
-                      <div className="text-xs md:text-sm font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type}</div>
-                      <div className="text-[10px] md:text-xs text-gray-500 mt-1 font-bold">Quantity: {reg.quantity}</div>
-                    </td>
-                    <td className="p-4 md:p-8">
-                      <code className="text-[10px] md:text-xs text-gray-500 bg-gray-950 px-2 py-1 rounded-md">{reg.payment_id || "N/A"}</code>
-                    </td>
-                    <td className="p-4 md:p-8 text-center">
-                      {reg.checked_in_at ? (
-                        <span className="px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-yellow-500/10 text-yellow-500 text-[9px] md:text-[10px] font-black uppercase border border-yellow-500/20">ENTERED</span>
-                      ) : reg.payment_status === "paid" ? (
-                        <span className="px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-green-500/10 text-green-500 text-[9px] md:text-[10px] font-black uppercase border border-green-500/20">PAID</span>
-                      ) : (
-                        <span className="px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-red-500/10 text-red-500 text-[9px] md:text-[10px] font-black uppercase border border-red-500/20">PENDING</span>
-                      )}
-                    </td>
-                    <td className="p-4 md:p-8 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {reg.payment_status === "paid" && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-10 w-10 rounded-lg text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10"
-                            onClick={(e) => handleResendEmail(reg.id, e)}
-                            disabled={resendingEmail === reg.id}
-                          >
-                            {resendingEmail === reg.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-                          </Button>
-                        )}
-                        <ChevronRight className="w-5 h-5 text-gray-700 group-hover:text-yellow-500 transition-colors" />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* ── ATTENDEE LIST ── */}
+        <div className="bg-gray-900 rounded-3xl border border-gray-800 overflow-hidden">
 
-            {/* Mobile Card View */}
-            <div className="md:hidden flex flex-col divide-y divide-gray-800">
+          {/* Desktop table */}
+          <table className="hidden md:table w-full text-left">
+            <thead>
+              <tr className="bg-gray-950/60 text-[10px] font-black uppercase tracking-widest text-gray-500 border-b border-gray-800">
+                <th className="px-6 py-4">Attendee</th>
+                <th className="px-6 py-4">Pass</th>
+                <th className="px-6 py-4">Payment ID</th>
+                <th className="px-6 py-4 text-center">Status</th>
+                <th className="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
               {filtered.map(reg => (
-                <div 
-                  key={reg.id} 
-                  className="p-5 hover:bg-gray-800/30 transition-colors cursor-pointer active:bg-gray-800/50"
+                <tr
+                  key={reg.id}
+                  className="hover:bg-gray-800/30 transition-colors cursor-pointer group"
                   onClick={() => window.location.href = `/kumaon-fest/verify/${reg.id}`}
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <div className="font-bold text-lg text-white leading-tight">{reg.full_name}</div>
-                      <div className="text-xs text-gray-400 mt-0.5">{reg.email}</div>
-                      {reg.additional_attendees && reg.additional_attendees.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-1">
-                          {reg.additional_attendees.map((a, i) => (
-                            <span key={i} className="text-[9px] bg-white/5 border border-white/10 px-2 py-0.5 rounded text-gray-400">
-                              {a.fullName}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      {reg.checked_in_at ? (
-                        <span className="px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-500 text-[9px] font-black uppercase border border-yellow-500/20">ENTERED</span>
-                      ) : reg.payment_status === "paid" ? (
-                        <span className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-[9px] font-black uppercase border border-green-500/20">PAID</span>
-                      ) : (
-                        <span className="px-2 py-1 rounded-full bg-red-500/10 text-red-500 text-[9px] font-black uppercase border border-red-500/20">PENDING</span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-end mt-4">
-                    <div className="space-y-1">
-                      <div className="text-xs font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type} <span className="text-gray-500">(x{reg.quantity})</span></div>
-                      <code className="text-[10px] text-gray-500 bg-gray-950 px-2 py-0.5 rounded inline-block">{reg.payment_id || "N/A"}</code>
-                    </div>
-                    <div className="flex items-center gap-1">
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-base">{reg.full_name}</div>
+                    <div className="text-xs text-gray-500">{reg.email}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-xs font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type}</div>
+                    <div className="text-[10px] text-gray-500 mt-0.5">×{reg.quantity}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <code className="text-[10px] text-gray-500 bg-gray-950 px-2 py-1 rounded">{reg.payment_id || "N/A"}</code>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <StatusBadge reg={reg} />
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
                       {reg.payment_status === "paid" && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-10 w-10 rounded-lg text-gray-400 hover:text-yellow-500"
-                          onClick={(e) => handleResendEmail(reg.id, e)}
-                          disabled={resendingEmail === reg.id}
-                        >
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10"
+                          onClick={(e) => handleResendEmail(reg.id, e)} disabled={resendingEmail === reg.id}>
                           {resendingEmail === reg.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
                         </Button>
                       )}
-                      <ChevronRight className="w-5 h-5 text-gray-600" />
+                      <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-yellow-500 transition-colors" />
                     </div>
-                  </div>
-                </div>
+                  </td>
+                </tr>
               ))}
               {filtered.length === 0 && (
-                <div className="p-8 text-center text-gray-500 text-sm">No bookings found.</div>
+                <tr><td colSpan={5} className="px-6 py-12 text-center text-gray-600 text-sm">No bookings found.</td></tr>
               )}
-            </div>
+            </tbody>
+          </table>
+
+          {/* Mobile list */}
+          <div className="md:hidden divide-y divide-gray-800">
+            {filtered.map(reg => (
+              <div
+                key={reg.id}
+                className="flex items-center gap-4 px-4 py-4 active:bg-gray-800/40 cursor-pointer"
+                onClick={() => window.location.href = `/kumaon-fest/verify/${reg.id}`}
+              >
+                {/* Left: avatar initial */}
+                <div className="w-10 h-10 rounded-2xl bg-gray-800 flex items-center justify-center shrink-0 font-black text-base text-white">
+                  {reg.full_name?.charAt(0).toUpperCase()}
+                </div>
+
+                {/* Middle: name + pass */}
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-sm text-white truncate">{reg.full_name}</div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type}</span>
+                    <span className="text-[10px] text-gray-600">×{reg.quantity}</span>
+                  </div>
+                </div>
+
+                {/* Right: status + actions */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <StatusBadge reg={reg} />
+                  {reg.payment_status === "paid" && (
+                    <button
+                      className="h-8 w-8 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 active:bg-gray-700"
+                      onClick={(e) => handleResendEmail(reg.id, e)}
+                      disabled={resendingEmail === reg.id}
+                    >
+                      {resendingEmail === reg.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
+                  <ChevronRight className="w-4 h-4 text-gray-700" />
+                </div>
+              </div>
+            ))}
+            {filtered.length === 0 && (
+              <div className="py-12 text-center text-gray-600 text-sm">No bookings found.</div>
+            )}
           </div>
         </div>
       </div>
 
+      {/* ── QR SCANNER ── */}
       <AnimatePresence>
         {showScanner && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-6 backdrop-blur-xl"
+            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-6"
           >
-            <div className="relative w-full max-w-lg aspect-square bg-black rounded-[3rem] border-2 border-yellow-500/50 overflow-hidden shadow-2xl shadow-yellow-500/20">
+            <div className="relative w-full max-w-sm aspect-square bg-black rounded-[2.5rem] border-2 border-yellow-500/60 overflow-hidden shadow-2xl shadow-yellow-500/20">
               <div id="admin-reader" className="w-full h-full" />
               <div className="absolute inset-0 border-8 border-black/40 pointer-events-none" />
             </div>
-            <p className="mt-8 text-2xl font-black text-yellow-500 animate-pulse">Scanning Ticket...</p>
-            <Button onClick={() => setShowScanner(false)} className="mt-12 h-16 px-12 rounded-2xl bg-white text-black font-black text-lg">Cancel Scan</Button>
+            <p className="mt-6 text-xl font-black text-yellow-500 animate-pulse tracking-tight">Scanning Ticket...</p>
+            <Button onClick={() => setShowScanner(false)} className="mt-8 h-14 px-10 rounded-2xl bg-white text-black font-black text-base">Cancel</Button>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
+}
+
+function StatusBadge({ reg }: { reg: { checked_in_at: string | null; payment_status: string } }) {
+  if (reg.checked_in_at)
+    return <span className="px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-500 text-[9px] font-black uppercase border border-yellow-500/20 whitespace-nowrap">Entered</span>;
+  if (reg.payment_status === "paid")
+    return <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-[9px] font-black uppercase border border-green-500/20 whitespace-nowrap">Paid</span>;
+  return <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 text-[9px] font-black uppercase border border-red-500/20 whitespace-nowrap">Pending</span>;
 }
 
 interface StatCardProps {
@@ -553,12 +563,14 @@ interface StatCardProps {
 
 function StatCard({ label, value, icon: Icon, color }: StatCardProps) {
   return (
-    <div className="bg-gray-900 p-8 rounded-[2.5rem] border border-gray-800 shadow-xl group hover:border-yellow-500/30 transition-colors">
-      <div className={`w-14 h-14 rounded-2xl bg-gray-950 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${color}`}>
-        <Icon className="w-7 h-7" />
+    <div className="flex items-center gap-4 bg-gray-900 border border-gray-800 rounded-2xl px-5 py-4">
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${color}`}>
+        <Icon className="w-6 h-6" />
       </div>
-      <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">{label}</p>
-      <p className="text-4xl font-black mt-2 tracking-tighter">{value}</p>
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">{label}</p>
+      </div>
+      <p className="text-2xl font-black tracking-tighter shrink-0">{value}</p>
     </div>
   );
 }
