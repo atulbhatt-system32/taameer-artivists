@@ -48,6 +48,7 @@ interface Registration {
   created_at: string;
   gender?: string;
   instagram_handle?: string;
+  group_id?: string;
   additional_attendees?: { fullName: string; age: string; gender: string }[];
   _groupMembers?: GroupMember[];
   _groupSize?: number;
@@ -257,10 +258,10 @@ export default function AdminPage() {
     const result: Registration[] = [];
 
     for (const reg of registrations) {
-      const handle = reg.instagram_handle;
-      if (handle?.startsWith("GROUP_")) {
-        if (!groupMap.has(handle)) groupMap.set(handle, []);
-        groupMap.get(handle)!.push(reg);
+      const gid = reg.group_id;
+      if (gid) {
+        if (!groupMap.has(gid)) groupMap.set(gid, []);
+        groupMap.get(gid)!.push(reg);
       } else {
         result.push(reg);
       }
