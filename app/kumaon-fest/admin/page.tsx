@@ -308,7 +308,12 @@ export default function AdminPage() {
     return wasEarlyBird ? (tier as any).earlyBirdPrice : (tier as any).regularPrice;
   };
 
-  const getTotalPaid = (reg: Registration): number => getPricePaid(reg);
+  const getTotalPaid = (reg: Registration): number => {
+    const unitPrice = getPricePaid(reg);
+    // "Group of 4" tier price covers the whole group — don't multiply
+    if (reg.pass_type?.toLowerCase().includes("group of 4")) return unitPrice;
+    return unitPrice * (reg._groupSize ?? reg.quantity ?? 1);
+  };
 
   const stats = {
     total: paidRegs.length,
