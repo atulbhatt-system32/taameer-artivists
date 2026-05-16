@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { getRegistrations, getEventPricing, getEventConfig, resendConfirmationEmail } from "@/app/actions/booking";
+import React, { useState, useEffect, useRef } from "react";
+import { getRegistrations, getEventPricing, getEventConfig } from "@/app/actions/booking";
 import { Button } from "@/components/ui/button";
 import { 
   Users, 
@@ -18,8 +18,7 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  ChevronRight,
-  Mail
+  ChevronRight
 } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import { supabase } from "@/lib/supabase";
@@ -72,18 +71,7 @@ export default function AdminPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [filterPass, setFilterPass] = useState<string>("All");
-  const [resendingEmail, setResendingEmail] = useState<string | null>(null);
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const scanProcessingRef = useRef(false);
-
-  const toggleRow = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setExpandedRows(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -129,19 +117,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleResendEmail = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setResendingEmail(id);
-    try {
-      await resendConfirmationEmail(id);
-      setNotification({ type: "success", message: "Email resent successfully!" });
-    } catch (err: unknown) {
-      const error = err as Error;
-      setNotification({ type: "error", message: error.message || "Failed to resend email." });
-    } finally {
-      setResendingEmail(null);
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -514,11 +489,9 @@ export default function AdminPage() {
                   reg._groupMembers?.length ? reg._groupMembers :
                   reg.additional_attendees?.length ? reg.additional_attendees : [];
                 const hasGroup = groupMembers.length > 0;
-                const isExpanded = expandedRows.has(reg.id);
                 return (
-                  <>
+                  <React.Fragment key={reg.id}>
                     <tr
-                      key={reg.id}
                       className="hover:bg-gray-800/30 transition-colors cursor-pointer group"
                       onClick={() => window.location.href = `/kumaon-fest/verify/${reg.id}`}
                     >
@@ -526,12 +499,7 @@ export default function AdminPage() {
                         <div className="font-bold text-base">{reg.full_name}</div>
                         <div className="text-xs text-gray-500">{reg.email}</div>
                         {hasGroup && (
-                          <button
-                            onClick={(e) => toggleRow(reg.id, e)}
-                            className="mt-1 text-[10px] font-black text-yellow-500/70 hover:text-yellow-500 uppercase tracking-wider"
-                          >
-                            {isExpanded ? "▲ Hide members" : `▼ +${groupMembers.length} members`}
-                          </button>
+                          <div className="text-[10px] text-gray-600 mt-0.5 font-medium">+{groupMembers.length} members below</div>
                         )}
                       </td>
                       <td className="px-6 py-4">
@@ -551,30 +519,26 @@ export default function AdminPage() {
                         <StatusBadge reg={reg} />
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {reg.payment_status === "paid" && (
-                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10"
-                              onClick={(e) => handleResendEmail(reg.id, e)} disabled={resendingEmail === reg.id}>
-                              {resendingEmail === reg.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-                            </Button>
-                          )}
-                          <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-yellow-500 transition-colors" />
-                        </div>
+                        <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-yellow-500 transition-colors ml-auto" />
                       </td>
                     </tr>
-                    {hasGroup && isExpanded && groupMembers.map((m, i) => (
-                      <tr key={`${reg.id}-member-${i}`} className="bg-gray-950/40">
-                        <td colSpan={5} className="px-6 py-2">
-                          <div className="flex items-center gap-3 text-xs text-gray-400">
-                            <span className="w-5 h-5 rounded-full bg-gray-800 flex items-center justify-center text-[9px] font-black text-gray-500 shrink-0">{i + 2}</span>
-                            <span className="font-bold text-gray-300">{m.full_name ?? m.fullName}</span>
+                    {hasGroup && groupMembers.map((m, i) => (
+                      <tr
+                        key={`${reg.id}-member-${i}`}
+                        className="bg-gray-950/50 hover:bg-gray-800/20 cursor-pointer transition-colors"
+                        onClick={() => m.id && (window.location.href = `/kumaon-fest/verify/${m.id}`)}
+                      >
+                        <td colSpan={5} className="px-6 py-3">
+                          <div className="flex items-center gap-3">
+                            <span className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-black text-gray-500 shrink-0">{i + 2}</span>
+                            <span className="font-bold text-sm text-gray-300 flex-1">{m.full_name ?? m.fullName}</span>
                             {m.gender && <span className="text-[10px] bg-gray-800 text-gray-500 px-2 py-0.5 rounded uppercase font-bold">{m.gender}</span>}
-                            {m.age && <span className="text-[10px] text-gray-600">{m.age} yrs</span>}
+                            {m.id && <ChevronRight className="w-3.5 h-3.5 text-gray-700 shrink-0" />}
                           </div>
                         </td>
                       </tr>
                     ))}
-                  </>
+                  </React.Fragment>
                 );
               })}
               {filtered.length === 0 && (
@@ -590,19 +554,16 @@ export default function AdminPage() {
                 reg._groupMembers?.length ? reg._groupMembers :
                 reg.additional_attendees?.length ? reg.additional_attendees : [];
               const hasGroup = groupMembers.length > 0;
-              const isExpanded = expandedRows.has(reg.id);
               return (
                 <div key={reg.id}>
+                  {/* Lead buyer row */}
                   <div
                     className="flex items-center gap-3 px-4 py-4 active:bg-gray-800/40 cursor-pointer"
                     onClick={() => window.location.href = `/kumaon-fest/verify/${reg.id}`}
                   >
-                    {/* Left: avatar */}
                     <div className="w-10 h-10 rounded-2xl bg-gray-800 flex items-center justify-center shrink-0 font-black text-base text-white">
                       {reg.full_name?.charAt(0).toUpperCase()}
                     </div>
-
-                    {/* Middle: name + pass */}
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-sm text-white truncate">{reg.full_name}</div>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -615,43 +576,28 @@ export default function AdminPage() {
                           <span className="text-[10px] font-black text-white">· ₹{getTotalPaid(reg).toLocaleString("en-IN")}</span>
                         )}
                       </div>
-                      {hasGroup && (
-                        <button
-                          onClick={(e) => toggleRow(reg.id, e)}
-                          className="mt-1 text-[9px] font-black text-yellow-500/60 hover:text-yellow-500 uppercase tracking-wider"
-                        >
-                          {isExpanded ? "▲ hide" : `▼ +${groupMembers.length} members`}
-                        </button>
-                      )}
                     </div>
-
-                    {/* Right: status + actions */}
                     <div className="flex items-center gap-2 shrink-0">
                       <StatusBadge reg={reg} />
-                      {reg.payment_status === "paid" && (
-                        <button
-                          className="h-8 w-8 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 active:bg-gray-700"
-                          onClick={(e) => handleResendEmail(reg.id, e)}
-                          disabled={resendingEmail === reg.id}
-                        >
-                          {resendingEmail === reg.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
-                        </button>
-                      )}
                       <ChevronRight className="w-4 h-4 text-gray-700" />
                     </div>
                   </div>
 
-                  {/* Expanded group members */}
-                  {hasGroup && isExpanded && (
-                    <div className="px-4 pb-3 space-y-1.5 bg-gray-950/40 border-t border-gray-800/50">
+                  {/* Group members — always visible, each tappable */}
+                  {hasGroup && (
+                    <div className="border-t border-gray-800/50 bg-gray-950/40">
                       {groupMembers.map((m, i) => (
-                        <div key={i} className="flex items-center gap-3 py-1.5">
-                          <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[9px] font-black text-gray-500 shrink-0">
+                        <div
+                          key={i}
+                          className="flex items-center gap-3 px-4 py-3 border-b border-gray-800/30 last:border-b-0 active:bg-gray-800/30 cursor-pointer"
+                          onClick={() => m.id && (window.location.href = `/kumaon-fest/verify/${m.id}`)}
+                        >
+                          <div className="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-black text-gray-500 shrink-0">
                             {i + 2}
                           </div>
                           <span className="text-sm font-bold text-gray-300 flex-1">{m.full_name ?? m.fullName}</span>
-                          {m.gender && <span className="text-[9px] bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded uppercase font-bold">{m.gender}</span>}
-                          {m.age && <span className="text-[9px] text-gray-600">{m.age}y</span>}
+                          {m.gender && <span className="text-[9px] bg-gray-800 text-gray-500 px-2 py-0.5 rounded uppercase font-bold">{m.gender}</span>}
+                          {m.id && <ChevronRight className="w-3.5 h-3.5 text-gray-700 shrink-0" />}
                         </div>
                       ))}
                     </div>
