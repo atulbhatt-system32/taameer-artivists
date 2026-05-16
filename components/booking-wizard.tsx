@@ -925,7 +925,7 @@ export function BookingWizard({
             </div>
             <div className="space-y-2">
               <h2 className="text-5xl font-black text-white italic tracking-tighter">BOOM! YOU&apos;RE IN.</h2>
-              <p className="text-gray-400 text-xl">Your ticket for Kumaon Fest 2026 has been sent to <span className="text-white font-bold">{form.getValues("email")}</span></p>
+              <p className="text-gray-400 text-xl">Your ticket for Summer Carnival - The Kumaon Fest has been sent <span className="text-white font-bold">{form.getValues("email")}</span></p>
               <p className="text-yellow-500/80 text-sm font-medium">📬 Can&apos;t find it? Check your spam / junk folder.</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
