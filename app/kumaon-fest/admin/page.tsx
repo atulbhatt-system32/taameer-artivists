@@ -252,23 +252,33 @@ export default function AdminPage() {
 
   const paidRegs = registrations.filter(r => r.payment_status === 'paid');
 
-  // Determine early bird window from config so we can check each booking's date
+  // Early bird window from Supabase config
   const ebStart = dbConfig?.early_bird_start ? new Date(dbConfig.early_bird_start) : null;
   const ebEnd   = dbConfig?.early_bird_end   ? new Date(dbConfig.early_bird_end)   : null;
+
+  // Returns the unit price a registration actually paid based on booking date
+  const getPricePaid = (reg: Registration): number => {
+    const passTypeLower = reg.pass_type?.toLowerCase().trim() ?? "";
+    // Exact match first, then fallback to "contains" for legacy names like "GROUP OF 4"
+    const tier = tiers.find((t: any) =>
+      t.name?.toLowerCase().trim() === passTypeLower
+    ) ?? tiers.find((t: any) => {
+      const tName = t.name?.toLowerCase().trim() ?? "";
+      // e.g. "group of 4" is contained in "fanpit (group of 4)"
+      return tName.includes(passTypeLower) || passTypeLower.includes(tName.replace(/[^a-z0-9 ]/g, "").trim());
+    });
+    if (!tier) return 0;
+    const bookingDate = new Date(reg.created_at);
+    const wasEarlyBird = ebStart && ebEnd && bookingDate >= ebStart && bookingDate <= ebEnd;
+    return wasEarlyBird ? (tier as any).earlyBirdPrice : (tier as any).regularPrice;
+  };
+
+  const getTotalPaid = (reg: Registration): number => getPricePaid(reg) * (reg.quantity || 1);
 
   const stats = {
     total: paidRegs.length,
     pax: paidRegs.reduce((acc, curr) => acc + (curr.quantity || 0), 0),
-    revenue: paidRegs.reduce((acc, curr) => {
-      const tier = tiers.find((t: any) => t.name === curr.pass_type);
-      if (!tier) return acc;
-      const qty = curr.quantity || 1;
-      // Use booking date vs early-bird window to determine actual price paid
-      const bookingDate = new Date(curr.created_at);
-      const wasEarlyBird = ebStart && ebEnd && bookingDate >= ebStart && bookingDate <= ebEnd;
-      const unitPrice = wasEarlyBird ? (tier as any).earlyBirdPrice : (tier as any).regularPrice;
-      return acc + (unitPrice || 0) * qty;
-    }, 0),
+    revenue: paidRegs.reduce((acc, curr) => acc + getTotalPaid(curr), 0),
   };
 
   const filtered = registrations.filter(reg => {
@@ -434,7 +444,7 @@ export default function AdminPage() {
               <tr className="bg-gray-950/60 text-[10px] font-black uppercase tracking-widest text-gray-500 border-b border-gray-800">
                 <th className="px-6 py-4">Attendee</th>
                 <th className="px-6 py-4">Pass</th>
-                <th className="px-6 py-4">Payment ID</th>
+                <th className="px-6 py-4 text-right">Paid</th>
                 <th className="px-6 py-4 text-center">Status</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
@@ -454,8 +464,17 @@ export default function AdminPage() {
                     <div className="text-xs font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type}</div>
                     <div className="text-[10px] text-gray-500 mt-0.5">×{reg.quantity}</div>
                   </td>
-                  <td className="px-6 py-4">
-                    <code className="text-[10px] text-gray-500 bg-gray-950 px-2 py-1 rounded">{reg.payment_id || "N/A"}</code>
+                  <td className="px-6 py-4 text-right">
+                    {reg.payment_status === "paid" ? (
+                      <div>
+                        <div className="text-sm font-black text-white">₹{getTotalPaid(reg).toLocaleString("en-IN")}</div>
+                        {reg.quantity > 1 && (
+                          <div className="text-[10px] text-gray-500">₹{getPricePaid(reg).toLocaleString("en-IN")} ×{reg.quantity}</div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-gray-600">—</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <StatusBadge reg={reg} />
@@ -498,6 +517,9 @@ export default function AdminPage() {
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[10px] font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type}</span>
                     <span className="text-[10px] text-gray-600">×{reg.quantity}</span>
+                    {reg.payment_status === "paid" && (
+                      <span className="text-[10px] font-black text-white">· ₹{getTotalPaid(reg).toLocaleString("en-IN")}</span>
+                    )}
                   </div>
                 </div>
 

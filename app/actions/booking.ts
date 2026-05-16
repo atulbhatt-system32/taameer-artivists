@@ -44,6 +44,10 @@ async function getCashfreeClient() {
 }
 
 export async function createCashfreeOrder(amount: number, customerDetails: { name: string; email: string; phone: string }) {
+  if (!amount || amount <= 0) {
+    throw new Error("Invalid order amount. Cannot create a ₹0 order.");
+  }
+
   const cashfree = await getCashfreeClient();
 
   const orderId = `KF_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -132,6 +136,9 @@ export async function confirmPayment(data: PaymentConfirmationData) {
     const successfulPayment = payments.find((p: any) => p.payment_status === "SUCCESS");
     if (!successfulPayment) {
       throw new Error("Payment not completed successfully.");
+    }
+    if (!successfulPayment.payment_amount || successfulPayment.payment_amount <= 0) {
+      throw new Error("Invalid payment amount. Zero-value payments are not accepted.");
     }
   } catch (err: unknown) {
     const error = err as Error;

@@ -305,6 +305,11 @@ export function BookingWizard({
       setRegistrationId(regId);
 
       const amount = getPrice();
+      if (!amount || amount <= 0) {
+        setNotification({ type: "error", message: "Invalid pass pricing. Please contact support." });
+        setIsSubmitting(false);
+        return;
+      }
       const order = await createCashfreeOrder(amount, {
         name: values.fullName,
         email: values.email,
