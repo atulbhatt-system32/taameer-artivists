@@ -30,6 +30,13 @@ import { motion, AnimatePresence } from "framer-motion";
 // Remove static tiers constant
 // const tiers = eventsData.featuredEvent.pricing;
 
+interface GroupMember {
+  id: string;
+  full_name: string;
+  gender?: string;
+  checked_in_at: string | null;
+}
+
 interface Registration {
   id: string;
   full_name: string;
@@ -40,7 +47,11 @@ interface Registration {
   payment_status: string;
   checked_in_at: string | null;
   created_at: string;
+  gender?: string;
+  instagram_handle?: string;
   additional_attendees?: { fullName: string; age: string; gender: string }[];
+  _groupMembers?: GroupMember[];
+  _groupSize?: number;
 }
 
 export default function AdminPage() {
@@ -62,7 +73,17 @@ export default function AdminPage() {
   const [authLoading, setAuthLoading] = useState(true);
   const [filterPass, setFilterPass] = useState<string>("All");
   const [resendingEmail, setResendingEmail] = useState<string | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const scanProcessingRef = useRef(false);
+
+  const toggleRow = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -79,7 +100,6 @@ export default function AdminPage() {
       if (event === "SIGNED_IN" && session) {
         setIsAuthorized(true);
         fetchData();
-        setNotification({ type: "success", message: "Welcome back, Admin!" });
       } else if (event === "SIGNED_OUT") {
         setIsAuthorized(false);
         setRegistrations([]);
@@ -130,6 +150,8 @@ export default function AdminPage() {
     const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
     if (authError) {
       setNotification({ type: "error", message: authError.message });
+    } else {
+      setNotification({ type: "success", message: "Welcome back, Admin!" });
     }
     setAuthLoading(false);
   };
@@ -250,21 +272,58 @@ export default function AdminPage() {
     };
   }, [showScanner]);
 
-  const paidRegs = registrations.filter(r => r.payment_status === 'paid');
-
   // Early bird window from Supabase config
   const ebStart = dbConfig?.early_bird_start ? new Date(dbConfig.early_bird_start) : null;
   const ebEnd   = dbConfig?.early_bird_end   ? new Date(dbConfig.early_bird_end)   : null;
 
+  // Collapse GROUP_ rows: one lead row with _groupMembers attached
+  const displayRegistrations: Registration[] = (() => {
+    const groupMap = new Map<string, Registration[]>();
+    const result: Registration[] = [];
+
+    for (const reg of registrations) {
+      const handle = reg.instagram_handle;
+      if (handle?.startsWith("GROUP_")) {
+        if (!groupMap.has(handle)) groupMap.set(handle, []);
+        groupMap.get(handle)!.push(reg);
+      } else {
+        result.push(reg);
+      }
+    }
+
+    for (const members of groupMap.values()) {
+      // Last in desc-order array = earliest created = main buyer
+      const sorted = [...members].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+      const lead = sorted[0];
+      const rest = sorted.slice(1);
+      result.push({
+        ...lead,
+        _groupSize: sorted.length,
+        _groupMembers: rest.map(m => ({
+          id: m.id,
+          full_name: m.full_name,
+          gender: m.gender,
+          checked_in_at: m.checked_in_at,
+        })),
+      });
+    }
+
+    return result.sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  })();
+
+  const paidRegs = displayRegistrations.filter(r => r.payment_status === 'paid');
+
   // Returns the unit price a registration actually paid based on booking date
   const getPricePaid = (reg: Registration): number => {
     const passTypeLower = reg.pass_type?.toLowerCase().trim() ?? "";
-    // Exact match first, then fallback to "contains" for legacy names like "GROUP OF 4"
     const tier = tiers.find((t: any) =>
       t.name?.toLowerCase().trim() === passTypeLower
     ) ?? tiers.find((t: any) => {
       const tName = t.name?.toLowerCase().trim() ?? "";
-      // e.g. "group of 4" is contained in "fanpit (group of 4)"
       return tName.includes(passTypeLower) || passTypeLower.includes(tName.replace(/[^a-z0-9 ]/g, "").trim());
     });
     if (!tier) return 0;
@@ -273,15 +332,15 @@ export default function AdminPage() {
     return wasEarlyBird ? (tier as any).earlyBirdPrice : (tier as any).regularPrice;
   };
 
-  const getTotalPaid = (reg: Registration): number => getPricePaid(reg) * (reg.quantity || 1);
+  const getTotalPaid = (reg: Registration): number => getPricePaid(reg);
 
   const stats = {
     total: paidRegs.length,
-    pax: paidRegs.reduce((acc, curr) => acc + (curr.quantity || 0), 0),
+    pax: paidRegs.reduce((acc, curr) => acc + (curr._groupSize ?? curr.quantity ?? 1), 0),
     revenue: paidRegs.reduce((acc, curr) => acc + getTotalPaid(curr), 0),
   };
 
-  const filtered = registrations.filter(reg => {
+  const filtered = displayRegistrations.filter(reg => {
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch = 
       (reg.full_name?.toLowerCase() || "").includes(searchLower) ||
@@ -347,7 +406,7 @@ export default function AdminPage() {
     );
   }
 
-  const checkedInCount = registrations.filter(r => r.payment_status === "paid" && r.checked_in_at).length;
+  const checkedInCount = displayRegistrations.filter(r => r.payment_status === "paid" && r.checked_in_at).length;
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -365,7 +424,7 @@ export default function AdminPage() {
           <Button onClick={handleExportCSV} size="icon" className="h-9 w-9 rounded-xl bg-gray-900 border border-gray-800 text-gray-400 hover:text-yellow-500">
             <Download className="w-4 h-4" />
           </Button>
-          <Button onClick={() => setShowScanner(true)} className="h-9 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-sm">
+          <Button onClick={() => setShowScanner(true)} className="hidden md:flex h-9 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-sm">
             <Camera className="w-4 h-4 mr-1.5" /> Scan
           </Button>
           <Button onClick={handleLogout} size="icon" variant="ghost" className="h-9 w-9 rounded-xl text-red-500/60 hover:text-red-500 hover:bg-red-500/10">
@@ -374,7 +433,7 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 py-5 space-y-4">
+      <div className="max-w-4xl mx-auto px-4 py-5 space-y-4 pb-32 md:pb-5">
 
         {/* ── NOTIFICATION ── */}
         <AnimatePresence>
@@ -450,48 +509,74 @@ export default function AdminPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              {filtered.map(reg => (
-                <tr
-                  key={reg.id}
-                  className="hover:bg-gray-800/30 transition-colors cursor-pointer group"
-                  onClick={() => window.location.href = `/kumaon-fest/verify/${reg.id}`}
-                >
-                  <td className="px-6 py-4">
-                    <div className="font-bold text-base">{reg.full_name}</div>
-                    <div className="text-xs text-gray-500">{reg.email}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-xs font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type}</div>
-                    <div className="text-[10px] text-gray-500 mt-0.5">×{reg.quantity}</div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {reg.payment_status === "paid" ? (
-                      <div>
-                        <div className="text-sm font-black text-white">₹{getTotalPaid(reg).toLocaleString("en-IN")}</div>
-                        {reg.quantity > 1 && (
-                          <div className="text-[10px] text-gray-500">₹{getPricePaid(reg).toLocaleString("en-IN")} ×{reg.quantity}</div>
+              {filtered.map(reg => {
+                const groupMembers: { id?: string; full_name?: string; fullName?: string; gender?: string; age?: string; checked_in_at?: string | null }[] =
+                  reg._groupMembers?.length ? reg._groupMembers :
+                  reg.additional_attendees?.length ? reg.additional_attendees : [];
+                const hasGroup = groupMembers.length > 0;
+                const isExpanded = expandedRows.has(reg.id);
+                return (
+                  <>
+                    <tr
+                      key={reg.id}
+                      className="hover:bg-gray-800/30 transition-colors cursor-pointer group"
+                      onClick={() => window.location.href = `/kumaon-fest/verify/${reg.id}`}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="font-bold text-base">{reg.full_name}</div>
+                        <div className="text-xs text-gray-500">{reg.email}</div>
+                        {hasGroup && (
+                          <button
+                            onClick={(e) => toggleRow(reg.id, e)}
+                            className="mt-1 text-[10px] font-black text-yellow-500/70 hover:text-yellow-500 uppercase tracking-wider"
+                          >
+                            {isExpanded ? "▲ Hide members" : `▼ +${groupMembers.length} members`}
+                          </button>
                         )}
-                      </div>
-                    ) : (
-                      <span className="text-[10px] text-gray-600">—</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <StatusBadge reg={reg} />
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {reg.payment_status === "paid" && (
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10"
-                          onClick={(e) => handleResendEmail(reg.id, e)} disabled={resendingEmail === reg.id}>
-                          {resendingEmail === reg.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-                        </Button>
-                      )}
-                      <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-yellow-500 transition-colors" />
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-xs font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type}</div>
+                        <div className="text-[10px] text-gray-500 mt-0.5">
+                          {hasGroup ? `Group of ${groupMembers.length + 1}` : `×${reg.quantity}`}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {reg.payment_status === "paid" ? (
+                          <div className="text-sm font-black text-white">₹{getTotalPaid(reg).toLocaleString("en-IN")}</div>
+                        ) : (
+                          <span className="text-[10px] text-gray-600">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <StatusBadge reg={reg} />
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {reg.payment_status === "paid" && (
+                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10"
+                              onClick={(e) => handleResendEmail(reg.id, e)} disabled={resendingEmail === reg.id}>
+                              {resendingEmail === reg.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                            </Button>
+                          )}
+                          <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-yellow-500 transition-colors" />
+                        </div>
+                      </td>
+                    </tr>
+                    {hasGroup && isExpanded && groupMembers.map((m, i) => (
+                      <tr key={`${reg.id}-member-${i}`} className="bg-gray-950/40">
+                        <td colSpan={5} className="px-6 py-2">
+                          <div className="flex items-center gap-3 text-xs text-gray-400">
+                            <span className="w-5 h-5 rounded-full bg-gray-800 flex items-center justify-center text-[9px] font-black text-gray-500 shrink-0">{i + 2}</span>
+                            <span className="font-bold text-gray-300">{m.full_name ?? m.fullName}</span>
+                            {m.gender && <span className="text-[10px] bg-gray-800 text-gray-500 px-2 py-0.5 rounded uppercase font-bold">{m.gender}</span>}
+                            {m.age && <span className="text-[10px] text-gray-600">{m.age} yrs</span>}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </>
+                );
+              })}
               {filtered.length === 0 && (
                 <tr><td colSpan={5} className="px-6 py-12 text-center text-gray-600 text-sm">No bookings found.</td></tr>
               )}
@@ -500,49 +585,97 @@ export default function AdminPage() {
 
           {/* Mobile list */}
           <div className="md:hidden divide-y divide-gray-800">
-            {filtered.map(reg => (
-              <div
-                key={reg.id}
-                className="flex items-center gap-4 px-4 py-4 active:bg-gray-800/40 cursor-pointer"
-                onClick={() => window.location.href = `/kumaon-fest/verify/${reg.id}`}
-              >
-                {/* Left: avatar initial */}
-                <div className="w-10 h-10 rounded-2xl bg-gray-800 flex items-center justify-center shrink-0 font-black text-base text-white">
-                  {reg.full_name?.charAt(0).toUpperCase()}
-                </div>
+            {filtered.map(reg => {
+              const groupMembers: { id?: string; full_name?: string; fullName?: string; gender?: string; age?: string; checked_in_at?: string | null }[] =
+                reg._groupMembers?.length ? reg._groupMembers :
+                reg.additional_attendees?.length ? reg.additional_attendees : [];
+              const hasGroup = groupMembers.length > 0;
+              const isExpanded = expandedRows.has(reg.id);
+              return (
+                <div key={reg.id}>
+                  <div
+                    className="flex items-center gap-3 px-4 py-4 active:bg-gray-800/40 cursor-pointer"
+                    onClick={() => window.location.href = `/kumaon-fest/verify/${reg.id}`}
+                  >
+                    {/* Left: avatar */}
+                    <div className="w-10 h-10 rounded-2xl bg-gray-800 flex items-center justify-center shrink-0 font-black text-base text-white">
+                      {reg.full_name?.charAt(0).toUpperCase()}
+                    </div>
 
-                {/* Middle: name + pass */}
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-sm text-white truncate">{reg.full_name}</div>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type}</span>
-                    <span className="text-[10px] text-gray-600">×{reg.quantity}</span>
-                    {reg.payment_status === "paid" && (
-                      <span className="text-[10px] font-black text-white">· ₹{getTotalPaid(reg).toLocaleString("en-IN")}</span>
-                    )}
+                    {/* Middle: name + pass */}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-sm text-white truncate">{reg.full_name}</div>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        <span className="text-[10px] font-black text-yellow-500 uppercase tracking-wider">{reg.pass_type}</span>
+                        {hasGroup
+                          ? <span className="text-[10px] text-gray-600">Group of {groupMembers.length + 1}</span>
+                          : <span className="text-[10px] text-gray-600">×{reg.quantity}</span>
+                        }
+                        {reg.payment_status === "paid" && (
+                          <span className="text-[10px] font-black text-white">· ₹{getTotalPaid(reg).toLocaleString("en-IN")}</span>
+                        )}
+                      </div>
+                      {hasGroup && (
+                        <button
+                          onClick={(e) => toggleRow(reg.id, e)}
+                          className="mt-1 text-[9px] font-black text-yellow-500/60 hover:text-yellow-500 uppercase tracking-wider"
+                        >
+                          {isExpanded ? "▲ hide" : `▼ +${groupMembers.length} members`}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Right: status + actions */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <StatusBadge reg={reg} />
+                      {reg.payment_status === "paid" && (
+                        <button
+                          className="h-8 w-8 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 active:bg-gray-700"
+                          onClick={(e) => handleResendEmail(reg.id, e)}
+                          disabled={resendingEmail === reg.id}
+                        >
+                          {resendingEmail === reg.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                        </button>
+                      )}
+                      <ChevronRight className="w-4 h-4 text-gray-700" />
+                    </div>
                   </div>
-                </div>
 
-                {/* Right: status + actions */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <StatusBadge reg={reg} />
-                  {reg.payment_status === "paid" && (
-                    <button
-                      className="h-8 w-8 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 active:bg-gray-700"
-                      onClick={(e) => handleResendEmail(reg.id, e)}
-                      disabled={resendingEmail === reg.id}
-                    >
-                      {resendingEmail === reg.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
-                    </button>
+                  {/* Expanded group members */}
+                  {hasGroup && isExpanded && (
+                    <div className="px-4 pb-3 space-y-1.5 bg-gray-950/40 border-t border-gray-800/50">
+                      {groupMembers.map((m, i) => (
+                        <div key={i} className="flex items-center gap-3 py-1.5">
+                          <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[9px] font-black text-gray-500 shrink-0">
+                            {i + 2}
+                          </div>
+                          <span className="text-sm font-bold text-gray-300 flex-1">{m.full_name ?? m.fullName}</span>
+                          {m.gender && <span className="text-[9px] bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded uppercase font-bold">{m.gender}</span>}
+                          {m.age && <span className="text-[9px] text-gray-600">{m.age}y</span>}
+                        </div>
+                      ))}
+                    </div>
                   )}
-                  <ChevronRight className="w-4 h-4 text-gray-700" />
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {filtered.length === 0 && (
               <div className="py-12 text-center text-gray-600 text-sm">No bookings found.</div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* ── MOBILE STICKY SCAN FAB ── */}
+      <div className="fixed bottom-0 inset-x-0 md:hidden z-50">
+        <div className="h-20 bg-gray-950/95 backdrop-blur-xl border-t border-white/5 flex flex-col items-center justify-center gap-1 pb-2">
+          <button
+            onClick={() => setShowScanner(true)}
+            className="w-12 h-12 rounded-full bg-yellow-500 active:bg-yellow-600 text-gray-950 flex items-center justify-center shadow-lg shadow-yellow-500/30 transition-transform active:scale-95"
+          >
+            <Camera className="w-5 h-5" />
+          </button>
+          <span className="text-[9px] text-yellow-500 font-black uppercase tracking-widest">Scan</span>
         </div>
       </div>
 

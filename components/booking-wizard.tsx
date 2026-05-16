@@ -291,6 +291,8 @@ export function BookingWizard({
     const pass = tiers.find(t => t.id === (selectedPass as any));
     if (!pass) return 0;
     const price = isEarlyBird ? (pass as any).earlyBirdPrice : (pass as any).regularPrice;
+    // Group pass price is for the whole group — do not multiply by quantity
+    if (isGroupOf4) return price;
     return price * selectedQuantity;
   };
 
@@ -884,7 +886,10 @@ export function BookingWizard({
               <div className="bg-gray-900/50 border border-gray-800 p-8 rounded-[2.5rem]">
                 <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2"><ShoppingBag className="w-5 h-5 text-yellow-500" /> Order Summary</h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-gray-400 text-sm"><span>{selectedPass} x {selectedQuantity}</span><span>₹{getPrice()}</span></div>
+                  <div className="flex justify-between text-gray-400 text-sm">
+                    <span>{selectedPass}{isGroupOf4 ? " (4 people)" : ` × ${selectedQuantity}`}</span>
+                    <span>₹{getPrice()}</span>
+                  </div>
                   <div className="h-px bg-gray-800" />
                   <div className="flex justify-between text-xl md:text-2xl font-bold text-white"><span>Total</span><span className="text-yellow-500">₹{getPrice()}</span></div>
                   <div className="pt-6 space-y-4">
