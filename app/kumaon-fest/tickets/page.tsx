@@ -3,7 +3,7 @@
 import { BookingWizard } from "@/components/booking-wizard";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, CalendarDays, MapPin, Clock, ShieldCheck, Ticket, ChevronRight } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Clock, ShieldCheck, Ticket, ChevronRight, ShoppingBasket } from "lucide-react";
 import { useState } from "react";
 
 export default function TicketsPage() {
@@ -116,9 +116,10 @@ export default function TicketsPage() {
           {/* Event Details */}
           <div className="space-y-3">
             {[
-              { icon: CalendarDays, label: "Date", value: "30 May 2026, Friday" },
+              { icon: CalendarDays, label: "Date", value: "30 May 2026, Saturday" },
               { icon: Clock,        label: "Time", value: "5:00 PM – 10:00 PM" },
               { icon: MapPin,       label: "Venue", value: "Kripa Sindhu Banquet, Haldwani" },
+              { icon: ShoppingBasket,       label: "Stalls", value: "15+" },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center shrink-0">
