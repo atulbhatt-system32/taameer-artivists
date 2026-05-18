@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { getRegistrations, getEventPricing, getEventConfig } from "@/app/actions/booking";
+import { getRegistrations, getEventPricing, getEventConfig, recoverPaymentByOrderId } from "@/app/actions/booking";
 import { Button } from "@/components/ui/button";
 import { 
   Users, 
@@ -72,6 +72,8 @@ export default function AdminPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [filterPass, setFilterPass] = useState<string>("All");
+  const [recoveryOrderId, setRecoveryOrderId] = useState("");
+  const [isRecovering, setIsRecovering] = useState(false);
   const scanProcessingRef = useRef(false);
 
   useEffect(() => {
@@ -155,6 +157,22 @@ export default function AdminPage() {
     link.href = url;
     link.download = `taameer_bookings_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
+  };
+
+  const handleRecoverPayment = async () => {
+    if (!recoveryOrderId.trim()) return;
+    setIsRecovering(true);
+    setNotification(null);
+    try {
+      const result = await recoverPaymentByOrderId(recoveryOrderId.trim());
+      setNotification({ type: "success", message: `Payment recovered! ${result.ticketCount} ticket(s) confirmed and email sent.` });
+      setRecoveryOrderId("");
+      fetchData();
+    } catch (err: any) {
+      setNotification({ type: "error", message: `Recovery failed: ${err.message}` });
+    } finally {
+      setIsRecovering(false);
+    }
   };
 
   useEffect(() => {
@@ -444,6 +462,27 @@ export default function AdminPage() {
           <StatCard label="Confirmed Pax"   value={stats.pax}             icon={Users}        color="bg-blue-500/10 text-blue-400" />
           <StatCard label="Checked In"      value={checkedInCount}        icon={CheckCircle2} color="bg-green-500/10 text-green-400" />
           <StatCard label="Net Revenue"     value={`₹${stats.revenue.toLocaleString("en-IN")}`} icon={IndianRupee} color="bg-emerald-500/10 text-emerald-400" />
+        </div>
+
+        {/* ── RECOVER PAYMENT ── */}
+        <div className="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4 space-y-3">
+          <p className="text-xs font-black uppercase tracking-widest text-orange-400">Recover Missed Payment</p>
+          <p className="text-[11px] text-gray-500 leading-relaxed">If a payment succeeded but no ticket was issued (e.g. redirect), paste the Cashfree Order ID here to confirm and send the email.</p>
+          <div className="flex gap-2">
+            <Input
+              placeholder="e.g. KF_1779106248384_uvaxvd"
+              className="h-10 rounded-xl bg-gray-900 border-gray-800 text-white text-xs flex-1 font-mono"
+              value={recoveryOrderId}
+              onChange={(e) => setRecoveryOrderId(e.target.value)}
+            />
+            <Button
+              onClick={handleRecoverPayment}
+              disabled={isRecovering || !recoveryOrderId.trim()}
+              className="h-10 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs shrink-0"
+            >
+              {isRecovering ? <Loader2 className="w-4 h-4 animate-spin" /> : "Recover"}
+            </Button>
+          </div>
         </div>
 
         {/* ── SEARCH + FILTER ── */}

@@ -64,6 +64,7 @@ export async function createCashfreeOrder(amount: number, customerDetails: { nam
     },
     order_meta: {
       return_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/kumaon-fest/tickets?order_id={order_id}`,
+      notify_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/cashfree/webhook`,
     },
   };
 
@@ -590,6 +591,143 @@ export async function registerUser(data: RegistrationData & { paymentId: string;
     orderId: data.orderId,
     signature: data.signature,
   });
+}
+
+export async function recoverPaymentByOrderId(orderId: string) {
+  const cashfree = await getCashfreeClient();
+
+  // 1. Verify payment succeeded
+  const orderResponse = await cashfree.PGOrderFetchPayments(orderId);
+  const payments = orderResponse.data;
+
+  if (!payments || payments.length === 0) {
+    throw new Error("No payments found for this order.");
+  }
+
+  const successfulPayment = payments.find((p: any) => p.payment_status === "SUCCESS");
+  if (!successfulPayment) {
+    throw new Error("Payment not completed successfully.");
+  }
+
+  // 2. Get the order to find the customer email
+  const orderDetails = await cashfree.PGFetchOrder(orderId);
+  const customerEmail = orderDetails.data?.customer_details?.customer_email;
+
+  if (!customerEmail) {
+    throw new Error("Could not retrieve customer email from order.");
+  }
+
+  // 3. Find the most recent pending registration matching this email
+  const { data: pendingRegs, error: fetchError } = await supabase
+    .from("registrations")
+    .select("*")
+    .eq("email", customerEmail)
+    .eq("payment_status", "pending")
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (fetchError || !pendingRegs || pendingRegs.length === 0) {
+    throw new Error("No pending registration found for this payment. It may already be confirmed.");
+  }
+
+  // Use the group_id of the most recent pending registration
+  const primaryReg = pendingRegs[0];
+  const groupId = primaryReg.group_id;
+  const isGroup = !!groupId;
+
+  // 4. Update all registrations in the group to paid
+  const { error: updateError } = await supabase
+    .from("registrations")
+    .update({
+      payment_id: successfulPayment.cf_payment_id?.toString() || "",
+      order_id: orderId,
+      payment_status: "paid",
+    })
+    .filter(isGroup ? "group_id" : "id", "eq", isGroup ? groupId : primaryReg.id);
+
+  if (updateError) {
+    throw new Error("Failed to update payment status.");
+  }
+
+  // 5. Fetch all confirmed tickets
+  const { data: allTickets } = await supabase
+    .from("registrations")
+    .select("*")
+    .eq(isGroup ? "group_id" : "id", isGroup ? groupId : primaryReg.id);
+
+  if (!allTickets || allTickets.length === 0) {
+    throw new Error("Tickets not found after update.");
+  }
+
+  // 6. Send confirmation email
+  const smtpUser = process.env.GOOGLE_SMTP_USER;
+  const smtpPass = process.env.GOOGLE_SMTP_PASS;
+
+  if (smtpUser && smtpPass) {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user: smtpUser, pass: smtpPass },
+    });
+
+    const domain = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+    const ticketSections = allTickets.map(ticket => {
+      const verifyUrl = `${domain}/kumaon-fest/verify/${ticket.id}`;
+      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verifyUrl)}`;
+      return `
+        <div style="background-color: #f8fafc; border: 2px dashed #e2e8f0; border-radius: 20px; padding: 25px; margin-bottom: 35px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding-bottom: 15px;">
+                <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block;">Attendee</span>
+                <strong style="font-size: 18px; color: #1e293b;">${ticket.full_name}</strong>
+              </td>
+              <td style="padding-bottom: 15px; text-align: right;">
+                <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block;">Pass Type</span>
+                <strong style="font-size: 14px; color: #1e293b;">${ticket.pass_type}</strong>
+              </td>
+            </tr>
+          </table>
+          <div style="text-align: center; margin: 20px 0;">
+            <img src="${qrCodeUrl}" alt="Ticket QR Code" style="display: block; width: 180px; height: 180px; margin: 0 auto;" />
+            <p style="font-size: 10px; color: #94a3b8; margin-top: 10px; font-family: monospace;">TICKET ID: ${ticket.id}</p>
+          </div>
+          <div style="text-align: center;">
+            <a href="${verifyUrl}" style="display: inline-block; background-color: #EAB308; color: #000000; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 700; text-decoration: none;">View Digital Ticket</a>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    try {
+      await transporter.sendMail({
+        from: `"The Kumaon Fest" <${smtpUser}>`,
+        to: primaryReg.email,
+        subject: `Booking Confirmation (${allTickets.length} Tickets) - The Kumaon Fest`,
+        html: `
+          <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f7f9; padding: 40px 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+              <div style="background: linear-gradient(135deg, #EAB308, #CA8A04); padding: 40px 20px; text-align: center; color: #000000;">
+                <h1 style="margin: 0; font-size: 28px; font-weight: 800;">The Kumaon Fest 2026</h1>
+                <p style="margin: 10px 0 0; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 2px;">Your Entry Passes Are Ready</p>
+              </div>
+              <div style="padding: 40px; color: #1f2937;">
+                <p style="font-size: 18px; margin-bottom: 20px;">Hi <strong>${primaryReg.full_name}</strong>,</p>
+                <p style="font-size: 16px; line-height: 1.6; color: #4b5563; margin-bottom: 30px;">
+                  Your booking for <strong>The Kumaon Fest 2026</strong> is confirmed!
+                </p>
+                ${ticketSections}
+              </div>
+            </div>
+          </div>
+        `,
+      });
+    } catch (err) {
+      console.error("Recovery email error:", err);
+    }
+  }
+
+  return { success: true, registrationId: primaryReg.id, ticketCount: allTickets.length };
 }
 
 export async function getEventConfig() {

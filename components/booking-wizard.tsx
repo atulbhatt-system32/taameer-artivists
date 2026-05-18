@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { preRegisterUser, createCashfreeOrder, confirmPayment, getEventConfig, getEventPricing } from "@/app/actions/booking";
+import { preRegisterUser, createCashfreeOrder, confirmPayment, recoverPaymentByOrderId, getEventConfig, getEventPricing } from "@/app/actions/booking";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Ticket, Users, Sparkles, ChevronLeft, CreditCard, ShoppingBag } from "lucide-react";
 import confetti from "canvas-confetti";
@@ -223,6 +223,50 @@ export function BookingWizard({
     fetchData();
   }, []);
 
+  // Handle return from Cashfree redirect-based payment (e.g. NetBanking)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const returnedOrderId = params.get("order_id");
+    if (!returnedOrderId) return;
+
+    const handleRedirectReturn = async () => {
+      setIsSubmitting(true);
+      setNotification({ type: "warning", message: "Verifying your payment, please wait..." });
+
+      try {
+        // Try sessionStorage first (same-device same-browser)
+        const stored = sessionStorage.getItem("pendingPayment");
+        if (stored) {
+          const { orderId: storedOrderId, registrationId: storedRegId } = JSON.parse(stored);
+          if (storedOrderId === returnedOrderId && storedRegId) {
+            sessionStorage.removeItem("pendingPayment");
+            await confirmPayment({ registrationId: storedRegId, paymentId: "", orderId: returnedOrderId, signature: "" });
+            setRegistrationId(storedRegId);
+            setStep(2);
+            setIsSubmitting(false);
+            // Clean URL
+            window.history.replaceState({}, "", window.location.pathname);
+            return;
+          }
+        }
+
+        // Fallback: recover by order_id via Cashfree + email lookup
+        const result = await recoverPaymentByOrderId(returnedOrderId);
+        setRegistrationId(result.registrationId);
+        setStep(2);
+        // Clean URL
+        window.history.replaceState({}, "", window.location.pathname);
+      } catch (err: unknown) {
+        const error = err as Error;
+        setNotification({ type: "error", message: `Payment verification failed: ${error.message}` });
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    handleRedirectReturn();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
@@ -326,21 +370,26 @@ export function BookingWizard({
 
       const cashfree = window.Cashfree({ mode: process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === "PRODUCTION" ? "production" : "sandbox" });
 
+      // Persist mapping so confirmPayment can be called after a redirect return
+      sessionStorage.setItem("pendingPayment", JSON.stringify({ orderId: order.orderId, registrationId: regId }));
+
       cashfree.checkout({
         paymentSessionId: order.paymentSessionId,
         redirectTarget: "_modal",
       }).then(async (result: any) => {
         if (result.error) {
+          sessionStorage.removeItem("pendingPayment");
           setNotification({ type: "error", message: result.error.message || "Payment cancelled." });
           setIsSubmitting(false);
         } else if (result.paymentDetails) {
           try {
-              await confirmPayment({
-                registrationId: regId,
-                paymentId: result.paymentDetails.paymentMessage || "",
-                orderId: order.orderId || "",
-                signature: "", // Cashfree verifies server-side via API
-              });
+            await confirmPayment({
+              registrationId: regId,
+              paymentId: result.paymentDetails.paymentMessage || "",
+              orderId: order.orderId || "",
+              signature: "", // Cashfree verifies server-side via API
+            });
+            sessionStorage.removeItem("pendingPayment");
             setStep(2);
           } catch (err: unknown) {
             const error = err as Error;
@@ -355,6 +404,7 @@ export function BookingWizard({
               orderId: order.orderId || "",
               signature: "",
             });
+            sessionStorage.removeItem("pendingPayment");
             setStep(2);
           } catch (err: unknown) {
             const error = err as Error;
