@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { preRegisterUser, createCashfreeOrder, confirmPayment, recoverPaymentByOrderId, getEventConfig, getEventPricing } from "@/app/actions/booking";
+import { preRegisterUser, createCashfreeOrder, confirmPayment, recoverPaymentByOrderId, linkOrderToRegistration, getEventConfig, getEventPricing } from "@/app/actions/booking";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Ticket, Users, Sparkles, ChevronLeft, CreditCard, ShoppingBag } from "lucide-react";
 import confetti from "canvas-confetti";
@@ -361,6 +361,11 @@ export function BookingWizard({
         email: values.email,
         phone: values.contactNo,
       });
+
+      // CRITICAL: Link the order to the registration in DB so webhook can find it
+      if (order.orderId) {
+        await linkOrderToRegistration(regId, order.orderId);
+      }
       
       if (!window.Cashfree) {
         setNotification({ type: "error", message: "Payment system loading... Please try again." });
@@ -391,6 +396,7 @@ export function BookingWizard({
             });
             sessionStorage.removeItem("pendingPayment");
             setStep(2);
+            setIsSubmitting(false);
           } catch (err: unknown) {
             const error = err as Error;
             setNotification({ type: "error", message: `Verification failed: ${error.message}` });
@@ -406,6 +412,7 @@ export function BookingWizard({
             });
             sessionStorage.removeItem("pendingPayment");
             setStep(2);
+            setIsSubmitting(false);
           } catch (err: unknown) {
             const error = err as Error;
             setNotification({ type: "error", message: `Verification failed: ${error.message}` });

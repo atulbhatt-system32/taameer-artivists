@@ -68,16 +68,57 @@ export async function createCashfreeOrder(amount: number, customerDetails: { nam
     },
   };
 
-  try {
-    const response = await cashfree.PGCreateOrder(request);
-    return {
-      orderId: response.data.order_id,
-      paymentSessionId: response.data.payment_session_id,
-      orderStatus: response.data.order_status,
-    };
-  } catch (error) {
-    console.error("Cashfree Order Error:", error);
-    throw new Error("Failed to create payment order");
+  // Retry up to 2 times for transient errors (e.g. 504 gateway timeout)
+  let lastError: Error | null = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await cashfree.PGCreateOrder(request);
+      return {
+        orderId: response.data.order_id,
+        paymentSessionId: response.data.payment_session_id,
+        orderStatus: response.data.order_status,
+      };
+    } catch (error: any) {
+      lastError = error;
+      const status = error?.response?.status || error?.status;
+      console.error(`Cashfree Order Error (attempt ${attempt}/3, status: ${status}):`, error?.message || error);
+      // Only retry on 5xx server errors
+      if (status && status >= 500 && attempt < 3) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // backoff
+        continue;
+      }
+      break;
+    }
+  }
+  console.error("Cashfree Order Error (all retries failed):", lastError);
+  throw new Error("Failed to create payment order. Please try again.");
+}
+
+// Link the Cashfree order_id to the registration row(s) so webhook can find them
+export async function linkOrderToRegistration(registrationId: string, orderId: string) {
+  // Fetch the registration to get the group_id
+  const { data: reg, error: fetchError } = await supabase
+    .from("registrations")
+    .select("group_id")
+    .eq("id", registrationId)
+    .single();
+
+  if (fetchError || !reg) {
+    console.error("linkOrderToRegistration: registration not found", registrationId);
+    return;
+  }
+
+  const groupId = reg.group_id;
+  const isGroup = !!groupId;
+
+  // Update all rows in the group (or just the single row) with the pending order id
+  const { error: updateError } = await supabase
+    .from("registrations")
+    .update({ pending_order_id: orderId })
+    .filter(isGroup ? "group_id" : "id", "eq", isGroup ? groupId : registrationId);
+
+  if (updateError) {
+    console.error("linkOrderToRegistration: update failed", updateError);
   }
 }
 
@@ -123,7 +164,7 @@ export async function preRegisterUser(data: RegistrationData) {
 }
 
 export async function confirmPayment(data: PaymentConfirmationData) {
-  console.log("SERVER: confirmPayment hit for registrationId:", data.registrationId);
+  console.log("SERVER: confirmPayment hit for registrationId:", data.registrationId, "orderId:", data.orderId);
 
   // 1. SECURITY: Verify payment with Cashfree API
   try {
@@ -149,14 +190,50 @@ export async function confirmPayment(data: PaymentConfirmationData) {
   }
 
   // 2. Fetch primary registration to get Group ID
-  const { data: primaryReg, error: fetchError } = await supabase
+  //    Try by registrationId first, fallback to pending_order_id if not found
+  let primaryReg: any = null;
+  
+  const { data: regById, error: fetchError } = await supabase
     .from("registrations")
     .select("*")
     .eq("id", data.registrationId)
     .single();
 
-  if (fetchError || !primaryReg) {
+  if (!fetchError && regById) {
+    primaryReg = regById;
+  } else if (data.orderId) {
+    // Fallback: find by pending_order_id (covers cases where registrationId is stale)
+    const { data: regByOrder } = await supabase
+      .from("registrations")
+      .select("*")
+      .eq("pending_order_id", data.orderId)
+      .eq("payment_status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+    primaryReg = regByOrder;
+  }
+
+  if (!primaryReg) {
+    // Check if already paid (idempotent — payment may have already been confirmed by webhook)
+    const { data: alreadyPaid } = await supabase
+      .from("registrations")
+      .select("id")
+      .eq("order_id", data.orderId)
+      .eq("payment_status", "paid")
+      .limit(1);
+    
+    if (alreadyPaid && alreadyPaid.length > 0) {
+      console.log("confirmPayment: already confirmed by webhook for order", data.orderId);
+      return { success: true, emailError: null };
+    }
     throw new Error("Registration not found.");
+  }
+
+  // Already paid check (idempotent)
+  if (primaryReg.payment_status === "paid") {
+    console.log("confirmPayment: already paid for registration", primaryReg.id);
+    return { success: true, emailError: null };
   }
 
   const groupId = primaryReg.group_id;
