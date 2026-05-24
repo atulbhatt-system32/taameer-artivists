@@ -4,6 +4,84 @@ import { supabase } from "@/lib/supabase";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 import { unstable_noStore as noStore } from "next/cache";
+import dns from "dns/promises";
+
+async function hasMxRecord(email: string): Promise<boolean> {
+  try {
+    const domain = email.split("@")[1];
+    if (!domain) return false;
+    const records = await dns.resolveMx(domain);
+    return records.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+export async function validateEmailAddress(email: string): Promise<{ valid: boolean; error?: string }> {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) return { valid: false, error: "Enter a valid email address." };
+  const valid = await hasMxRecord(email);
+  if (!valid) return { valid: false, error: "Email address not found. Check and try again." };
+  return { valid: true };
+}
+
+export async function sendEmailOtp(email: string): Promise<{ success: boolean; error?: string }> {
+  const smtpUser = process.env.GOOGLE_SMTP_USER;
+  const smtpPass = process.env.GOOGLE_SMTP_PASS;
+  if (!smtpUser || !smtpPass) return { success: false, error: "Email service not configured." };
+
+  const domainValid = await hasMxRecord(email);
+  if (!domainValid) return { success: false, error: "Email address not found. Please check and try again." };
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+  await supabase.from("email_verifications").delete().eq("email", email);
+  const { error: insertError } = await supabase
+    .from("email_verifications")
+    .insert({ email, otp, expires_at: expiresAt });
+  if (insertError) return { success: false, error: "Failed to generate OTP. Try again." };
+
+  const transporter = nodemailer.createTransport({ service: "gmail", auth: { user: smtpUser, pass: smtpPass } });
+  try {
+    await transporter.sendMail({
+      from: `"The Kumaon Fest" <${smtpUser}>`,
+      to: email,
+      subject: "Your verification code — The Kumaon Fest",
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;background:#111827;padding:40px;border-radius:16px;">
+          <h2 style="color:#EAB308;margin:0 0 4px;font-size:22px;">The Kumaon Fest 2026</h2>
+          <p style="color:#9ca3af;margin:0 0 32px;font-size:13px;">Email Verification</p>
+          <p style="color:#f9fafb;font-size:15px;margin:0 0 20px;">Your one-time verification code is:</p>
+          <div style="background:#1f2937;border:2px solid #EAB308;border-radius:12px;padding:28px;text-align:center;margin-bottom:24px;">
+            <span style="font-size:44px;font-weight:900;letter-spacing:14px;color:#EAB308;">${otp}</span>
+          </div>
+          <p style="color:#6b7280;font-size:12px;margin:0;">Expires in 10 minutes. Do not share this code with anyone.</p>
+        </div>
+      `,
+    });
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to send code. Please try again." };
+  }
+}
+
+export async function verifyEmailOtp(email: string, otp: string): Promise<{ success: boolean; error?: string }> {
+  const { data, error } = await supabase
+    .from("email_verifications")
+    .select("otp, expires_at")
+    .eq("email", email)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error || !data) return { success: false, error: "No code found. Please request a new one." };
+  if (new Date(data.expires_at) < new Date()) return { success: false, error: "Code expired. Please request a new one." };
+  if (data.otp !== otp.trim()) return { success: false, error: "Incorrect code. Please try again." };
+
+  await supabase.from("email_verifications").delete().eq("email", email);
+  return { success: true };
+}
 
 export interface RegistrationData {
   fullName: string;
@@ -124,6 +202,17 @@ export async function linkOrderToRegistration(registrationId: string, orderId: s
 
 export async function preRegisterUser(data: RegistrationData) {
   console.log("SERVER: preRegisterUser hit with email:", data.email);
+
+  // Clean up stale pending rows for this email before creating new ones.
+  // Rows with no pending_order_id = user never reached payment, safe to delete.
+  // Rows with a pending_order_id older than 1 hour = payment session expired.
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  await supabase
+    .from("registrations")
+    .delete()
+    .eq("email", data.email)
+    .eq("payment_status", "pending")
+    .or(`pending_order_id.is.null,created_at.lt.${oneHourAgo}`);
 
   const attendees = [
     { fullName: data.fullName, age: data.age, gender: data.gender },
@@ -268,6 +357,17 @@ export async function confirmPayment(data: PaymentConfirmationData) {
   const smtpPass = process.env.GOOGLE_SMTP_PASS;
 
   let emailError: string | null = null;
+  let emailSent = false;
+
+  const mxValid = await hasMxRecord(primaryReg.email);
+  if (!mxValid) {
+    emailError = `Email address not reachable — domain has no mail server: ${primaryReg.email}`;
+    await supabase
+      .from("registrations")
+      .update({ email_sent: false })
+      .filter(isGroup ? "group_id" : "id", "eq", isGroup ? groupId : data.registrationId);
+    return { success: true, emailSent: false, emailError };
+  }
 
   if (smtpUser && smtpPass) {
     const transporter = nodemailer.createTransport({
@@ -351,13 +451,21 @@ export async function confirmPayment(data: PaymentConfirmationData) {
           </div>
         `,
       });
-      console.log("Email sent:", info.messageId);
+      emailSent = info.rejected.length === 0;
+      if (!emailSent) emailError = `Rejected by SMTP: ${info.rejected.join(", ")}`;
+      console.log("Email sent:", info.messageId, "| accepted:", info.accepted, "| rejected:", info.rejected);
     } catch (err) {
       emailError = String(err);
     }
+
+    // Persist email delivery status back to DB
+    await supabase
+      .from("registrations")
+      .update({ email_sent: emailSent })
+      .filter(isGroup ? "group_id" : "id", "eq", isGroup ? groupId : data.registrationId);
   }
 
-  return { success: true, emailError };
+  return { success: true, emailSent, emailError };
 }
 
 export async function sendCheckInEmail(id: string) {

@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getRegistrations, getEventPricing, getEventConfig, recoverPaymentByOrderId } from "@/app/actions/booking";
 import { Button } from "@/components/ui/button";
-import { 
-  Users, 
-  Ticket, 
-  IndianRupee, 
-  Search, 
-  Camera, 
-  X, 
+import {
+  Users,
+  Ticket,
+  IndianRupee,
+  Search,
+  Camera,
+  X,
   RefreshCw,
   Download,
   CheckCircle2,
@@ -18,7 +18,8 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  ChevronRight
+  ChevronRight,
+  MailX
 } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import { supabase } from "@/lib/supabase";
@@ -47,8 +48,13 @@ interface Registration {
   checked_in_at: string | null;
   created_at: string;
   gender?: string;
+  age?: string;
+  whatsapp_no?: string;
+  contact_no?: string;
+  address?: string;
   instagram_handle?: string;
   group_id?: string;
+  email_sent?: boolean;
   additional_attendees?: { fullName: string; age: string; gender: string }[];
   _groupMembers?: GroupMember[];
   _groupSize?: number;
@@ -74,6 +80,7 @@ export default function AdminPage() {
   const [filterPass, setFilterPass] = useState<string>("All");
   const [recoveryOrderId, setRecoveryOrderId] = useState("");
   const [isRecovering, setIsRecovering] = useState(false);
+  const [selectedReg, setSelectedReg] = useState<Registration | null>(null);
   const scanProcessingRef = useRef(false);
 
   useEffect(() => {
@@ -456,6 +463,25 @@ export default function AdminPage() {
           )}
         </AnimatePresence>
 
+        {/* ── EMAIL FAILURE ALERT ── */}
+        {(() => {
+          const failedEmails = displayRegistrations.filter(r => r.payment_status === "paid" && r.email_sent === false);
+          if (failedEmails.length === 0) return null;
+          return (
+            <div className="flex items-start gap-3 p-4 rounded-2xl bg-red-500/10 border border-red-500/30">
+              <MailX className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-black text-red-400">
+                  {failedEmails.length} ticket{failedEmails.length > 1 ? "s" : ""} paid but email not delivered
+                </p>
+                <p className="text-[11px] text-red-400/70 mt-0.5">
+                  {failedEmails.map(r => r.email).join(", ")}
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* ── STAT CARDS ── */}
         <div className="grid grid-cols-1 gap-3">
           <StatCard label="Paid Bookings"   value={stats.total}           icon={Ticket}       color="bg-yellow-500/10 text-yellow-500" />
@@ -538,11 +564,18 @@ export default function AdminPage() {
                   <React.Fragment key={reg.id}>
                     <tr
                       className="hover:bg-gray-800/30 transition-colors cursor-pointer group"
-                      onClick={() => window.location.href = `/kumaon-fest/verify/${reg.id}`}
+                      onClick={() => setSelectedReg(reg)}
                     >
                       <td className="px-6 py-4">
                         <div className="font-bold text-base">{reg.full_name}</div>
-                        <div className="text-xs text-gray-500">{reg.email}</div>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <span className="text-xs text-gray-500">{reg.email}</span>
+                          {reg.payment_status === "paid" && reg.email_sent === false && (
+                            <span className="inline-flex items-center gap-1 bg-red-500/15 border border-red-500/30 text-red-400 text-[10px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider">
+                              <MailX className="w-3 h-3" /> Ticket Not Sent — Address Not Found
+                            </span>
+                          )}
+                        </div>
                         {hasGroup && (
                           <div className="text-[10px] text-gray-600 mt-0.5 font-medium">+{groupMembers.length} members below</div>
                         )}
@@ -604,7 +637,7 @@ export default function AdminPage() {
                   {/* Lead buyer row */}
                   <div
                     className="flex items-center gap-3 px-4 py-4 active:bg-gray-800/40 cursor-pointer"
-                    onClick={() => window.location.href = `/kumaon-fest/verify/${reg.id}`}
+                    onClick={() => setSelectedReg(reg)}
                   >
                     <div className="w-10 h-10 rounded-2xl bg-gray-800 flex items-center justify-center shrink-0 font-black text-base text-white">
                       {reg.full_name?.charAt(0).toUpperCase()}
@@ -619,6 +652,11 @@ export default function AdminPage() {
                         }
                         {reg.payment_status === "paid" && (
                           <span className="text-[10px] font-black text-white">· ₹{getTotalPaid(reg).toLocaleString("en-IN")}</span>
+                        )}
+                        {reg.payment_status === "paid" && reg.email_sent === false && (
+                          <span className="inline-flex items-center gap-0.5 bg-red-500/15 border border-red-500/30 text-red-400 text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider">
+                            <MailX className="w-2.5 h-2.5" /> Ticket Not Sent
+                          </span>
                         )}
                       </div>
                     </div>
@@ -669,6 +707,106 @@ export default function AdminPage() {
           <span className="text-[9px] text-yellow-500 font-black uppercase tracking-widest">Scan</span>
         </div>
       </div>
+
+      {/* ── CUSTOMER DETAILS SHEET (bottom on mobile, modal on desktop) ── */}
+      <AnimatePresence>
+        {selectedReg && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 z-50"
+              onClick={() => setSelectedReg(null)}
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="fixed bottom-0 inset-x-0 z-50 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:w-[480px] bg-gray-900 rounded-t-3xl md:rounded-3xl border-t md:border border-gray-800 max-h-[85vh] overflow-y-auto"
+            >
+              {/* Handle */}
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="w-10 h-1 rounded-full bg-gray-700" />
+              </div>
+
+              <div className="px-5 pb-8 pt-3 space-y-5">
+                {/* Header */}
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center font-black text-xl text-yellow-500 shrink-0">
+                    {selectedReg.full_name?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-black text-lg text-white leading-tight">{selectedReg.full_name}</div>
+                    <div className="text-xs font-black text-yellow-500 uppercase tracking-wider mt-0.5">{selectedReg.pass_type}</div>
+                  </div>
+                  <StatusBadge reg={selectedReg} />
+                </div>
+
+                {/* Details grid */}
+                <div className="bg-gray-950 rounded-2xl divide-y divide-gray-800">
+                  {[
+                    { label: "Email", value: selectedReg.email },
+                    { label: "WhatsApp", value: selectedReg.whatsapp_no || selectedReg.contact_no || "—" },
+                    { label: "Gender", value: selectedReg.gender || "—" },
+                    { label: "Age", value: selectedReg.age || "—" },
+                    { label: "Amount Paid", value: selectedReg.payment_status === "paid" ? `₹${getTotalPaid(selectedReg).toLocaleString("en-IN")}` : "—" },
+                    { label: "Booked On", value: new Date(selectedReg.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) },
+                    ...(selectedReg.instagram_handle ? [{ label: "Instagram", value: selectedReg.instagram_handle }] : []),
+                    ...(selectedReg.address ? [{ label: "Address", value: selectedReg.address }] : []),
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex items-center justify-between px-4 py-3 gap-4">
+                      <span className="text-[11px] font-black uppercase tracking-wider text-gray-500 shrink-0">{label}</span>
+                      <span className="text-sm text-white text-right truncate">{value}</span>
+                    </div>
+                  ))}
+                  {selectedReg.email_sent === false && (
+                    <div className="flex items-center gap-2 px-4 py-3">
+                      <MailX className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                      <span className="text-xs font-black text-red-400">Ticket email not delivered</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Group members */}
+                {(selectedReg._groupMembers?.length ?? 0) > 0 && (
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-wider text-gray-500 mb-2">Group Members</p>
+                    <div className="bg-gray-950 rounded-2xl divide-y divide-gray-800">
+                      {selectedReg._groupMembers!.map((m, i) => (
+                        <div key={i} className="flex items-center gap-3 px-4 py-3">
+                          <span className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-black text-gray-400 shrink-0">{i + 2}</span>
+                          <span className="text-sm font-bold text-white flex-1">{m.full_name}</span>
+                          {m.gender && <span className="text-[9px] bg-gray-800 text-gray-500 px-2 py-0.5 rounded uppercase font-bold">{m.gender}</span>}
+                          {m.checked_in_at && <CheckCircle2 className="w-3.5 h-3.5 text-green-400 shrink-0" />}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => window.location.href = `/kumaon-fest/verify/${selectedReg.id}`}
+                    className="flex-1 h-12 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-2xl text-sm"
+                  >
+                    <Ticket className="w-4 h-4 mr-1.5" /> Show Ticket
+                  </Button>
+                  <Button
+                    onClick={() => setSelectedReg(null)}
+                    variant="ghost"
+                    className="h-12 px-5 rounded-2xl border border-gray-800 text-gray-400 font-bold text-sm"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* ── QR SCANNER ── */}
       <AnimatePresence>

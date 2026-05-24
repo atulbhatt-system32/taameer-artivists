@@ -68,14 +68,17 @@ export async function POST(req: NextRequest) {
     if (byOrderId && byOrderId.length > 0) {
       pendingRegs = byOrderId;
     } else {
-      // Fallback: match by customer email from webhook payload
+      // Fallback: match by customer email from webhook payload.
+      // Only look within the last hour to avoid matching stale abandoned rows.
       const customerEmail: string = event?.data?.customer_details?.customer_email;
       if (customerEmail) {
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
         const { data: byEmail } = await supabase
           .from("registrations")
           .select("*")
           .eq("email", customerEmail)
           .eq("payment_status", "pending")
+          .gte("created_at", oneHourAgo)
           .order("created_at", { ascending: false })
           .limit(10);
         pendingRegs = byEmail;

@@ -24,9 +24,9 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { preRegisterUser, createCashfreeOrder, confirmPayment, recoverPaymentByOrderId, linkOrderToRegistration, getEventConfig, getEventPricing } from "@/app/actions/booking";
+import { preRegisterUser, createCashfreeOrder, confirmPayment, recoverPaymentByOrderId, linkOrderToRegistration, getEventConfig, getEventPricing, validateEmailAddress, sendEmailOtp, verifyEmailOtp } from "@/app/actions/booking";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Ticket, Users, Sparkles, ChevronLeft, CreditCard, ShoppingBag } from "lucide-react";
+import { CheckCircle2, Ticket, Users, Sparkles, ChevronLeft, CreditCard, ShoppingBag, ShieldCheck, Loader2 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
 // Event data is fully dynamic from Supabase — no local JSON fallback
@@ -77,6 +77,53 @@ export function BookingWizard({
   const [dbPricing, setDbPricing] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error" | "warning"; message: string } | null>(null);
+  const [emailCheckError, setEmailCheckError] = useState<string | null>(null);
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState(0);
+
+  const handleEmailBlur = async (email: string) => {
+    if (!email) return;
+    setEmailChecking(true);
+    setEmailCheckError(null);
+    const result = await validateEmailAddress(email);
+    setEmailChecking(false);
+    if (!result.valid) setEmailCheckError(result.error || "Invalid email.");
+  };
+
+  const handleSendOtp = async () => {
+    const email = form.getValues("email");
+    const emailValid = await form.trigger("email");
+    if (!emailValid || emailCheckError) return;
+    setSendingOtp(true);
+    setOtpError("");
+    const result = await sendEmailOtp(email);
+    setSendingOtp(false);
+    if (!result.success) {
+      setOtpError(result.error || "Failed to send code.");
+    } else {
+      setOtpSent(true);
+      setOtpCooldown(60);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    setVerifyingOtp(true);
+    setOtpError("");
+    const result = await verifyEmailOtp(form.getValues("email"), otpValue);
+    setVerifyingOtp(false);
+    if (!result.success) {
+      setOtpError(result.error || "Invalid code.");
+    } else {
+      setEmailVerified(true);
+    }
+  };
+
   const [registrationId, setRegistrationId] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -276,6 +323,7 @@ export function BookingWizard({
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onTouched",
     defaultValues: {
       fullName: "",
       age: "",
@@ -298,6 +346,13 @@ export function BookingWizard({
   });
 
   const selectedQuantity = parseInt(form.watch("quantity") || "1");
+  const watchedWhatsapp = form.watch("whatsappNo");
+
+  useEffect(() => {
+    if (variant === "compact") {
+      form.setValue("contactNo", watchedWhatsapp, { shouldValidate: false });
+    }
+  }, [watchedWhatsapp, variant]);
 
   useEffect(() => {
     const targetCount = Math.max(0, selectedQuantity - 1);
@@ -313,6 +368,22 @@ export function BookingWizard({
       }
     }
   }, [selectedQuantity, append, remove]);
+
+  // Reset OTP when email changes
+  useEffect(() => {
+    setEmailVerified(false);
+    setOtpSent(false);
+    setOtpValue("");
+    setOtpError("");
+    setEmailCheckError(null);
+  }, [form.watch("email")]);
+
+  // Cooldown countdown
+  useEffect(() => {
+    if (otpCooldown <= 0) return;
+    const t = setTimeout(() => setOtpCooldown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [otpCooldown]);
 
   const selectPass = (type: string) => {
     form.setValue("passType", type as any);
@@ -388,15 +459,18 @@ export function BookingWizard({
           setIsSubmitting(false);
         } else if (result.paymentDetails) {
           try {
-            await confirmPayment({
+            const confirmed = await confirmPayment({
               registrationId: regId,
               paymentId: result.paymentDetails.paymentMessage || "",
               orderId: order.orderId || "",
-              signature: "", // Cashfree verifies server-side via API
+              signature: "",
             });
             sessionStorage.removeItem("pendingPayment");
             setStep(2);
             setIsSubmitting(false);
+            if (!confirmed.emailSent) {
+              setNotification({ type: "warning", message: `Ticket saved! But email could not be sent to ${form.getValues("email")}. Please contact support.` });
+            }
           } catch (err: unknown) {
             const error = err as Error;
             setNotification({ type: "error", message: `Verification failed: ${error.message}` });
@@ -404,7 +478,7 @@ export function BookingWizard({
         } else {
           // Payment may have been redirected, verify via server
           try {
-            await confirmPayment({
+            const confirmed = await confirmPayment({
               registrationId: regId,
               paymentId: "",
               orderId: order.orderId || "",
@@ -413,6 +487,9 @@ export function BookingWizard({
             sessionStorage.removeItem("pendingPayment");
             setStep(2);
             setIsSubmitting(false);
+            if (!confirmed.emailSent) {
+              setNotification({ type: "warning", message: `Ticket saved! But email could not be sent to ${form.getValues("email")}. Please contact support.` });
+            }
           } catch (err: unknown) {
             const error = err as Error;
             setNotification({ type: "error", message: `Verification failed: ${error.message}` });
@@ -496,31 +573,97 @@ export function BookingWizard({
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
                   <FormField control={form.control} name="fullName" render={({ field }) => (
-                    <FormItem><FormControl><Input placeholder="Full Name *" required className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} /></FormControl></FormItem>
+                    <FormItem><FormControl><Input placeholder="Full Name *" required className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} /></FormControl><FormMessage className="text-xs text-red-400" /></FormItem>
                   )} />
                   <div className="grid grid-cols-2 gap-3">
                     <FormField control={form.control} name="email" render={({ field }) => (
-                      <FormItem><FormControl><Input type="email" placeholder="Email *" required className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} /></FormControl></FormItem>
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="Email *"
+                            required
+                            className={`bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors ${emailCheckError ? "border-red-500" : ""}`}
+                            {...field}
+                            onBlur={async (e) => { field.onBlur(); await handleEmailBlur(e.target.value); }}
+                            onChange={(e) => { field.onChange(e); setEmailCheckError(null); }}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-xs text-red-400" />
+                        {emailChecking && <p className="text-[10px] text-gray-500 mt-1">Checking email...</p>}
+                        {emailCheckError && <p className="text-xs text-red-400 mt-1">{emailCheckError}</p>}
+                      </FormItem>
                     )} />
                     <FormField control={form.control} name="whatsappNo" render={({ field }) => (
-                      <FormItem><FormControl><Input placeholder="WhatsApp *" required maxLength={10} inputMode="numeric" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} onChange={e => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 10))} /></FormControl></FormItem>
+                      <FormItem><FormControl><Input placeholder="WhatsApp *" required maxLength={10} inputMode="numeric" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} onChange={e => field.onChange(e.target.value.replace(/\D/g, "").slice(0, 10))} /></FormControl><FormMessage className="text-xs text-red-400" /></FormItem>
                     )} />
                   </div>
+
+                  {/* ── OTP VERIFICATION ── */}
+                  {form.watch("email") && !emailCheckError && !emailChecking && (
+                    <div className={`rounded-xl border p-3 space-y-2 transition-colors ${emailVerified ? "bg-green-500/5 border-green-500/20" : "bg-gray-800/40 border-gray-700"}`}>
+                      {emailVerified ? (
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck className="w-4 h-4 text-green-400 shrink-0" />
+                          <span className="text-xs font-bold text-green-400">Email verified</span>
+                          <span className="text-[10px] text-gray-500 truncate ml-auto">{form.watch("email")}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Verify your email</span>
+                            {!otpSent ? (
+                              <button type="button" onClick={handleSendOtp} disabled={sendingOtp}
+                                className="text-[11px] font-black text-yellow-400 hover:text-yellow-300 disabled:opacity-50 flex items-center gap-1">
+                                {sendingOtp ? <><Loader2 className="w-3 h-3 animate-spin" /> Sending...</> : "Send Code →"}
+                              </button>
+                            ) : (
+                              <button type="button" onClick={handleSendOtp} disabled={sendingOtp || otpCooldown > 0}
+                                className="text-[11px] text-gray-500 hover:text-gray-400 disabled:opacity-40">
+                                {otpCooldown > 0 ? `Resend in ${otpCooldown}s` : "Resend"}
+                              </button>
+                            )}
+                          </div>
+                          {otpSent && (
+                            <div className="flex gap-2">
+                              <Input
+                                placeholder="6-digit code"
+                                maxLength={6}
+                                inputMode="numeric"
+                                autoFocus
+                                value={otpValue}
+                                onChange={e => { setOtpValue(e.target.value.replace(/\D/g, "").slice(0, 6)); setOtpError(""); }}
+                                className="bg-gray-950 border-gray-700 text-white text-center tracking-[0.3em] font-bold h-9 text-sm focus:border-yellow-500/50"
+                              />
+                              <button type="button" onClick={handleVerifyOtp} disabled={verifyingOtp || otpValue.length < 6}
+                                className="h-9 px-3 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-xs shrink-0 disabled:opacity-50 flex items-center gap-1">
+                                {verifyingOtp ? <Loader2 className="w-3 h-3 animate-spin" /> : "Verify"}
+                              </button>
+                            </div>
+                          )}
+                          {otpSent && !otpError && <p className="text-[10px] text-gray-500">Didn't receive it? Check your <span className="text-gray-400 font-semibold">spam / junk folder</span>.</p>}
+                          {otpError && <p className="text-[11px] text-red-400">{otpError}</p>}
+                          {!otpSent && <p className="text-[10px] text-gray-600">We'll send a 6-digit code to confirm your email.</p>}
+                        </>
+                      )}
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-3">
                     <FormField control={form.control} name="age" render={({ field }) => (
-                      <FormItem><FormControl><Input placeholder="Age" type="number" required className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} /></FormControl></FormItem>
+                      <FormItem><FormControl><Input placeholder="Age" type="number" required className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} /></FormControl><FormMessage className="text-xs text-red-400" /></FormItem>
                     )} />
                     <FormField control={form.control} name="quantity" render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input 
-                            placeholder="Qty" 
-                            type="number" 
-                            min="1" 
-                            max="5" 
-                            required 
-                            className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" 
-                            {...field} 
+                          <Input
+                            placeholder="Qty"
+                            type="number"
+                            min="1"
+                            max="5"
+                            required
+                            className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors"
+                            {...field}
                             onChange={(e) => {
                               const val = parseInt(e.target.value);
                               if (val > 5) {
@@ -533,11 +676,12 @@ export function BookingWizard({
                             }}
                           />
                         </FormControl>
+                        <FormMessage className="text-xs text-red-400" />
                       </FormItem>
                     )} />
                   </div>
                   <FormField control={form.control} name="address" render={({ field }) => (
-                    <FormItem><FormControl><Textarea placeholder="Address" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors min-h-[60px]" {...field} /></FormControl></FormItem>
+                    <FormItem><FormControl><Textarea placeholder="Address" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors min-h-[60px]" {...field} /></FormControl><FormMessage className="text-xs text-red-400" /></FormItem>
                   )} />
                   <FormField control={form.control} name="instagramHandle" render={({ field }) => (
                     <FormItem><FormControl><Input placeholder="Instagram Handle" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} /></FormControl></FormItem>
@@ -548,8 +692,16 @@ export function BookingWizard({
                       <FormLabel className="text-[10px] text-gray-400 leading-tight cursor-pointer hover:text-gray-300 transition-colors">I agree to the terms and conditions.</FormLabel>
                     </FormItem>
                   )} />
-                  <Button type="submit" disabled={isSubmitting} className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold h-12 rounded-xl transition-all active:scale-95">
-                    {isSubmitting ? "Processing..." : `Pay ₹${getPrice()}`}
+                  <Button
+                    type="button"
+                    disabled={isSubmitting || !emailVerified}
+                    className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold h-12 rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={async () => {
+                      const valid = await form.trigger();
+                      if (valid && emailVerified) form.handleSubmit(onSubmit)();
+                    }}
+                  >
+                    {isSubmitting ? "Processing..." : !emailVerified ? "Verify Email First" : `Pay ₹${getPrice()}`}
                   </Button>
                 </form>
               </Form>
@@ -574,7 +726,7 @@ export function BookingWizard({
           )}
         </AnimatePresence>
         {notification && (
-          <div className={`mt-4 p-2 rounded text-[10px] text-center ${notification.type === 'error' ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`}>
+          <div className={`mt-4 p-2 rounded text-[10px] text-center ${notification.type === 'error' ? 'bg-red-500/10 text-red-400' : notification.type === 'warning' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-green-500/10 text-green-400'}`}>
             {notification.message}
           </div>
         )}
@@ -921,10 +1073,75 @@ export function BookingWizard({
                       <FormField control={form.control} name="email" render={({ field }) => (
                         <FormItem className="space-y-2">
                           <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Email Address *</FormLabel>
-                          <FormControl><Input type="email" placeholder="you@example.com" required className="h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4" {...field} /></FormControl>
+                          <FormControl>
+                            <Input
+                              type="email"
+                              placeholder="you@example.com"
+                              required
+                              className={`h-11 bg-gray-950 border-gray-800 text-white text-sm focus:border-yellow-500/60 rounded-lg px-4 ${emailCheckError ? "border-red-500" : ""}`}
+                              {...field}
+                              onBlur={async (e) => { field.onBlur(); await handleEmailBlur(e.target.value); }}
+                              onChange={(e) => { field.onChange(e); setEmailCheckError(null); }}
+                            />
+                          </FormControl>
                           <FormMessage />
+                          {emailChecking && <p className="text-xs text-gray-500">Checking email...</p>}
+                          {emailCheckError && <p className="text-xs text-red-400">{emailCheckError}</p>}
                         </FormItem>
                       )} />
+
+                      {/* ── OTP VERIFICATION ── */}
+                      {form.watch("email") && !emailCheckError && !emailChecking && (
+                        <div className={`rounded-xl border p-4 space-y-3 transition-colors ${emailVerified ? "bg-green-500/5 border-green-500/20" : "bg-gray-950/60 border-gray-700"}`}>
+                          {emailVerified ? (
+                            <div className="flex items-center gap-2">
+                              <ShieldCheck className="w-5 h-5 text-green-400 shrink-0" />
+                              <span className="text-sm font-bold text-green-400">Email verified</span>
+                              <span className="text-xs text-gray-500 truncate ml-auto">{form.watch("email")}</span>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-bold text-white">Verify your email</p>
+                                  <p className="text-xs text-gray-500 mt-0.5">We'll send a 6-digit code to confirm it's real.</p>
+                                </div>
+                                {!otpSent ? (
+                                  <button type="button" onClick={handleSendOtp} disabled={sendingOtp}
+                                    className="h-9 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-xs shrink-0 disabled:opacity-50 flex items-center gap-1.5">
+                                    {sendingOtp ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Sending...</> : "Send Code"}
+                                  </button>
+                                ) : (
+                                  <button type="button" onClick={handleSendOtp} disabled={sendingOtp || otpCooldown > 0}
+                                    className="text-xs text-gray-500 hover:text-gray-400 disabled:opacity-40 shrink-0">
+                                    {otpCooldown > 0 ? `Resend in ${otpCooldown}s` : "Resend Code"}
+                                  </button>
+                                )}
+                              </div>
+                              {otpSent && (
+                                <div className="flex gap-2">
+                                  <Input
+                                    placeholder="Enter 6-digit code"
+                                    maxLength={6}
+                                    inputMode="numeric"
+                                    autoFocus
+                                    value={otpValue}
+                                    onChange={e => { setOtpValue(e.target.value.replace(/\D/g, "").slice(0, 6)); setOtpError(""); }}
+                                    className="h-11 bg-gray-900 border-gray-700 text-white text-center tracking-[0.4em] font-bold text-lg focus:border-yellow-500/60 rounded-lg"
+                                  />
+                                  <button type="button" onClick={handleVerifyOtp} disabled={verifyingOtp || otpValue.length < 6}
+                                    className="h-11 px-5 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-sm shrink-0 disabled:opacity-50 flex items-center gap-1.5">
+                                    {verifyingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}
+                                  </button>
+                                </div>
+                              )}
+                              {otpSent && !otpError && <p className="text-xs text-gray-500">Didn't receive it? Check your <span className="text-gray-400 font-semibold">spam / junk folder</span>.</p>}
+                              {otpError && <p className="text-sm text-red-400">{otpError}</p>}
+                            </>
+                          )}
+                        </div>
+                      )}
+
                       <FormField control={form.control} name="address" render={({ field }) => (
                         <FormItem className="space-y-2">
                           <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Address</FormLabel>
@@ -950,8 +1167,8 @@ export function BookingWizard({
                     </FormItem>
                   )} />
 
-                  <Button type="submit" disabled={isSubmitting} className="w-full h-14 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-lg rounded-2xl shadow-2xl transition-all active:scale-[0.98]">
-                    {isSubmitting ? "Processing Payment..." : `Proceed to Pay ₹${getPrice()}`}
+                  <Button type="submit" disabled={isSubmitting || !emailVerified} className="w-full h-14 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-lg rounded-2xl shadow-2xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+                    {isSubmitting ? "Processing Payment..." : !emailVerified ? "Verify Email to Continue" : `Proceed to Pay ₹${getPrice()}`}
                   </Button>
                 </form>
               </Form>
