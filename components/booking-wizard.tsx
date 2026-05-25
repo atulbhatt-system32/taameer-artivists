@@ -24,9 +24,9 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { preRegisterUser, createCashfreeOrder, confirmPayment, recoverPaymentByOrderId, linkOrderToRegistration, getEventConfig, getEventPricing, validateEmailAddress, sendEmailOtp, verifyEmailOtp } from "@/app/actions/booking";
+import { preRegisterUser, createCashfreeOrder, confirmPayment, recoverPaymentByOrderId, linkOrderToRegistration, getEventConfig, getEventPricing, validateEmailAddress } from "@/app/actions/booking";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Ticket, Users, Sparkles, ChevronLeft, CreditCard, ShoppingBag, ShieldCheck, Loader2 } from "lucide-react";
+import { CheckCircle2, Ticket, Users, Sparkles, ChevronLeft, CreditCard, ShoppingBag } from "lucide-react";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
 // Event data is fully dynamic from Supabase — no local JSON fallback
@@ -79,14 +79,6 @@ export function BookingWizard({
   const [notification, setNotification] = useState<{ type: "success" | "error" | "warning"; message: string } | null>(null);
   const [emailCheckError, setEmailCheckError] = useState<string | null>(null);
   const [emailChecking, setEmailChecking] = useState(false);
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpValue, setOtpValue] = useState("");
-  const [otpError, setOtpError] = useState("");
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [verifyingOtp, setVerifyingOtp] = useState(false);
-  const [otpCooldown, setOtpCooldown] = useState(0);
-
   const handleEmailBlur = async (email: string) => {
     if (!email) return;
     setEmailChecking(true);
@@ -94,34 +86,6 @@ export function BookingWizard({
     const result = await validateEmailAddress(email);
     setEmailChecking(false);
     if (!result.valid) setEmailCheckError(result.error || "Invalid email.");
-  };
-
-  const handleSendOtp = async () => {
-    const email = form.getValues("email");
-    const emailValid = await form.trigger("email");
-    if (!emailValid || emailCheckError) return;
-    setSendingOtp(true);
-    setOtpError("");
-    const result = await sendEmailOtp(email);
-    setSendingOtp(false);
-    if (!result.success) {
-      setOtpError(result.error || "Failed to send code.");
-    } else {
-      setOtpSent(true);
-      setOtpCooldown(60);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    setVerifyingOtp(true);
-    setOtpError("");
-    const result = await verifyEmailOtp(form.getValues("email"), otpValue);
-    setVerifyingOtp(false);
-    if (!result.success) {
-      setOtpError(result.error || "Invalid code.");
-    } else {
-      setEmailVerified(true);
-    }
   };
 
   const [registrationId, setRegistrationId] = useState<string | null>(null);
@@ -253,6 +217,8 @@ export function BookingWizard({
   };
   const earlyBirdStart = formatEarlyBirdDate(dbConfig?.early_bird_start);
   const earlyBirdEnd = formatEarlyBirdDate(dbConfig?.early_bird_end);
+  const earlyBirdBadgeText = dbConfig?.early_bird_badge_text || null;
+  const bookingOpenBadgeText = dbConfig?.booking_open_badge_text || null;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -369,21 +335,10 @@ export function BookingWizard({
     }
   }, [selectedQuantity, append, remove]);
 
-  // Reset OTP when email changes
+  // Reset email check when email changes
   useEffect(() => {
-    setEmailVerified(false);
-    setOtpSent(false);
-    setOtpValue("");
-    setOtpError("");
     setEmailCheckError(null);
   }, [form.watch("email")]);
-
-  // Cooldown countdown
-  useEffect(() => {
-    if (otpCooldown <= 0) return;
-    const t = setTimeout(() => setOtpCooldown(c => c - 1), 1000);
-    return () => clearTimeout(t);
-  }, [otpCooldown]);
 
   const selectPass = (type: string) => {
     form.setValue("passType", type as any);
@@ -520,10 +475,10 @@ export function BookingWizard({
                   {isEarlyBird ? (
                     <>
                       {maxRegularPrice && <span className="text-gray-500 text-[10px] line-through font-bold">₹{maxRegularPrice}</span>}
-                      <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">Early Bird</span>
+                      {earlyBirdBadgeText && <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">{earlyBirdBadgeText}</span>}
                     </>
                   ) : (
-                    <span className="text-yellow-500 text-[9px] font-black uppercase tracking-[0.15em] bg-yellow-500/10 px-2 py-0.5 rounded-full">Booking Open</span>
+                    bookingOpenBadgeText && <span className="text-yellow-500 text-[9px] font-black uppercase tracking-[0.15em] bg-yellow-500/10 px-2 py-0.5 rounded-full">{bookingOpenBadgeText}</span>
                   )}
                 </div>
                 <div className="text-white text-2xl font-black tracking-tighter leading-none flex items-baseline gap-1">
@@ -599,56 +554,6 @@ export function BookingWizard({
                     )} />
                   </div>
 
-                  {/* ── OTP VERIFICATION ── */}
-                  {form.watch("email") && !emailCheckError && !emailChecking && (
-                    <div className={`rounded-xl border p-3 space-y-2 transition-colors ${emailVerified ? "bg-green-500/5 border-green-500/20" : "bg-gray-800/40 border-gray-700"}`}>
-                      {emailVerified ? (
-                        <div className="flex items-center gap-2">
-                          <ShieldCheck className="w-4 h-4 text-green-400 shrink-0" />
-                          <span className="text-xs font-bold text-green-400">Email verified</span>
-                          <span className="text-[10px] text-gray-500 truncate ml-auto">{form.watch("email")}</span>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Verify your email</span>
-                            {!otpSent ? (
-                              <button type="button" onClick={handleSendOtp} disabled={sendingOtp}
-                                className="text-[11px] font-black text-yellow-400 hover:text-yellow-300 disabled:opacity-50 flex items-center gap-1">
-                                {sendingOtp ? <><Loader2 className="w-3 h-3 animate-spin" /> Sending...</> : "Send Code →"}
-                              </button>
-                            ) : (
-                              <button type="button" onClick={handleSendOtp} disabled={sendingOtp || otpCooldown > 0}
-                                className="text-[11px] text-gray-500 hover:text-gray-400 disabled:opacity-40">
-                                {otpCooldown > 0 ? `Resend in ${otpCooldown}s` : "Resend"}
-                              </button>
-                            )}
-                          </div>
-                          {otpSent && (
-                            <div className="flex gap-2">
-                              <Input
-                                placeholder="6-digit code"
-                                maxLength={6}
-                                inputMode="numeric"
-                                autoFocus
-                                value={otpValue}
-                                onChange={e => { setOtpValue(e.target.value.replace(/\D/g, "").slice(0, 6)); setOtpError(""); }}
-                                className="bg-gray-950 border-gray-700 text-white text-center tracking-[0.3em] font-bold h-9 text-sm focus:border-yellow-500/50"
-                              />
-                              <button type="button" onClick={handleVerifyOtp} disabled={verifyingOtp || otpValue.length < 6}
-                                className="h-9 px-3 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-xs shrink-0 disabled:opacity-50 flex items-center gap-1">
-                                {verifyingOtp ? <Loader2 className="w-3 h-3 animate-spin" /> : "Verify"}
-                              </button>
-                            </div>
-                          )}
-                          {otpSent && !otpError && <p className="text-[10px] text-gray-500">Didn't receive it? Check your <span className="text-gray-400 font-semibold">spam / junk folder</span>.</p>}
-                          {otpError && <p className="text-[11px] text-red-400">{otpError}</p>}
-                          {!otpSent && <p className="text-[10px] text-gray-600">We'll send a 6-digit code to confirm your email.</p>}
-                        </>
-                      )}
-                    </div>
-                  )}
-
                   <div className="grid grid-cols-2 gap-3">
                     <FormField control={form.control} name="age" render={({ field }) => (
                       <FormItem><FormControl><Input placeholder="Age" type="number" required className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} /></FormControl><FormMessage className="text-xs text-red-400" /></FormItem>
@@ -694,14 +599,14 @@ export function BookingWizard({
                   )} />
                   <Button
                     type="button"
-                    disabled={isSubmitting || !emailVerified}
+                    disabled={isSubmitting || !!emailCheckError}
                     className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold h-12 rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={async () => {
                       const valid = await form.trigger();
-                      if (valid && emailVerified) form.handleSubmit(onSubmit)();
+                      if (valid) form.handleSubmit(onSubmit)();
                     }}
                   >
-                    {isSubmitting ? "Processing..." : !emailVerified ? "Verify Email First" : `Pay ₹${getPrice()}`}
+                    {isSubmitting ? "Processing..." : `Pay ₹${getPrice()}`}
                   </Button>
                 </form>
               </Form>
@@ -852,7 +757,7 @@ export function BookingWizard({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-black text-white text-sm">{tier.name}</span>
-                          {isEarlyBird && <Badge variant="outline" className="text-[9px] border-yellow-500/40 text-yellow-500 h-4 px-1.5 font-bold">EARLY BIRD</Badge>}
+                          {isEarlyBird && earlyBirdBadgeText && <Badge variant="outline" className="text-[9px] border-yellow-500/40 text-yellow-500 h-4 px-1.5 font-bold">{earlyBirdBadgeText}</Badge>}
                         </div>
                         <p className="text-[10px] text-gray-500 mb-2 leading-relaxed font-medium">{tier.description}</p>
                         <div className="flex flex-wrap gap-1.5">
@@ -1090,58 +995,6 @@ export function BookingWizard({
                         </FormItem>
                       )} />
 
-                      {/* ── OTP VERIFICATION ── */}
-                      {form.watch("email") && !emailCheckError && !emailChecking && (
-                        <div className={`rounded-xl border p-4 space-y-3 transition-colors ${emailVerified ? "bg-green-500/5 border-green-500/20" : "bg-gray-950/60 border-gray-700"}`}>
-                          {emailVerified ? (
-                            <div className="flex items-center gap-2">
-                              <ShieldCheck className="w-5 h-5 text-green-400 shrink-0" />
-                              <span className="text-sm font-bold text-green-400">Email verified</span>
-                              <span className="text-xs text-gray-500 truncate ml-auto">{form.watch("email")}</span>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm font-bold text-white">Verify your email</p>
-                                  <p className="text-xs text-gray-500 mt-0.5">We'll send a 6-digit code to confirm it's real.</p>
-                                </div>
-                                {!otpSent ? (
-                                  <button type="button" onClick={handleSendOtp} disabled={sendingOtp}
-                                    className="h-9 px-4 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-xs shrink-0 disabled:opacity-50 flex items-center gap-1.5">
-                                    {sendingOtp ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Sending...</> : "Send Code"}
-                                  </button>
-                                ) : (
-                                  <button type="button" onClick={handleSendOtp} disabled={sendingOtp || otpCooldown > 0}
-                                    className="text-xs text-gray-500 hover:text-gray-400 disabled:opacity-40 shrink-0">
-                                    {otpCooldown > 0 ? `Resend in ${otpCooldown}s` : "Resend Code"}
-                                  </button>
-                                )}
-                              </div>
-                              {otpSent && (
-                                <div className="flex gap-2">
-                                  <Input
-                                    placeholder="Enter 6-digit code"
-                                    maxLength={6}
-                                    inputMode="numeric"
-                                    autoFocus
-                                    value={otpValue}
-                                    onChange={e => { setOtpValue(e.target.value.replace(/\D/g, "").slice(0, 6)); setOtpError(""); }}
-                                    className="h-11 bg-gray-900 border-gray-700 text-white text-center tracking-[0.4em] font-bold text-lg focus:border-yellow-500/60 rounded-lg"
-                                  />
-                                  <button type="button" onClick={handleVerifyOtp} disabled={verifyingOtp || otpValue.length < 6}
-                                    className="h-11 px-5 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-sm shrink-0 disabled:opacity-50 flex items-center gap-1.5">
-                                    {verifyingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}
-                                  </button>
-                                </div>
-                              )}
-                              {otpSent && !otpError && <p className="text-xs text-gray-500">Didn't receive it? Check your <span className="text-gray-400 font-semibold">spam / junk folder</span>.</p>}
-                              {otpError && <p className="text-sm text-red-400">{otpError}</p>}
-                            </>
-                          )}
-                        </div>
-                      )}
-
                       <FormField control={form.control} name="address" render={({ field }) => (
                         <FormItem className="space-y-2">
                           <FormLabel className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Address</FormLabel>
@@ -1167,8 +1020,8 @@ export function BookingWizard({
                     </FormItem>
                   )} />
 
-                  <Button type="submit" disabled={isSubmitting || !emailVerified} className="w-full h-14 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-lg rounded-2xl shadow-2xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
-                    {isSubmitting ? "Processing Payment..." : !emailVerified ? "Verify Email to Continue" : `Proceed to Pay ₹${getPrice()}`}
+                  <Button type="submit" disabled={isSubmitting || !!emailCheckError} className="w-full h-14 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-lg rounded-2xl shadow-2xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+                    {isSubmitting ? "Processing Payment..." : `Proceed to Pay ₹${getPrice()}`}
                   </Button>
                 </form>
               </Form>

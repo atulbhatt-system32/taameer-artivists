@@ -25,64 +25,6 @@ export async function validateEmailAddress(email: string): Promise<{ valid: bool
   return { valid: true };
 }
 
-export async function sendEmailOtp(email: string): Promise<{ success: boolean; error?: string }> {
-  const smtpUser = process.env.GOOGLE_SMTP_USER;
-  const smtpPass = process.env.GOOGLE_SMTP_PASS;
-  if (!smtpUser || !smtpPass) return { success: false, error: "Email service not configured." };
-
-  const domainValid = await hasMxRecord(email);
-  if (!domainValid) return { success: false, error: "Email address not found. Please check and try again." };
-
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-
-  await supabase.from("email_verifications").delete().eq("email", email);
-  const { error: insertError } = await supabase
-    .from("email_verifications")
-    .insert({ email, otp, expires_at: expiresAt });
-  if (insertError) return { success: false, error: "Failed to generate OTP. Try again." };
-
-  const transporter = nodemailer.createTransport({ service: "gmail", auth: { user: smtpUser, pass: smtpPass } });
-  try {
-    await transporter.sendMail({
-      from: `"The Kumaon Fest" <${smtpUser}>`,
-      to: email,
-      subject: "Your verification code — The Kumaon Fest",
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;background:#111827;padding:40px;border-radius:16px;">
-          <h2 style="color:#EAB308;margin:0 0 4px;font-size:22px;">The Kumaon Fest 2026</h2>
-          <p style="color:#9ca3af;margin:0 0 32px;font-size:13px;">Email Verification</p>
-          <p style="color:#f9fafb;font-size:15px;margin:0 0 20px;">Your one-time verification code is:</p>
-          <div style="background:#1f2937;border:2px solid #EAB308;border-radius:12px;padding:28px;text-align:center;margin-bottom:24px;">
-            <span style="font-size:44px;font-weight:900;letter-spacing:14px;color:#EAB308;">${otp}</span>
-          </div>
-          <p style="color:#6b7280;font-size:12px;margin:0;">Expires in 10 minutes. Do not share this code with anyone.</p>
-        </div>
-      `,
-    });
-    return { success: true };
-  } catch {
-    return { success: false, error: "Failed to send code. Please try again." };
-  }
-}
-
-export async function verifyEmailOtp(email: string, otp: string): Promise<{ success: boolean; error?: string }> {
-  const { data, error } = await supabase
-    .from("email_verifications")
-    .select("otp, expires_at")
-    .eq("email", email)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
-
-  if (error || !data) return { success: false, error: "No code found. Please request a new one." };
-  if (new Date(data.expires_at) < new Date()) return { success: false, error: "Code expired. Please request a new one." };
-  if (data.otp !== otp.trim()) return { success: false, error: "Incorrect code. Please try again." };
-
-  await supabase.from("email_verifications").delete().eq("email", email);
-  return { success: true };
-}
-
 export interface RegistrationData {
   fullName: string;
   age: string;

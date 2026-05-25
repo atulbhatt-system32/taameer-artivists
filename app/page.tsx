@@ -81,6 +81,8 @@ export default function HomePage() {
   };
   const earlyBirdStart = formatEarlyBirdDate(dbConfig?.early_bird_start);
   const earlyBirdEnd = formatEarlyBirdDate(dbConfig?.early_bird_end);
+  const earlyBirdBadgeText = dbConfig?.early_bird_badge_text || null;
+  const bookingOpenBadgeText = dbConfig?.booking_open_badge_text || null;
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-gray-900">
@@ -527,10 +529,10 @@ export default function HomePage() {
               {isEarlyBird ? (
                 <>
                   <span className="text-gray-500 text-[10px] line-through font-bold">₹{originalPrice}</span>
-                  <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">Early Bird</span>
+                  {earlyBirdBadgeText && <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">{earlyBirdBadgeText}</span>}
                 </>
               ) : (
-                <span className="text-yellow-500 text-[9px] font-black uppercase tracking-[0.15em] bg-yellow-500/10 px-2 py-0.5 rounded-full">Booking Open</span>
+                bookingOpenBadgeText && <span className="text-yellow-500 text-[9px] font-black uppercase tracking-[0.15em] bg-yellow-500/10 px-2 py-0.5 rounded-full">{bookingOpenBadgeText}</span>
               )}
             </div>
             <div className="text-white text-2xl font-black tracking-tighter leading-none flex items-baseline gap-1">
