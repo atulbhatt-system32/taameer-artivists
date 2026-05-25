@@ -2,7 +2,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // output: 'export', // Removed to support Server Actions and dynamic routes
-  trailingSlash: true,
+  async redirects() {
+    return [
+      {
+        source: "/:path+/",
+        destination: "/:path+",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     unoptimized: true,
   },

@@ -184,7 +184,7 @@ export default function HomePage() {
                   variant="outline"
                   className="h-14 px-8 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:text-white rounded-xl font-bold transition-all"
                 >
-                  <Link href="/kumaon-fest/">Kumaon Summer Fest <ArrowRight className="w-4 h-4 ml-2" /></Link>
+                  <Link href="/kumaon-fest">Kumaon Summer Fest <ArrowRight className="w-4 h-4 ml-2" /></Link>
                 </Button>
               </div>
             </div>
