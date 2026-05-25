@@ -85,12 +85,12 @@ export default function TicketsPage() {
         <aside className={`lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto py-10 lg:pr-10 lg:border-r border-white/5 flex flex-col gap-6 lg:order-1 transition-all duration-500 ${step > 0 ? "hidden lg:flex" : "flex"}`}>
 
           {/* Poster */}
-          <div className="relative rounded-2xl overflow-hidden aspect-[4/5] w-full shadow-2xl shadow-black/60">
+          <div className="relative rounded-2xl overflow-hidden aspect-[4/5] w-full shadow-2xl shadow-black/60 bg-gray-950">
             <Image
               src="/new-images/uniyal.png"
               fill
               alt="Kumaon Fest 2026 Poster"
-              className="object-cover"
+              className="object-contain"
             />
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/20 to-transparent" />

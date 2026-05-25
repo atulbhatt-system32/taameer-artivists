@@ -752,7 +752,7 @@ export default function AdminPage() {
                     { label: "Gender", value: selectedReg.gender || "—" },
                     { label: "Age", value: selectedReg.age || "—" },
                     { label: "Amount Paid", value: selectedReg.payment_status === "paid" ? `₹${getTotalPaid(selectedReg).toLocaleString("en-IN")}` : "—" },
-                    { label: "Booked On", value: new Date(selectedReg.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) },
+                    { label: "Booked On", value: new Date(selectedReg.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) + " at " + new Date(selectedReg.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) },
                     ...(selectedReg.instagram_handle ? [{ label: "Instagram", value: selectedReg.instagram_handle }] : []),
                     ...(selectedReg.address ? [{ label: "Address", value: selectedReg.address }] : []),
                   ].map(({ label, value }) => (
