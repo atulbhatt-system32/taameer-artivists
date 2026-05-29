@@ -26,7 +26,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { preRegisterUser, createCashfreeOrder, confirmPayment, recoverPaymentByOrderId, linkOrderToRegistration, getEventConfig, getEventPricing, validateEmailAddress } from "@/app/actions/booking";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Ticket, Users, Sparkles, ChevronLeft, CreditCard, ShoppingBag } from "lucide-react";
+import { CheckCircle2, Ticket, Users, Sparkles, ChevronLeft, CreditCard, ShoppingBag, Loader2, ShieldCheck } from "lucide-react";
 import confetti from "canvas-confetti";
 import { Badge } from "@/components/ui/badge";
 // Event data is fully dynamic from Supabase — no local JSON fallback
@@ -78,6 +78,8 @@ export function BookingWizard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState<{ type: "success" | "error" | "warning"; message: string } | null>(null);
   const [emailCheckError, setEmailCheckError] = useState<string | null>(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [modalAgreed, setModalAgreed] = useState(false);
   const [emailChecking, setEmailChecking] = useState(false);
   const handleEmailBlur = async (email: string) => {
     if (!email) return;
@@ -464,9 +466,159 @@ export function BookingWizard({
 
   // --- RENDERING HELPERS ---
 
+  // Payment processing overlay — shared by both variants
+  const paymentOverlay = isSubmitting && (
+    <AnimatePresence>
+      <motion.div
+        key="payment-overlay"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-950/95 backdrop-blur-xl"
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          className="flex flex-col items-center gap-6 px-8 py-12 max-w-sm w-full mx-4"
+        >
+          {/* Animated ticket icon */}
+          <div className="relative">
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+              className="w-24 h-24 rounded-full bg-yellow-500/20 border-2 border-yellow-500/40 flex items-center justify-center"
+            >
+              <Ticket className="w-10 h-10 text-yellow-500" />
+            </motion.div>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              className="absolute -top-1 -right-1"
+            >
+              <Loader2 className="w-6 h-6 text-yellow-500" />
+            </motion.div>
+          </div>
+
+          {/* Title */}
+          <div className="text-center space-y-2">
+            <h3 className="text-xl font-black text-white tracking-tight">Confirming Your Ticket</h3>
+            <p className="text-sm text-gray-400 leading-relaxed">Please wait while we process your payment and generate your ticket.</p>
+          </div>
+
+          {/* Progress steps */}
+          <div className="w-full space-y-3">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex items-center gap-3 bg-green-500/10 border border-green-500/20 rounded-xl p-3"
+            >
+              <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+              <span className="text-xs text-green-400 font-semibold">Details saved successfully</span>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6 }}
+              className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3"
+            >
+              <Loader2 className="w-4 h-4 text-yellow-500 animate-spin shrink-0" />
+              <span className="text-xs text-yellow-400 font-semibold">Processing payment...</span>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 0.4, x: 0 }}
+              transition={{ delay: 1 }}
+              className="flex items-center gap-3 bg-gray-800/50 border border-gray-700/30 rounded-xl p-3"
+            >
+              <div className="w-4 h-4 rounded-full border-2 border-gray-600 shrink-0" />
+              <span className="text-xs text-gray-500 font-semibold">Generating ticket</span>
+            </motion.div>
+          </div>
+
+          {/* Warning */}
+          <motion.div
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="flex items-center gap-2 text-red-400"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span className="text-xs font-bold uppercase tracking-wider">Do not close or go back</span>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+
+  // Email warning modal — user must tick before payment initiates
+  const emailWarningModal = showEmailModal && (
+    <AnimatePresence>
+      <motion.div
+        key="email-modal-overlay"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[9998] flex items-center justify-center bg-gray-950/90 backdrop-blur-md p-4"
+        onClick={() => setShowEmailModal(false)}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85, y: 24 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.85, y: 24 }}
+          transition={{ type: "spring", stiffness: 220, damping: 22 }}
+          className="bg-gray-900 border border-gray-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center shrink-0">
+              <span className="text-xl">📬</span>
+            </div>
+            <div>
+              <p className="text-white font-bold text-sm">Quick heads up!</p>
+              <p className="text-gray-400 text-xs">Before you pay, just a friendly note</p>
+            </div>
+          </div>
+
+          <p className="text-sm text-gray-300 leading-relaxed mb-2">
+            Your ticket will be sent to your <span className="font-bold text-white">email</span> right after payment. 🎉
+          </p>
+          <p className="text-sm text-gray-400 leading-relaxed mb-5">
+            Sometimes it lands in the{" "}
+            <span className="font-semibold text-yellow-400 bg-yellow-500/10 px-1.5 py-0.5 rounded">Spam</span>,{" "}
+            <span className="font-semibold text-yellow-400 bg-yellow-500/10 px-1.5 py-0.5 rounded">Junk</span> or{" "}
+            <span className="font-semibold text-yellow-400 bg-yellow-500/10 px-1.5 py-0.5 rounded">Promotions</span>{" "}
+            folder — just check there if you don&apos;t see it in your inbox!
+          </p>
+
+          <div className="space-y-2">
+            <Button
+              onClick={() => {
+                form.setValue("agreed", true);
+                setShowEmailModal(false);
+                form.handleSubmit(onSubmit)();
+              }}
+              className="w-full h-12 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-xl transition-all active:scale-95"
+            >
+              Got it — Pay ₹{getPrice()}
+            </Button>
+            <button
+              onClick={() => setShowEmailModal(false)}
+              className="w-full text-xs text-gray-500 hover:text-gray-300 transition-colors py-1"
+            >
+              Go back
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+
   if (variant === "compact") {
     return (
       <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-6 shadow-2xl backdrop-blur-xl max-w-md w-full mx-auto">
+        {paymentOverlay}
+        {emailWarningModal}
         <AnimatePresence mode="wait">
           {step === 0 && (
             <motion.div key="sel" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
@@ -591,19 +743,16 @@ export function BookingWizard({
                   <FormField control={form.control} name="instagramHandle" render={({ field }) => (
                     <FormItem><FormControl><Input placeholder="Instagram Handle" className="bg-gray-950 border-gray-800 text-white focus:border-yellow-500/50 transition-colors" {...field} /></FormControl></FormItem>
                   )} />
-                  <FormField control={form.control} name="agreed" render={({ field }) => (
-                    <FormItem className="flex items-start space-x-2 space-y-0">
-                      <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-1 border-gray-700 data-[state=checked]:bg-yellow-500" /></FormControl>
-                      <FormLabel className="text-[10px] text-gray-400 leading-tight cursor-pointer hover:text-gray-300 transition-colors">I agree to the terms and conditions.</FormLabel>
-                    </FormItem>
-                  )} />
                   <Button
                     type="button"
                     disabled={isSubmitting || !!emailCheckError}
                     className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold h-12 rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={async () => {
-                      const valid = await form.trigger();
-                      if (valid) form.handleSubmit(onSubmit)();
+                      const valid = await form.trigger(["fullName", "age", "gender", "whatsappNo", "contactNo", "email", "passType", "quantity", "address"] as any);
+                      if (valid && !emailCheckError) {
+                        setModalAgreed(false);
+                        setShowEmailModal(true);
+                      }
                     }}
                   >
                     {isSubmitting ? "Processing..." : `Pay ₹${getPrice()}`}
@@ -620,9 +769,25 @@ export function BookingWizard({
               </div>
               <div className="space-y-2">
                 <h3 className="text-2xl font-bold text-white">Success!</h3>
-                <p className="text-xs text-gray-400 max-w-[200px] mx-auto">Your ticket has been sent to your email.</p>
-                <p className="text-xs text-yellow-500/80 max-w-[220px] mx-auto">📬 Can&apos;t find it? Check your spam / junk folder.</p>
+                <p className="text-xs text-gray-400 max-w-[220px] mx-auto">Your ticket has been sent to your email.</p>
               </div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: 0.5, type: "spring", stiffness: 200, damping: 15 }}
+                className="bg-red-500/15 border-2 border-red-500/40 rounded-xl p-3 text-left"
+              >
+                <div className="flex items-start gap-2">
+                  <div className="relative mt-0.5 shrink-0">
+                    <span className="text-base">🚨</span>
+                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-red-400 font-black uppercase tracking-wider mb-1">Important</p>
+                    <p className="text-[10px] text-red-300 leading-relaxed font-medium">Your ticket will arrive via email. If not in inbox, check <span className="font-black text-red-400 bg-red-500/20 px-1 rounded">Spam</span>, <span className="font-black text-red-400 bg-red-500/20 px-1 rounded">Junk</span> or <span className="font-black text-red-400 bg-red-500/20 px-1 rounded">Promotions</span> folder.</p>
+                  </div>
+                </div>
+              </motion.div>
               <div className="flex flex-col gap-2 w-full">
                 <Button onClick={downloadTicket} disabled={isDownloading} className="w-full h-12 bg-yellow-500 hover:bg-yellow-600 text-gray-950 rounded-xl font-black transition-all active:scale-95">{isDownloading ? "Generating..." : "⬇ Download Ticket"}</Button>
                 <Button onClick={() => window.location.href = `/kumaon-fest/verify/${registrationId}`} className="w-full h-12 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold transition-all active:scale-95">View Ticket</Button>
@@ -642,6 +807,8 @@ export function BookingWizard({
   // --- FULL PAGE VARIANT ---
   return (
     <div className="w-full">
+      {paymentOverlay}
+      {emailWarningModal}
       <AnimatePresence mode="wait">
         {step === 0 && (
           <motion.div key="full-sel" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6 py-4 max-w-3xl mx-auto">
@@ -1012,15 +1179,18 @@ export function BookingWizard({
                     </div>
                   </div>
 
-                  {/* ── TERMS + SUBMIT ─────────────────────────────────────── */}
-                  <FormField control={form.control} name="agreed" render={({ field }) => (
-                    <FormItem className="flex items-start space-x-3 space-y-0 p-4 bg-yellow-500/5 rounded-xl border border-yellow-500/10">
-                      <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-0.5 border-gray-700 data-[state=checked]:bg-yellow-500" /></FormControl>
-                      <FormLabel className="text-sm text-gray-400 cursor-pointer leading-relaxed">I agree to the terms and conditions.</FormLabel>
-                    </FormItem>
-                  )} />
-
-                  <Button type="submit" disabled={isSubmitting || !!emailCheckError} className="w-full h-14 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-lg rounded-2xl shadow-2xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+                  <Button
+                    type="button"
+                    disabled={isSubmitting || !!emailCheckError}
+                    className="w-full h-14 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black text-lg rounded-2xl shadow-2xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={async () => {
+                      const valid = await form.trigger(["fullName", "age", "gender", "whatsappNo", "contactNo", "email", "passType", "quantity", "address", "additionalAttendees"] as any);
+                      if (valid && !emailCheckError) {
+                        setModalAgreed(false);
+                        setShowEmailModal(true);
+                      }
+                    }}
+                  >
                     {isSubmitting ? "Processing Payment..." : `Proceed to Pay ₹${getPrice()}`}
                   </Button>
                 </form>
@@ -1068,11 +1238,27 @@ export function BookingWizard({
             <div className="w-32 h-32 bg-yellow-500 rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-yellow-500/20">
               <CheckCircle2 className="w-16 h-16 text-gray-950" />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h2 className="text-5xl font-black text-white italic tracking-tighter">BOOM! YOU&apos;RE IN.</h2>
-              <p className="text-gray-400 text-xl">Your ticket for Summer Carnival - The Kumaon Fest has been sent <span className="text-white font-bold">{form.getValues("email")}</span></p>
-              <p className="text-yellow-500/80 text-sm font-medium">📬 Can&apos;t find it? Check your spam / junk folder.</p>
+              <p className="text-gray-400 text-xl">Your ticket for Summer Carnival - The Kumaon Fest has been sent to <span className="text-white font-bold">{form.getValues("email")}</span></p>
             </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.7, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ delay: 0.6, type: "spring", stiffness: 180, damping: 14 }}
+              className="bg-red-500/15 border-2 border-red-500/40 rounded-2xl p-5 max-w-lg mx-auto shadow-lg shadow-red-500/10"
+            >
+              <div className="flex items-start gap-3">
+                <div className="relative mt-1 shrink-0">
+                  <span className="text-2xl">🚨</span>
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm text-red-400 font-black uppercase tracking-wider mb-1.5">Important — Read This!</p>
+                  <p className="text-sm text-red-300 leading-relaxed font-medium">Your ticket will arrive via <span className="font-bold text-white">email</span>. If you don&apos;t find it in your inbox, please check your <span className="font-black text-red-400 bg-red-500/20 px-1.5 py-0.5 rounded">Spam</span>, <span className="font-black text-red-400 bg-red-500/20 px-1.5 py-0.5 rounded">Junk</span> or <span className="font-black text-red-400 bg-red-500/20 px-1.5 py-0.5 rounded">Promotions</span> folder.</p>
+                </div>
+              </div>
+            </motion.div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button onClick={downloadTicket} disabled={isDownloading} className="h-14 px-10 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-2xl text-lg">{isDownloading ? "Generating..." : "⬇ Download Ticket"}</Button>
               <Button onClick={() => window.location.href = `/kumaon-fest/verify/${registrationId}`} className="h-14 px-10 bg-white hover:bg-gray-100 text-gray-950 font-black rounded-2xl text-lg">View Digital Ticket</Button>
