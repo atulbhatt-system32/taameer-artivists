@@ -88,6 +88,12 @@ export default function AdminPage() {
   const [scanStatus, setScanStatus] = useState<null | "loading" | "success" | "error">(null);
   const [scanMessage, setScanMessage] = useState("");
   const scanCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [scanGroupInfo, setScanGroupInfo] = useState<{
+    groupId: string;
+    total: number;
+    checkedIn: number;
+    remaining: { id: string; full_name: string }[];
+  } | null>(null);
   const [zoomRange, setZoomRange] = useState<{ min: number; max: number; step: number } | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const videoTrackRef = useRef<MediaStreamTrack | null>(null);
@@ -235,6 +241,7 @@ export default function AdminPage() {
       scanProcessingRef.current = false;
       setScanStatus(null);
       setScanMessage("");
+      setScanGroupInfo(null);
       if (scanCloseTimerRef.current) clearTimeout(scanCloseTimerRef.current);
 
       // useBarCodeDetectorIfSupported: uses the native browser BarcodeDetector API on
@@ -280,6 +287,7 @@ export default function AdminPage() {
             scanCloseTimerRef.current = setTimeout(() => {
               setShowScanner(false);
               setScanStatus(null);
+              setScanGroupInfo(null);
             }, ms);
           };
 
@@ -287,7 +295,7 @@ export default function AdminPage() {
             try {
               const { data: existingTicket, error: fetchError } = await supabase
                 .from("registrations")
-                .select("checked_in_at, full_name")
+                .select("checked_in_at, full_name, group_id")
                 .eq("id", id)
                 .single();
 
@@ -312,6 +320,28 @@ export default function AdminPage() {
               setScanMessage(`${data.full_name}\n${data.pass_type} · x${data.quantity}`);
               setNotification({ type: "success", message: `✅ ${data.full_name} checked in — ${data.pass_type} (x${data.quantity})` });
               fetchData();
+
+              // For group bookings: show remaining members and offer bulk check-in
+              if (existingTicket.group_id) {
+                const { data: groupMembers } = await supabase
+                  .from("registrations")
+                  .select("id, full_name, checked_in_at")
+                  .eq("group_id", existingTicket.group_id);
+
+                if (groupMembers && groupMembers.length > 1) {
+                  const remaining = groupMembers.filter(m => m.id !== id && !m.checked_in_at);
+                  const checkedIn = groupMembers.length - remaining.length;
+                  if (remaining.length > 0) {
+                    setScanGroupInfo({
+                      groupId: existingTicket.group_id,
+                      total: groupMembers.length,
+                      checkedIn,
+                      remaining: remaining.map(m => ({ id: m.id, full_name: m.full_name })),
+                    });
+                    return; // Don't auto-close — let admin decide
+                  }
+                }
+              }
               scheduleClose(2200);
             } catch (err: unknown) {
               const error = err as Error;
@@ -373,6 +403,45 @@ export default function AdminPage() {
   const handleZoom = (value: number) => {
     setZoomLevel(value);
     videoTrackRef.current?.applyConstraints({ advanced: [{ zoom: value } as any] });
+  };
+
+  const handleGroupMemberCheckIn = async (memberId: string) => {
+    const { error } = await supabase
+      .from("registrations")
+      .update({ checked_in_at: new Date().toISOString() })
+      .eq("id", memberId);
+    if (!error) fetchData();
+    else setNotification({ type: "error", message: "Failed to check in member." });
+  };
+
+  const handleCheckInAllGroup = async (groupId: string) => {
+    const { error } = await supabase
+      .from("registrations")
+      .update({ checked_in_at: new Date().toISOString() })
+      .eq("group_id", groupId)
+      .is("checked_in_at", null);
+    if (!error) {
+      fetchData();
+      setNotification({ type: "success", message: "All group members checked in!" });
+    } else {
+      setNotification({ type: "error", message: "Failed to check in group." });
+    }
+  };
+
+  const handleScannerGroupCheckIn = async () => {
+    if (!scanGroupInfo) return;
+    await supabase
+      .from("registrations")
+      .update({ checked_in_at: new Date().toISOString() })
+      .in("id", scanGroupInfo.remaining.map(m => m.id));
+    setScanMessage(`All ${scanGroupInfo.total} members checked in`);
+    setScanGroupInfo(null);
+    fetchData();
+    if (scanCloseTimerRef.current) clearTimeout(scanCloseTimerRef.current);
+    scanCloseTimerRef.current = setTimeout(() => {
+      setShowScanner(false);
+      setScanStatus(null);
+    }, 1800);
   };
 
   // Early bird window from Supabase config
@@ -699,7 +768,20 @@ export default function AdminPage() {
                         <StatusBadge reg={reg} />
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-yellow-500 transition-colors ml-auto" />
+                        <div className="flex items-center justify-end gap-2">
+                          {hasGroup && reg.group_id && (() => {
+                            const anyUnchecked = !reg.checked_in_at || (reg._groupMembers?.some(m => !m.checked_in_at) ?? false);
+                            return anyUnchecked ? (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleCheckInAllGroup(reg.group_id!); }}
+                                className="text-[11px] font-black text-yellow-500 hover:text-yellow-400 px-2.5 py-1.5 bg-yellow-500/10 hover:bg-yellow-500/20 rounded-lg transition-colors whitespace-nowrap"
+                              >
+                                Check In All
+                              </button>
+                            ) : null;
+                          })()}
+                          <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-yellow-500 transition-colors" />
+                        </div>
                       </td>
                     </tr>
                     {hasGroup && groupMembers.map((m, i) => (
@@ -708,13 +790,29 @@ export default function AdminPage() {
                         className="bg-gray-950/50 hover:bg-gray-800/20 cursor-pointer transition-colors"
                         onClick={() => m.id && (window.location.href = `/kumaon-fest/verify/${m.id}`)}
                       >
-                        <td colSpan={5} className="px-6 py-3">
+                        <td colSpan={4} className="px-6 py-3">
                           <div className="flex items-center gap-3">
                             <span className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-black text-gray-500 shrink-0">{i + 2}</span>
                             <span className="font-bold text-sm text-gray-300 flex-1">{m.full_name ?? m.fullName}</span>
                             {m.gender && <span className="text-[10px] bg-gray-800 text-gray-500 px-2 py-0.5 rounded uppercase font-bold">{m.gender}</span>}
+                            {m.checked_in_at
+                              ? <span className="text-[10px] font-black text-yellow-500 bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded-full uppercase">Entered</span>
+                              : <span className="text-[10px] font-black text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full uppercase">Not yet</span>
+                            }
                             {m.id && <ChevronRight className="w-3.5 h-3.5 text-gray-700 shrink-0" />}
                           </div>
+                        </td>
+                        <td className="px-6 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                          {!m.checked_in_at && m.id ? (
+                            <button
+                              onClick={() => handleGroupMemberCheckIn(m.id!)}
+                              className="text-[11px] font-black text-yellow-500 hover:text-yellow-400 px-2.5 py-1.5 bg-yellow-500/10 hover:bg-yellow-500/20 rounded-lg transition-colors whitespace-nowrap"
+                            >
+                              Check In
+                            </button>
+                          ) : (
+                            <CheckCircle2 className="w-4 h-4 text-green-400 ml-auto" />
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -771,18 +869,48 @@ export default function AdminPage() {
                   {/* Group members — always visible, each tappable */}
                   {hasGroup && (
                     <div className="border-t border-gray-800/50 bg-gray-950/40">
+                      {/* Check-in all button when any member is unchecked */}
+                      {reg.group_id && (() => {
+                        const anyUnchecked = !reg.checked_in_at || (reg._groupMembers?.some(m => !m.checked_in_at) ?? false);
+                        return anyUnchecked ? (
+                          <div className="px-4 pt-2 pb-1">
+                            <button
+                              onClick={() => handleCheckInAllGroup(reg.group_id!)}
+                              className="w-full text-[11px] font-black text-yellow-500 bg-yellow-500/10 border border-yellow-500/20 rounded-xl py-2 active:bg-yellow-500/20"
+                            >
+                              Check In All Members
+                            </button>
+                          </div>
+                        ) : null;
+                      })()}
                       {groupMembers.map((m, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-3 px-4 py-3 border-b border-gray-800/30 last:border-b-0 active:bg-gray-800/30 cursor-pointer"
-                          onClick={() => m.id && (window.location.href = `/kumaon-fest/verify/${m.id}`)}
+                          className="flex items-center gap-3 px-4 py-3 border-b border-gray-800/30 last:border-b-0"
                         >
-                          <div className="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-black text-gray-500 shrink-0">
+                          <div
+                            className="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-black text-gray-500 shrink-0 cursor-pointer"
+                            onClick={() => m.id && (window.location.href = `/kumaon-fest/verify/${m.id}`)}
+                          >
                             {i + 2}
                           </div>
-                          <span className="text-sm font-bold text-gray-300 flex-1">{m.full_name ?? m.fullName}</span>
-                          {m.gender && <span className="text-[9px] bg-gray-800 text-gray-500 px-2 py-0.5 rounded uppercase font-bold">{m.gender}</span>}
-                          {m.id && <ChevronRight className="w-3.5 h-3.5 text-gray-700 shrink-0" />}
+                          <span
+                            className="text-sm font-bold text-gray-300 flex-1 cursor-pointer"
+                            onClick={() => m.id && (window.location.href = `/kumaon-fest/verify/${m.id}`)}
+                          >
+                            {m.full_name ?? m.fullName}
+                          </span>
+                          {m.checked_in_at
+                            ? <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+                            : m.id && (
+                              <button
+                                onClick={() => handleGroupMemberCheckIn(m.id!)}
+                                className="text-[11px] font-black text-yellow-500 bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-1 rounded-lg active:bg-yellow-500/20"
+                              >
+                                Check In
+                              </button>
+                            )
+                          }
                         </div>
                       ))}
                     </div>
@@ -874,14 +1002,34 @@ export default function AdminPage() {
                 {/* Group members */}
                 {(selectedReg._groupMembers?.length ?? 0) > 0 && (
                   <div>
-                    <p className="text-[11px] font-black uppercase tracking-wider text-gray-500 mb-2">Group Members</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[11px] font-black uppercase tracking-wider text-gray-500">Group Members</p>
+                      {selectedReg.group_id && selectedReg._groupMembers!.some(m => !m.checked_in_at) && (
+                        <button
+                          onClick={() => handleCheckInAllGroup(selectedReg.group_id!)}
+                          className="text-[11px] font-black text-yellow-500 bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-1 rounded-lg"
+                        >
+                          Check In All
+                        </button>
+                      )}
+                    </div>
                     <div className="bg-gray-950 rounded-2xl divide-y divide-gray-800">
                       {selectedReg._groupMembers!.map((m, i) => (
                         <div key={i} className="flex items-center gap-3 px-4 py-3">
                           <span className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-black text-gray-400 shrink-0">{i + 2}</span>
                           <span className="text-sm font-bold text-white flex-1">{m.full_name}</span>
                           {m.gender && <span className="text-[9px] bg-gray-800 text-gray-500 px-2 py-0.5 rounded uppercase font-bold">{m.gender}</span>}
-                          {m.checked_in_at && <CheckCircle2 className="w-3.5 h-3.5 text-green-400 shrink-0" />}
+                          {m.checked_in_at
+                            ? <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+                            : m.id && (
+                              <button
+                                onClick={() => { handleGroupMemberCheckIn(m.id!); setSelectedReg(null); }}
+                                className="text-[11px] font-black text-yellow-500 bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-1 rounded-lg shrink-0"
+                              >
+                                Check In
+                              </button>
+                            )
+                          }
                         </div>
                       ))}
                     </div>
@@ -958,8 +1106,27 @@ export default function AdminPage() {
                     )}
                     {scanStatus === "success" && (
                       <>
-                        <CheckCircle2 className="w-16 h-16 text-green-400" />
+                        <CheckCircle2 className="w-14 h-14 text-green-400" />
                         <p className="text-green-300 font-black text-lg text-center tracking-tight whitespace-pre-line">{scanMessage}</p>
+                        {scanGroupInfo && (
+                          <div className="flex flex-col items-center gap-2 mt-1">
+                            <p className="text-green-200/70 text-xs text-center">
+                              {scanGroupInfo.checkedIn}/{scanGroupInfo.total} group members in
+                            </p>
+                            <button
+                              onClick={handleScannerGroupCheckIn}
+                              className="bg-green-600 active:bg-green-700 text-white font-black text-sm px-5 py-2.5 rounded-xl"
+                            >
+                              Check in {scanGroupInfo.remaining.length} more →
+                            </button>
+                            <button
+                              onClick={() => { setShowScanner(false); setScanStatus(null); setScanGroupInfo(null); }}
+                              className="text-green-400/60 text-xs py-1"
+                            >
+                              Skip
+                            </button>
+                          </div>
+                        )}
                       </>
                     )}
                     {scanStatus === "error" && (
