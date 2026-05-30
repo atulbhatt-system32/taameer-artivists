@@ -145,6 +145,22 @@ export async function linkOrderToRegistration(registrationId: string, orderId: s
 export async function preRegisterUser(data: RegistrationData) {
   console.log("SERVER: preRegisterUser hit with email:", data.email);
 
+  // Reject registration if bookings are closed
+  const config = await getEventConfig();
+  const isBookingsClosed = (() => {
+    if (config?.bookings_closed === "true" || config?.bookings_closed === true) {
+      return true;
+    }
+    if (config?.bookings_closed === "false" || config?.bookings_closed === false) {
+      return false;
+    }
+    return new Date() >= new Date("2026-05-30T12:00:00+05:30");
+  })();
+
+  if (isBookingsClosed) {
+    throw new Error("Online bookings for Kumaon Fest 2026 are now closed.");
+  }
+
   // Clean up stale pending rows for this email before creating new ones.
   // Rows with no pending_order_id = user never reached payment, safe to delete.
   // Rows with a pending_order_id older than 1 hour = payment session expired.

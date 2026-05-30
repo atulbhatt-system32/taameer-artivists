@@ -201,6 +201,17 @@ export function BookingWizard({
 
   const isEarlyBird = dbConfig?.early_bird_active === "true" || dbConfig?.early_bird_active === true;
 
+  // Bookings automatically close at 1:00 PM today, or if closed in database config
+  const isBookingsClosed = (() => {
+    if (dbConfig?.bookings_closed === "true" || dbConfig?.bookings_closed === true) {
+      return true;
+    }
+    if (dbConfig?.bookings_closed === "false" || dbConfig?.bookings_closed === false) {
+      return false;
+    }
+    return new Date() >= new Date("2026-05-30T13:00:00+05:30");
+  })();
+
   const minPrice = tiers.length > 0
     ? (isEarlyBird 
         ? Math.min(...tiers.map(p => (p as any).earlyBirdPrice))
@@ -613,6 +624,93 @@ export function BookingWizard({
       </motion.div>
     </AnimatePresence>
   );
+
+  // Early return if bookings are closed
+  if (isBookingsClosed && step < 2) {
+    if (variant === "compact") {
+      return (
+        <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-6 shadow-2xl backdrop-blur-xl max-w-md w-full mx-auto">
+          <div className="text-center space-y-6 py-6">
+            <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto border border-red-500/20 text-red-500">
+              <Ticket className="w-8 h-8 rotate-[15deg]" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-white uppercase tracking-wider">Bookings Closed</h3>
+              <p className="text-xs text-gray-400 max-w-[250px] mx-auto leading-relaxed">
+                Online ticket bookings for Kumaon Fest 2026 are now officially closed.
+              </p>
+            </div>
+            <div className="pt-4 border-t border-gray-800/80 text-left space-y-3">
+              <p className="text-[11px] text-gray-500 leading-relaxed">
+                If you have already purchased a ticket, please check your registered email inbox. If you don't see it, check your <span className="font-bold text-gray-400">Spam, Junk, or Promotions</span> folders.
+              </p>
+              <div className="flex flex-col gap-2">
+                <a
+                  href="https://wa.me/917383876006"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full h-11 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
+                >
+                  💬 Contact Support
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-full">
+        <div className="text-center space-y-8 py-12 max-w-md mx-auto">
+          <div className="relative w-20 h-20 bg-yellow-500/10 rounded-3xl flex items-center justify-center mx-auto border border-yellow-500/20 text-yellow-500 shadow-2xl">
+            <Ticket className="w-10 h-10 rotate-[15deg]" />
+            <span className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 bg-red-500 text-[10px] font-black text-white rounded-full flex items-center justify-center border-2 border-gray-950">!</span>
+          </div>
+          <div className="space-y-3">
+            <span className="bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-black uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-full">
+              Ticket Sales Closed
+            </span>
+            <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-white pt-2">
+              Online Bookings <span className="text-yellow-500">Ended</span>
+            </h1>
+            <p className="text-gray-400 text-sm max-w-sm mx-auto leading-relaxed">
+              Thank you Haldwani for the incredible support! Ticket bookings for the Kumaon Fest 2026 are now officially closed.
+            </p>
+          </div>
+          
+          <div className="bg-gray-900/40 border border-gray-800/80 rounded-2xl p-6 text-left space-y-4 shadow-xl">
+            <div>
+              <h4 className="text-xs font-black uppercase tracking-wider text-white mb-1.5">Already purchased a ticket?</h4>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Your ticket was sent via email to your registered address. You can show the PDF or QR code at the entry gate.
+              </p>
+              <p className="text-xs text-yellow-500/80 mt-2 font-semibold">
+                ⚠️ Note: If you don't see it in your inbox, please make sure to check your <span className="font-bold underline">Spam, Promotions, or Junk</span> folders.
+              </p>
+            </div>
+            <div className="h-px bg-gray-800" />
+            <div className="flex flex-col sm:flex-row gap-3">
+              <a
+                href="https://wa.me/917383876006"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 h-11 bg-yellow-500 hover:bg-yellow-600 text-gray-950 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all"
+              >
+                💬 Contact Support
+              </a>
+              <a
+                href="/kumaon-fest"
+                className="flex-1 h-11 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-xs font-bold flex items-center justify-center transition-all"
+              >
+                Back to Festival
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (variant === "compact") {
     return (

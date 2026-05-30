@@ -49,6 +49,17 @@ export default function KumaonFestLandingPage() {
 
   const isEarlyBird = dbConfig?.early_bird_active === "true" || dbConfig?.early_bird_active === true;
 
+  // Bookings automatically close at 1:00 PM today, or if closed in database config
+  const isBookingsClosed = (() => {
+    if (dbConfig?.bookings_closed === "true" || dbConfig?.bookings_closed === true) {
+      return true;
+    }
+    if (dbConfig?.bookings_closed === "false" || dbConfig?.bookings_closed === false) {
+      return false;
+    }
+    return new Date() >= new Date("2026-05-30T12:00:00+05:30");
+  })();
+
   // Find the tier with the minimum price (guard against empty array while Supabase is loading)
   const minTier = tiers.length > 0 ? [...tiers].sort((a, b) => {
     const priceA = isEarlyBird ? (a as any).earlyBirdPrice : (a as any).regularPrice;
@@ -120,9 +131,15 @@ export default function KumaonFestLandingPage() {
 
             <Link href="/kumaon-fest/gallery/2024" className="hover:text-yellow-500 transition-colors">Gallery</Link>
           </div>
-          <Button asChild className="bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-xl px-6 h-11 shadow-lg shadow-yellow-500/20">
-            <Link href="/kumaon-fest/tickets">Book Tickets</Link>
-          </Button>
+          {isBookingsClosed ? (
+            <Button disabled className="bg-gray-800 text-gray-500 font-black rounded-xl px-6 h-11 cursor-not-allowed">
+              Bookings Closed
+            </Button>
+          ) : (
+            <Button asChild className="bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-xl px-6 h-11 shadow-lg shadow-yellow-500/20">
+              <Link href="/kumaon-fest/tickets">Book Tickets</Link>
+            </Button>
+          )}
         </div>
       </header>
 
@@ -160,14 +177,31 @@ export default function KumaonFestLandingPage() {
                 {hero.description}
               </p>
               
-              <div className="flex flex-wrap gap-4 mb-12">
-                <Button asChild size="lg" className="h-14 md:h-16 px-8 md:px-10 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-2xl text-base md:text-lg shadow-2xl shadow-yellow-500/30 group">
-                  <Link href="/kumaon-fest/tickets">
-                    {hero.buttons.primary.text} <Ticket className="w-5 h-5 ml-2 group-hover:rotate-12 transition-transform" />
-                  </Link>
-                </Button>
-
+              <div className="flex flex-wrap gap-4 mb-6">
+                {isBookingsClosed ? (
+                  <Button disabled size="lg" className="h-14 md:h-16 px-8 md:px-10 bg-gray-800 text-gray-500 font-black rounded-2xl text-base md:text-lg cursor-not-allowed">
+                    Bookings Closed <Ticket className="w-5 h-5 ml-2" />
+                  </Button>
+                ) : (
+                  <Button asChild size="lg" className="h-14 md:h-16 px-8 md:px-10 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-2xl text-base md:text-lg shadow-2xl shadow-yellow-500/30 group">
+                    <Link href="/kumaon-fest/tickets">
+                      {hero.buttons.primary.text} <Ticket className="w-5 h-5 ml-2 group-hover:rotate-12 transition-transform" />
+                    </Link>
+                  </Button>
+                )}
               </div>
+
+              {isBookingsClosed && (
+                <div className="mb-12 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 max-w-md">
+                  <p className="text-white text-sm font-semibold mb-1">Already booked a ticket?</p>
+                  <p className="text-gray-400 text-xs leading-relaxed">
+                    Your ticket was sent to your email. If you can&apos;t find it, check your{" "}
+                    <span className="text-yellow-400 font-semibold">Spam</span>,{" "}
+                    <span className="text-yellow-400 font-semibold">Junk</span>, or{" "}
+                    <span className="text-yellow-400 font-semibold">Promotions</span> folder.
+                  </p>
+                </div>
+              )}
 
               <div className="flex flex-wrap gap-8 items-center pt-8 border-t border-white/5">
                 {hero.details.map((detail, i) => (
@@ -398,11 +432,17 @@ export default function KumaonFestLandingPage() {
               {tickets.subtitle}
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button asChild size="lg" className="h-16 md:h-20 px-10 md:px-12 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-2xl text-xl md:text-2xl shadow-[0_20px_50px_rgba(234,179,8,0.3)] transition-all hover:scale-105 active:scale-95">
-                <Link href="/kumaon-fest/tickets" className="flex items-center gap-3">
-                  Book Now <ArrowRight className="w-6 h-6 md:w-7 md:h-7" />
-                </Link>
-              </Button>
+              {isBookingsClosed ? (
+                <Button disabled size="lg" className="h-16 md:h-20 px-10 md:px-12 bg-gray-800 text-gray-500 font-black rounded-2xl text-xl md:text-2xl cursor-not-allowed">
+                  Bookings Closed
+                </Button>
+              ) : (
+                <Button asChild size="lg" className="h-16 md:h-20 px-10 md:px-12 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-2xl text-xl md:text-2xl shadow-[0_20px_50px_rgba(234,179,8,0.3)] transition-all hover:scale-105 active:scale-95">
+                  <Link href="/kumaon-fest/tickets" className="flex items-center gap-3">
+                    Book Now <ArrowRight className="w-6 h-6 md:w-7 md:h-7" />
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         </section>
@@ -411,8 +451,8 @@ export default function KumaonFestLandingPage() {
       <motion.div 
         initial={{ y: 100, opacity: 0 }}
         animate={{ 
-          y: showSticky ? 0 : 100,
-          opacity: showSticky ? 1 : 0
+          y: (showSticky && !isBookingsClosed) ? 0 : 100,
+          opacity: (showSticky && !isBookingsClosed) ? 1 : 0
         }}
         transition={{ duration: 0.4, ease: "easeOut" }}
         className="fixed bottom-6 left-4 right-4 z-[100] flex justify-center"
