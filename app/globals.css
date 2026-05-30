@@ -112,6 +112,14 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+@keyframes scan-line {
+  0%, 100% { top: 15%; }
+  50% { top: 85%; }
+}
+.animate-scan-line {
+  animation: scan-line 2s ease-in-out infinite;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;

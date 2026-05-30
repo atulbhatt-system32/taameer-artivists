@@ -3,7 +3,7 @@
 import { use, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { CheckCircle2, XCircle, AlertTriangle, Camera, ChevronLeft, MapPin, Calendar } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Camera, ChevronLeft, MapPin, Calendar, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QRCodeSVG } from "qrcode.react";
 import { Html5Qrcode } from "html5-qrcode";
@@ -39,6 +39,10 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
   const [showScanner, setShowScanner] = useState(false);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
   const scanProcessingRef = useRef(false);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [zoomRange, setZoomRange] = useState<{ min: number; max: number; step: number } | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const videoTrackRef = useRef<MediaStreamTrack | null>(null);
 
   useEffect(() => {
     async function init() {
@@ -66,12 +70,23 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
     let html5QrCode: Html5Qrcode | null = null;
     if (showScanner) {
       scanProcessingRef.current = false;
+      setScanError(null);
       const startScanner = async () => {
         try {
-          html5QrCode = new Html5Qrcode("reader-verify");
+          html5QrCode = new Html5Qrcode("reader-verify", {
+            experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+          } as any);
           await html5QrCode.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 250, height: 250 } },
+            {
+              fps: 25,
+              qrbox: { width: 300, height: 300 },
+              videoConstraints: {
+                facingMode: "environment",
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+              },
+            } as any,
             async (decodedText) => {
               if (scanProcessingRef.current) return;
               scanProcessingRef.current = true;
@@ -89,6 +104,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                 window.location.replace(`/kumaon-fest/verify/${newId}`);
               } else {
                 scanProcessingRef.current = false;
+                setScanError("Invalid QR code — couldn't read a valid ticket.");
                 setShowScanner(false);
               }
             },
@@ -96,6 +112,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
           );
         } catch (err) {
           console.error(err);
+          setScanError("Camera access denied or unavailable.");
           setShowScanner(false);
         }
       };
@@ -106,6 +123,39 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
       if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop().catch(console.error);
     };
   }, [showScanner]);
+
+  useEffect(() => {
+    if (!showScanner) {
+      videoTrackRef.current = null;
+      setZoomRange(null);
+      setZoomLevel(1);
+      return;
+    }
+    let attempts = 0;
+    const poll = setInterval(() => {
+      attempts++;
+      const video = document.querySelector("#reader-verify video") as HTMLVideoElement | null;
+      if (video?.srcObject) {
+        clearInterval(poll);
+        const track = (video.srcObject as MediaStream).getVideoTracks()[0];
+        if (track) {
+          videoTrackRef.current = track;
+          const caps = track.getCapabilities() as any;
+          if (caps?.zoom) {
+            setZoomRange({ min: caps.zoom.min, max: caps.zoom.max, step: caps.zoom.step ?? 0.1 });
+            setZoomLevel(caps.zoom.min);
+          }
+        }
+      }
+      if (attempts > 30) clearInterval(poll);
+    }, 100);
+    return () => clearInterval(poll);
+  }, [showScanner]);
+
+  const handleZoom = (value: number) => {
+    setZoomLevel(value);
+    videoTrackRef.current?.applyConstraints({ advanced: [{ zoom: value } as any] });
+  };
 
   const handleCheckIn = async () => {
     setCheckInLoading(true);
@@ -353,9 +403,52 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
           >
             <div className="w-full max-w-sm aspect-square bg-black rounded-3xl border-2 border-yellow-500/50 overflow-hidden relative shadow-2xl">
               <div id="reader-verify" className="w-full h-full" />
+              {/* Corner brackets */}
+              <div className="absolute top-7 left-7 w-9 h-9 border-t-[3px] border-l-[3px] border-yellow-400 pointer-events-none" />
+              <div className="absolute top-7 right-7 w-9 h-9 border-t-[3px] border-r-[3px] border-yellow-400 pointer-events-none" />
+              <div className="absolute bottom-7 left-7 w-9 h-9 border-b-[3px] border-l-[3px] border-yellow-400 pointer-events-none" />
+              <div className="absolute bottom-7 right-7 w-9 h-9 border-b-[3px] border-r-[3px] border-yellow-400 pointer-events-none" />
+              {/* Sweep line */}
+              <div
+                className="absolute inset-x-7 h-0.5 bg-yellow-400/80 animate-scan-line pointer-events-none"
+                style={{ boxShadow: "0 0 8px 2px rgba(234,179,8,0.5)" }}
+              />
             </div>
-            <p className="mt-6 text-white font-black text-lg tracking-tight">Scanning...</p>
-            <Button onClick={() => setShowScanner(false)} className="mt-8 h-13 px-10 rounded-2xl bg-white text-black font-black">Cancel</Button>
+            <p className="mt-6 text-white font-black text-lg tracking-tight">Point camera at a ticket QR code</p>
+
+            {zoomRange && (
+              <div className="flex items-center gap-3 mt-4 w-full max-w-sm">
+                <ZoomOut className="w-5 h-5 text-yellow-500 shrink-0" />
+                <input
+                  type="range"
+                  min={zoomRange.min}
+                  max={zoomRange.max}
+                  step={zoomRange.step}
+                  value={zoomLevel}
+                  onChange={(e) => handleZoom(Number(e.target.value))}
+                  className="flex-1 accent-yellow-400 h-1.5 rounded-full"
+                />
+                <ZoomIn className="w-5 h-5 text-yellow-500 shrink-0" />
+              </div>
+            )}
+
+            <Button onClick={() => setShowScanner(false)} className="mt-6 h-13 px-10 rounded-2xl bg-white text-black font-black">Cancel</Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── SCAN ERROR TOAST ── */}
+      <AnimatePresence>
+        {scanError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            onAnimationComplete={() => setTimeout(() => setScanError(null), 3000)}
+            className="fixed bottom-6 inset-x-4 z-[115] flex items-center gap-3 bg-red-950 border border-red-500/40 rounded-2xl px-4 py-3 shadow-xl max-w-sm mx-auto"
+          >
+            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
+            <p className="text-red-300 font-black text-sm">{scanError}</p>
           </motion.div>
         )}
       </AnimatePresence>

@@ -19,7 +19,9 @@ import {
   EyeOff,
   Loader2,
   ChevronRight,
-  MailX
+  MailX,
+  ZoomIn,
+  ZoomOut
 } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import { supabase } from "@/lib/supabase";
@@ -83,6 +85,12 @@ export default function AdminPage() {
   const [isRecovering, setIsRecovering] = useState(false);
   const [selectedReg, setSelectedReg] = useState<Registration | null>(null);
   const scanProcessingRef = useRef(false);
+  const [scanStatus, setScanStatus] = useState<null | "loading" | "success" | "error">(null);
+  const [scanMessage, setScanMessage] = useState("");
+  const scanCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [zoomRange, setZoomRange] = useState<{ min: number; max: number; step: number } | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const videoTrackRef = useRef<MediaStreamTrack | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -225,25 +233,40 @@ export default function AdminPage() {
     let scanner: Html5Qrcode | null = null;
     if (showScanner) {
       scanProcessingRef.current = false;
-      scanner = new Html5Qrcode("admin-reader");
+      setScanStatus(null);
+      setScanMessage("");
+      if (scanCloseTimerRef.current) clearTimeout(scanCloseTimerRef.current);
+
+      // useBarCodeDetectorIfSupported: uses the native browser BarcodeDetector API on
+      // Chrome/Edge/Android where available — far more reliable than the WASM fallback.
+      scanner = new Html5Qrcode("admin-reader", {
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+      } as any);
+
       scanner.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
+        {
+          fps: 25,
+          qrbox: { width: 300, height: 300 },
+          videoConstraints: {
+            facingMode: "environment",
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+        } as any,
         async (decodedText) => {
-          // Guard: prevent duplicate processing from rapid callbacks
           if (scanProcessingRef.current) return;
           scanProcessingRef.current = true;
 
-          // Stop scanner immediately to prevent further callbacks
           try {
-            if (scanner && scanner.isScanning) {
-              await scanner.stop();
-            }
+            if (scanner && scanner.isScanning) await scanner.stop();
           } catch (e) {
             console.error("Scanner stop error:", e);
           }
 
-          // Extract ID from URL, handling trailing slashes
+          setScanStatus("loading");
+          setScanMessage("Checking ticket…");
+
           let id = "";
           try {
             const url = new URL(decodedText);
@@ -253,9 +276,15 @@ export default function AdminPage() {
             id = decodedText.trim();
           }
 
+          const scheduleClose = (ms: number) => {
+            scanCloseTimerRef.current = setTimeout(() => {
+              setShowScanner(false);
+              setScanStatus(null);
+            }, ms);
+          };
+
           if (id && id.length > 10) {
             try {
-              // Fetch the ticket first to check if it's already used
               const { data: existingTicket, error: fetchError } = await supabase
                 .from("registrations")
                 .select("checked_in_at, full_name")
@@ -263,14 +292,13 @@ export default function AdminPage() {
                 .single();
 
               if (fetchError || !existingTicket) {
-                throw new Error("Ticket not found in the database.");
+                throw new Error("Ticket not found.");
               }
 
               if (existingTicket.checked_in_at) {
-                throw new Error(`TICKET ALREADY USED! Scanned previously at ${new Date(existingTicket.checked_in_at).toLocaleTimeString()}`);
+                throw new Error(`Already checked in at ${new Date(existingTicket.checked_in_at).toLocaleTimeString()}`);
               }
 
-              // If not used, proceed to check-in
               const { data, error: updateError } = await supabase
                 .from("registrations")
                 .update({ checked_in_at: new Date().toISOString() })
@@ -278,24 +306,26 @@ export default function AdminPage() {
                 .select("full_name, pass_type, quantity, checked_in_at")
                 .single();
 
-              if (updateError) {
-                throw new Error(updateError.message);
-              }
+              if (updateError) throw new Error(updateError.message);
 
-              setNotification({ 
-                type: "success", 
-                message: `✅ ${data.full_name} checked in — ${data.pass_type} (x${data.quantity})` 
-              });
+              setScanStatus("success");
+              setScanMessage(`${data.full_name}\n${data.pass_type} · x${data.quantity}`);
+              setNotification({ type: "success", message: `✅ ${data.full_name} checked in — ${data.pass_type} (x${data.quantity})` });
               fetchData();
+              scheduleClose(2200);
             } catch (err: unknown) {
               const error = err as Error;
+              setScanStatus("error");
+              setScanMessage(error.message);
               setNotification({ type: "error", message: `Scan failed: ${error.message}` });
+              scheduleClose(2800);
             }
           } else {
-            setNotification({ type: "error", message: `Invalid QR code — could not extract ticket ID. Scanned: "${decodedText.slice(0, 50)}"` });
+            setScanStatus("error");
+            setScanMessage("Invalid QR code");
+            setNotification({ type: "error", message: `Invalid QR code — could not extract ticket ID.` });
+            scheduleClose(2800);
           }
-
-          setShowScanner(false);
         },
         () => {}
       ).catch((err) => {
@@ -306,11 +336,44 @@ export default function AdminPage() {
     }
     return () => {
       scanProcessingRef.current = false;
-      if (scanner && scanner.isScanning) {
-        scanner.stop().catch(console.error);
-      }
+      if (scanCloseTimerRef.current) clearTimeout(scanCloseTimerRef.current);
+      if (scanner && scanner.isScanning) scanner.stop().catch(console.error);
     };
   }, [showScanner]);
+
+  // Detect zoom capability from the camera track once the scanner has initialised
+  useEffect(() => {
+    if (!showScanner) {
+      videoTrackRef.current = null;
+      setZoomRange(null);
+      setZoomLevel(1);
+      return;
+    }
+    let attempts = 0;
+    const poll = setInterval(() => {
+      attempts++;
+      const video = document.querySelector("#admin-reader video") as HTMLVideoElement | null;
+      if (video?.srcObject) {
+        clearInterval(poll);
+        const track = (video.srcObject as MediaStream).getVideoTracks()[0];
+        if (track) {
+          videoTrackRef.current = track;
+          const caps = track.getCapabilities() as any;
+          if (caps?.zoom) {
+            setZoomRange({ min: caps.zoom.min, max: caps.zoom.max, step: caps.zoom.step ?? 0.1 });
+            setZoomLevel(caps.zoom.min);
+          }
+        }
+      }
+      if (attempts > 30) clearInterval(poll);
+    }, 100);
+    return () => clearInterval(poll);
+  }, [showScanner]);
+
+  const handleZoom = (value: number) => {
+    setZoomLevel(value);
+    videoTrackRef.current?.applyConstraints({ advanced: [{ zoom: value } as any] });
+  };
 
   // Early bird window from Supabase config
   const ebStart = dbConfig?.early_bird_start ? new Date(dbConfig.early_bird_start) : null;
@@ -858,10 +921,82 @@ export default function AdminPage() {
           >
             <div className="relative w-full max-w-sm aspect-square bg-black rounded-[2.5rem] border-2 border-yellow-500/60 overflow-hidden shadow-2xl shadow-yellow-500/20">
               <div id="admin-reader" className="w-full h-full" />
-              <div className="absolute inset-0 border-8 border-black/40 pointer-events-none" />
+
+              {/* Scanning guide — hidden once a result is in */}
+              {!scanStatus && (
+                <>
+                  {/* Corner brackets */}
+                  <div className="absolute top-7 left-7 w-9 h-9 border-t-[3px] border-l-[3px] border-yellow-400 pointer-events-none" />
+                  <div className="absolute top-7 right-7 w-9 h-9 border-t-[3px] border-r-[3px] border-yellow-400 pointer-events-none" />
+                  <div className="absolute bottom-7 left-7 w-9 h-9 border-b-[3px] border-l-[3px] border-yellow-400 pointer-events-none" />
+                  <div className="absolute bottom-7 right-7 w-9 h-9 border-b-[3px] border-r-[3px] border-yellow-400 pointer-events-none" />
+                  {/* Sweep line */}
+                  <div
+                    className="absolute inset-x-7 h-0.5 bg-yellow-400/80 animate-scan-line pointer-events-none"
+                    style={{ boxShadow: "0 0 8px 2px rgba(234,179,8,0.5)" }}
+                  />
+                </>
+              )}
+
+              {/* Result overlay */}
+              <AnimatePresence>
+                {scanStatus && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className={`absolute inset-0 flex flex-col items-center justify-center gap-4 px-8 ${
+                      scanStatus === "success" ? "bg-green-950/95" :
+                      scanStatus === "error"   ? "bg-red-950/95"   :
+                      "bg-black/85"
+                    }`}
+                  >
+                    {scanStatus === "loading" && (
+                      <>
+                        <Loader2 className="w-14 h-14 text-yellow-400 animate-spin" />
+                        <p className="text-yellow-400 font-black text-base tracking-tight">Checking…</p>
+                      </>
+                    )}
+                    {scanStatus === "success" && (
+                      <>
+                        <CheckCircle2 className="w-16 h-16 text-green-400" />
+                        <p className="text-green-300 font-black text-lg text-center tracking-tight whitespace-pre-line">{scanMessage}</p>
+                      </>
+                    )}
+                    {scanStatus === "error" && (
+                      <>
+                        <AlertCircle className="w-16 h-16 text-red-400" />
+                        <p className="text-red-300 font-black text-sm text-center tracking-tight">{scanMessage}</p>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            <p className="mt-6 text-xl font-black text-yellow-500 animate-pulse tracking-tight">Scanning Ticket...</p>
-            <Button onClick={() => setShowScanner(false)} className="mt-8 h-14 px-10 rounded-2xl bg-white text-black font-black text-base">Cancel</Button>
+
+            {!scanStatus && (
+              <>
+                <p className="mt-6 text-lg font-black text-yellow-500 tracking-tight">Point camera at a ticket QR code</p>
+
+                {/* Zoom slider — only shown when the device supports camera zoom */}
+                {zoomRange && (
+                  <div className="flex items-center gap-3 mt-4 w-full max-w-sm">
+                    <ZoomOut className="w-5 h-5 text-yellow-500 shrink-0" />
+                    <input
+                      type="range"
+                      min={zoomRange.min}
+                      max={zoomRange.max}
+                      step={zoomRange.step}
+                      value={zoomLevel}
+                      onChange={(e) => handleZoom(Number(e.target.value))}
+                      className="flex-1 accent-yellow-400 h-1.5 rounded-full"
+                    />
+                    <ZoomIn className="w-5 h-5 text-yellow-500 shrink-0" />
+                  </div>
+                )}
+
+                <Button onClick={() => setShowScanner(false)} className="mt-6 h-14 px-10 rounded-2xl bg-white text-black font-black text-base">Cancel</Button>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

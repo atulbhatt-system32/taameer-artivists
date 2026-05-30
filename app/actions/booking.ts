@@ -436,8 +436,12 @@ export async function sendCheckInEmail(id: string) {
     auth: { user: smtpUser, pass: smtpPass },
   });
 
-  const checkedInAt = ticket.checked_in_at
-    ? new Date(ticket.checked_in_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })
+  const checkedInDate = ticket.checked_in_at ? new Date(ticket.checked_in_at) : null;
+  const checkedInAt = checkedInDate
+    ? checkedInDate.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata" })
+    : "";
+  const checkedInDay = checkedInDate
+    ? checkedInDate.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" })
     : "";
 
   try {
@@ -485,7 +489,7 @@ export async function sendCheckInEmail(id: string) {
                             <tr>
                               <td style="padding-top:16px;">
                                 <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:4px;">Entry Time</span>
-                                <span style="font-size:17px;font-weight:800;color:#16a34a;">${checkedInAt} · 30 May 2026</span>
+                                <span style="font-size:17px;font-weight:800;color:#16a34a;">${checkedInAt} · ${checkedInDay}</span>
                               </td>
                             </tr>
                           </table>
