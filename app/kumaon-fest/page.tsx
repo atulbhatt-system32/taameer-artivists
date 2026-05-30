@@ -50,15 +50,7 @@ export default function KumaonFestLandingPage() {
   const isEarlyBird = dbConfig?.early_bird_active === "true" || dbConfig?.early_bird_active === true;
 
   // Bookings automatically close at 1:00 PM today, or if closed in database config
-  const isBookingsClosed = (() => {
-    if (dbConfig?.bookings_closed === "true" || dbConfig?.bookings_closed === true) {
-      return true;
-    }
-    if (dbConfig?.bookings_closed === "false" || dbConfig?.bookings_closed === false) {
-      return false;
-    }
-    return new Date() >= new Date("2026-05-30T12:00:00+05:30");
-  })();
+  const isBookingsClosed = dbConfig?.bookings_closed === "true" || dbConfig?.bookings_closed === true;
 
   // Find the tier with the minimum price (guard against empty array while Supabase is loading)
   const minTier = tiers.length > 0 ? [...tiers].sort((a, b) => {

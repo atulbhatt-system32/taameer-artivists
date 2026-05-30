@@ -10,16 +10,11 @@ import { motion } from "framer-motion";
 
 export default function TicketsPage() {
   const [step, setStep] = useState(0);
-  // Default to date check immediately — no flash of the booking form
-  const [bookingsClosed, setBookingsClosed] = useState(
-    () => new Date() >= new Date("2026-05-30T12:00:00+05:30")
-  );
+  const [bookingsClosed, setBookingsClosed] = useState(false);
 
   useEffect(() => {
     getEventConfig().then((config) => {
-      const closedFlag = config?.bookings_closed === "true" || config?.bookings_closed === true;
-      const pastDeadline = new Date() >= new Date("2026-05-30T12:00:00+05:30");
-      setBookingsClosed(closedFlag || pastDeadline);
+      setBookingsClosed(config?.bookings_closed === "true" || config?.bookings_closed === true);
     }).catch(() => {});
   }, []);
 

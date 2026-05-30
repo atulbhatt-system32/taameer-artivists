@@ -147,15 +147,7 @@ export async function preRegisterUser(data: RegistrationData) {
 
   // Reject registration if bookings are closed
   const config = await getEventConfig();
-  const isBookingsClosed = (() => {
-    if (config?.bookings_closed === "true" || config?.bookings_closed === true) {
-      return true;
-    }
-    if (config?.bookings_closed === "false" || config?.bookings_closed === false) {
-      return false;
-    }
-    return new Date() >= new Date("2026-05-30T12:00:00+05:30");
-  })();
+  const isBookingsClosed = config?.bookings_closed === "true" || config?.bookings_closed === true;
 
   if (isBookingsClosed) {
     throw new Error("Online bookings for Kumaon Fest 2026 are now closed.");
