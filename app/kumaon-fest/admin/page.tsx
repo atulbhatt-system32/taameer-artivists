@@ -44,6 +44,7 @@ interface Registration {
   pass_type: string;
   quantity: number;
   payment_id: string;
+  order_id?: string;
   payment_status: string;
   checked_in_at: string | null;
   created_at: string;
@@ -147,16 +148,54 @@ export default function AdminPage() {
 
   const handleExportCSV = () => {
     if (registrations.length === 0) return;
-    const headers = ["Name", "Email", "Pass", "Qty", "Payment ID", "Status", "Date"];
-    const rows = filtered.map(reg => [
-      reg.full_name,
-      reg.email,
-      reg.pass_type,
-      reg.quantity,
-      reg.payment_id,
-      reg.checked_in_at ? "Entered" : reg.payment_status,
-      new Date(reg.created_at).toLocaleDateString()
-    ]);
+    const headers = ["S.No", "Name", "Email", "WhatsApp", "Pass", "Group Size", "Amount Paid (INR)", "Order ID", "Payment ID", "Status", "Booked On"];
+    const rows: (string | number)[][] = [];
+    let serial = 0;
+
+    for (const reg of filtered) {
+      const groupSize = reg._groupSize ?? reg.quantity ?? 1;
+      const amountPaid = reg.payment_status === "paid" ? getTotalPaid(reg) : "";
+      const orderId = reg.order_id || "";
+      const paymentId = reg.payment_id || "";
+      const date = new Date(reg.created_at).toLocaleDateString("en-IN");
+      const status = (checked: string | null, payStatus: string) =>
+        checked ? "Entered" : payStatus;
+
+      // Lead buyer row
+      rows.push([
+        ++serial,
+        `"${reg.full_name}"`,
+        reg.email,
+        reg.whatsapp_no || reg.contact_no || "",
+        reg.pass_type,
+        groupSize,
+        amountPaid,
+        orderId,
+        paymentId,
+        status(reg.checked_in_at, reg.payment_status),
+        date,
+      ]);
+
+      // Group member rows — same booking, individual check-in status
+      if (reg._groupMembers?.length) {
+        for (const member of reg._groupMembers) {
+          rows.push([
+            ++serial,
+            `"${member.full_name}"`,
+            "",
+            "",
+            reg.pass_type,
+            "",
+            "",
+            orderId,
+            paymentId,
+            status(member.checked_in_at, reg.payment_status),
+            date,
+          ]);
+        }
+      }
+    }
+
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
