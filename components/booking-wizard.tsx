@@ -201,16 +201,7 @@ export function BookingWizard({
 
   const isEarlyBird = dbConfig?.early_bird_active === "true" || dbConfig?.early_bird_active === true;
 
-  // Bookings automatically close at 1:00 PM today, or if closed in database config
-  const isBookingsClosed = (() => {
-    if (dbConfig?.bookings_closed === "true" || dbConfig?.bookings_closed === true) {
-      return true;
-    }
-    if (dbConfig?.bookings_closed === "false" || dbConfig?.bookings_closed === false) {
-      return false;
-    }
-    return new Date() >= new Date("2026-05-30T13:00:00+05:30");
-  })();
+  const isBookingsClosed = dbConfig?.bookings_closed === "true" || dbConfig?.bookings_closed === true;
 
   const minPrice = tiers.length > 0
     ? (isEarlyBird 

@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    staleTimes: {
+      dynamic: 0,
+    },
+  },
   // output: 'export', // Removed to support Server Actions and dynamic routes
   async redirects() {
     return [
