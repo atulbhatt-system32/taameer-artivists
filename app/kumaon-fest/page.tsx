@@ -448,49 +448,47 @@ export default function KumaonFestLandingPage() {
         </section>
       </main>
 
-      <motion.div 
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ 
-          y: (showSticky && !isBookingsClosed) ? 0 : 100,
-          opacity: (showSticky && !isBookingsClosed) ? 1 : 0
-        }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="fixed bottom-6 left-4 right-4 z-[100] flex justify-center"
-      >
-        <div className="w-full max-w-lg bg-gray-950/80 backdrop-blur-2xl border border-white/10 rounded-full p-2 pl-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-between gap-4 overflow-hidden">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2 mb-0.5">
-              {isEarlyBird ? (
-                <>
-                  <span className="text-gray-500 text-[10px] line-through font-bold">₹{originalPrice}</span>
-                  {earlyBirdBadgeText && <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">{earlyBirdBadgeText}</span>}
-                </>
-              ) : (
-                bookingOpenBadgeText && <span className="text-yellow-500 text-[9px] font-black uppercase tracking-[0.15em] bg-yellow-500/10 px-2 py-0.5 rounded-full">{bookingOpenBadgeText}</span>
-              )}
-            </div>
-            <div className="text-white text-2xl font-black tracking-tighter leading-none flex items-baseline gap-1">
-              ₹{minPrice}<span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider ml-0.5">onwards</span>
-            </div>
-            {isEarlyBird && earlyBirdEnd ? (
-              <div className="text-[9px] text-red-400 font-bold mt-0.5 tracking-wide">
-                🔥 Ends {earlyBirdEnd}
+      {!isBookingsClosed && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: showSticky ? 0 : 100, opacity: showSticky ? 1 : 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="fixed bottom-6 left-4 right-4 z-[100] flex justify-center"
+        >
+          <div className="w-full max-w-lg bg-gray-950/80 backdrop-blur-2xl border border-white/10 rounded-full p-2 pl-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-between gap-4 overflow-hidden">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2 mb-0.5">
+                {isEarlyBird ? (
+                  <>
+                    <span className="text-gray-500 text-[10px] line-through font-bold">₹{originalPrice}</span>
+                    {earlyBirdBadgeText && <span className="text-red-500 text-[9px] font-black uppercase tracking-[0.15em] bg-red-500/10 px-2 py-0.5 rounded-full">{earlyBirdBadgeText}</span>}
+                  </>
+                ) : (
+                  bookingOpenBadgeText && <span className="text-yellow-500 text-[9px] font-black uppercase tracking-[0.15em] bg-yellow-500/10 px-2 py-0.5 rounded-full">{bookingOpenBadgeText}</span>
+                )}
               </div>
-            ) : (!isEarlyBird && earlyBirdStart && earlyBirdEnd) ? (
-              <div className="text-[9px] text-gray-500 font-bold mt-0.5 tracking-wide">
-                Early Bird: {earlyBirdStart} → {earlyBirdEnd}
+              <div className="text-white text-2xl font-black tracking-tighter leading-none flex items-baseline gap-1">
+                ₹{minPrice}<span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider ml-0.5">onwards</span>
               </div>
-            ) : null}
+              {isEarlyBird && earlyBirdEnd ? (
+                <div className="text-[9px] text-red-400 font-bold mt-0.5 tracking-wide">
+                  🔥 Ends {earlyBirdEnd}
+                </div>
+              ) : (!isEarlyBird && earlyBirdStart && earlyBirdEnd) ? (
+                <div className="text-[9px] text-gray-500 font-bold mt-0.5 tracking-wide">
+                  Early Bird: {earlyBirdStart} → {earlyBirdEnd}
+                </div>
+              ) : null}
+            </div>
+            <Button asChild className="h-12 md:h-14 px-6 md:px-8 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-full text-sm md:text-base shadow-lg shadow-yellow-500/20 group transition-all active:scale-95 shrink-0">
+              <Link href="/kumaon-fest/tickets" className="flex items-center gap-2">
+                <span>Book Now</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
           </div>
-          
-          <Button asChild className="h-12 md:h-14 px-6 md:px-8 bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-black rounded-full text-sm md:text-base shadow-lg shadow-yellow-500/20 group transition-all active:scale-95 shrink-0">
-            <Link href="/kumaon-fest/tickets" className="flex items-center gap-2">
-              <span>Book Now</span> 
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </Button>
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
 
       <footer className="bg-gray-950 border-t border-white/5 py-20 pb-40 lg:pb-20">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-10">
