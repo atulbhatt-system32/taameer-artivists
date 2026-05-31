@@ -535,10 +535,14 @@ export default function AdminPage() {
 
   const filtered = displayRegistrations.filter(reg => {
     const searchLower = searchTerm.toLowerCase();
-    const matchesSearch = 
+    const matchesGroupMember = reg._groupMembers?.some(m =>
+      (m.full_name?.toLowerCase() || "").includes(searchLower)
+    ) ?? false;
+    const matchesSearch =
       (reg.full_name?.toLowerCase() || "").includes(searchLower) ||
       (reg.email?.toLowerCase() || "").includes(searchLower) ||
-      (reg.payment_id?.toLowerCase() || "").includes(searchLower);
+      (reg.payment_id?.toLowerCase() || "").includes(searchLower) ||
+      matchesGroupMember;
     const matchesFilter = filterPass === "All" || reg.pass_type === filterPass;
     return matchesSearch && matchesFilter;
   });
