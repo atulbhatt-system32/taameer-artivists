@@ -21,7 +21,8 @@ import {
   ChevronRight,
   MailX,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  RotateCcw
 } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import { supabase } from "@/lib/supabase";
@@ -84,6 +85,7 @@ export default function AdminPage() {
   const [recoveryOrderId, setRecoveryOrderId] = useState("");
   const [isRecovering, setIsRecovering] = useState(false);
   const [selectedReg, setSelectedReg] = useState<Registration | null>(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const scanProcessingRef = useRef(false);
   const [scanStatus, setScanStatus] = useState<null | "loading" | "success" | "error">(null);
   const [scanMessage, setScanMessage] = useState("");
@@ -403,6 +405,20 @@ export default function AdminPage() {
   const handleZoom = (value: number) => {
     setZoomLevel(value);
     videoTrackRef.current?.applyConstraints({ advanced: [{ zoom: value } as any] });
+  };
+
+  const handleResetAllCheckIns = async () => {
+    const { error } = await supabase
+      .from("registrations")
+      .update({ checked_in_at: null })
+      .not("checked_in_at", "is", null);
+    setShowResetConfirm(false);
+    if (!error) {
+      fetchData();
+      setNotification({ type: "success", message: "All check-ins have been reset." });
+    } else {
+      setNotification({ type: "error", message: "Failed to reset check-ins." });
+    }
   };
 
   const handleGroupMemberCheckIn = async (memberId: string) => {
@@ -747,6 +763,9 @@ export default function AdminPage() {
                             </span>
                           )}
                         </div>
+                        <div className="text-[10px] text-gray-600 mt-0.5">
+                          {new Date(reg.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata" })}
+                        </div>
                         {hasGroup && (
                           <div className="text-[10px] text-gray-600 mt-0.5 font-medium">+{groupMembers.length} members below</div>
                         )}
@@ -858,6 +877,9 @@ export default function AdminPage() {
                             <MailX className="w-2.5 h-2.5" /> Ticket Not Sent
                           </span>
                         )}
+                      </div>
+                      <div className="text-[10px] text-gray-600 mt-0.5">
+                        {new Date(reg.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata" })}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -1165,6 +1187,43 @@ export default function AdminPage() {
               </>
             )}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── RESET ALL CHECK-INS CONFIRMATION ── */}
+      <AnimatePresence>
+        {showResetConfirm && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-md"
+              onClick={() => setShowResetConfirm(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed inset-x-4 bottom-6 z-[110] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-[400px] bg-gray-900 border border-red-500/30 rounded-3xl p-6 shadow-2xl"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-4 mx-auto">
+                <RotateCcw className="w-6 h-6 text-red-500" />
+              </div>
+              <h3 className="text-xl font-black text-center mb-1">Reset All Check-Ins?</h3>
+              <p className="text-gray-400 text-center text-sm mb-6">
+                This will clear the entry status for every attendee. This cannot be undone.
+              </p>
+              <div className="flex flex-col gap-2">
+                <Button onClick={handleResetAllCheckIns} className="h-12 rounded-xl font-black bg-red-600 hover:bg-red-700 text-white">
+                  Yes, Reset Everything
+                </Button>
+                <Button variant="ghost" onClick={() => setShowResetConfirm(false)} className="h-12 rounded-xl font-black text-gray-400">
+                  Cancel
+                </Button>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>
